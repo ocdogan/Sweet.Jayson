@@ -23,6 +23,7 @@ namespace Jayson
 
 		public readonly string NumberFormat;
 		public readonly string DateTimeFormat;
+		public readonly string DateTimeOffsetFormat;
 		public readonly string TimeSpanFormat;
 		public readonly bool ConvertDecimalToDouble;
 		public readonly bool UseEnumNames;
@@ -36,12 +37,12 @@ namespace Jayson
 
 		public JaysonFormatter()
 			: this(null, null, JaysonDateFormatType.Iso8601, null, JaysonDateTimeZoneType.KeepAsIs,
-				false, true, false, false)
+				null, false, true, false, false)
 		{ }
 
 		public JaysonFormatter(string numberFormat, string timeSpanFormat, JaysonDateFormatType dateFormatType, 
-			string dateTimeFormat, JaysonDateTimeZoneType dateTimeZoneType, bool useEnumNames, bool escapeChars, 
-			bool escapeUnicodeChars, bool convertDecimalToDouble)
+			string dateTimeFormat, JaysonDateTimeZoneType dateTimeZoneType, string dateTimeOffsetFormat,
+			bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, bool convertDecimalToDouble)
 		{
 			UseEnumNames = useEnumNames;
 			EscapeChars = escapeChars;
@@ -49,12 +50,14 @@ namespace Jayson
 			ConvertDecimalToDouble = convertDecimalToDouble;
 			DateFormatType = dateFormatType;
 			DateTimeZoneType = dateTimeZoneType;
+			DateTimeOffsetFormat = dateTimeOffsetFormat;
 
 			NumberFormat = ((numberFormat != null && numberFormat.Length > 0) ? numberFormat : "G");
-			TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat : "HH:mm:ss");
+			TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat : 
+				JaysonConstants.TimeSpanDefaultFormat);
 			DateTimeFormat = ((dateTimeFormat != null && dateTimeFormat.Length > 0) ? dateTimeFormat : 
-				(dateFormatType == JaysonDateFormatType.CustomUnixEpoch ?  "\\/Date({0})\\/" :
-					"yyyy-MM-ddTHH:mm%K"));
+				(dateFormatType == JaysonDateFormatType.CustomUnixEpoch ?  JaysonConstants.DateMicrosoftJsonFormat :
+					JaysonConstants.DateIso8601Format));
 		}
 
 		# region Instance Methods
@@ -89,11 +92,13 @@ namespace Jayson
 			case JaysonDateTimeZoneType.ConvertToUtc:
 				if (kind != DateTimeKind.Utc) {
 					dt = JaysonCommon.ToUniversalTime (dt);
+					kind = dt.Kind;
 				}
 				break;
 			case JaysonDateTimeZoneType.ConvertToLocal:
 				if (kind == DateTimeKind.Utc) {
 					dt = JaysonCommon.ToLocalTime (dt);
+					kind = dt.Kind;
 				}
 				break;
 			default:
@@ -105,9 +110,9 @@ namespace Jayson
 				{
 					char[] chArr;
 					if (kind == DateTimeKind.Utc) {
-						chArr = new char[19];
+						chArr = new char[22];
 					} else {
-						chArr = new char[23];
+						chArr = new char[26];
 					}
 
 					int index = 0;
@@ -130,6 +135,10 @@ namespace Jayson
 
 					chArr[index++] = ':';
 					WriteDatePart (chArr, dt.Minute, index, 2);
+					index += 2;
+
+					chArr[index++] = ':';
+					WriteDatePart (chArr, dt.Second, index, 2);
 					index += 2;
 
 					if (kind == DateTimeKind.Utc) {
@@ -221,6 +230,171 @@ namespace Jayson
 			case JaysonDateFormatType.CustomDate:
 				{
 					FormatString(dt.ToString(DateTimeFormat, FormatingCulture), builder, EscapeChars,
+						EscapeUnicodeChars);
+				}
+				break;
+			case JaysonDateFormatType.CustomUnixEpoch:
+				{
+					long epoc = JaysonCommon.ToUnixTimeMsec(dt);
+
+					FormatString (epoc.ToString (DateTimeFormat, FormatingCulture), builder, EscapeChars,
+						EscapeUnicodeChars);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		public void Format(DateTimeOffset dto, StringBuilder builder)
+		{
+			DateTime dt = dto.DateTime;
+			DateTimeKind kind = dt.Kind;
+
+			switch (DateTimeZoneType) {
+			case JaysonDateTimeZoneType.KeepAsIs:
+				break;
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				if (kind != DateTimeKind.Utc) {
+					dto = dto.ToUniversalTime ();
+					dt = dto.DateTime;
+					kind = dt.Kind;
+				}
+				break;
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				if (kind == DateTimeKind.Utc) {
+					dto = dto.ToLocalTime ();
+					dt = dto.DateTime;
+					kind = dt.Kind;
+				}
+				break;
+			}
+
+			switch (DateFormatType) {
+			case JaysonDateFormatType.Iso8601:
+				{
+					char[] chArr;
+					if (kind == DateTimeKind.Utc) {
+						chArr = new char[19];
+					} else {
+						chArr = new char[23];
+					}
+
+					int index = 0;
+					chArr[index++] = '"';
+
+					WriteDatePart (chArr, dt.Year, index, 4);
+					index += 4;
+
+					chArr[index++] = '-';
+					WriteDatePart (chArr, dt.Month, index, 2);
+					index += 2;
+
+					chArr[index++] = '-';
+					WriteDatePart (chArr, dt.Day, index, 2);
+					index += 2;
+
+					chArr[index++] = 'T';
+					WriteDatePart (chArr, dt.Hour, index, 2);
+					index += 2;
+
+					chArr[index++] = ':';
+					WriteDatePart (chArr, dt.Minute, index, 2);
+					index += 2;
+
+					if (kind == DateTimeKind.Utc) {
+						chArr [index++] = 'Z';
+					} else {
+						TimeSpan tz = dto.Offset;
+						if (tz.Ticks != 0L) {
+							chArr [index++] = tz.Ticks > 0 ? '+' : '-';
+
+							WriteDatePart (chArr, tz.Hours, index, 2);
+							index += 2;
+
+							WriteDatePart (chArr, tz.Minutes, index, 2);
+							index += 2;
+						}
+					}
+
+					chArr[index++] = '"';
+
+					builder.Append (chArr, 0, index);
+				}
+				break;
+			case JaysonDateFormatType.JScript:
+			case JaysonDateFormatType.Microsoft:
+				{
+					long epoc = JaysonCommon.ToUnixTimeMsec(dt);
+
+					if (epoc <= 0L) {
+						if (DateFormatType == JaysonDateFormatType.Microsoft) {
+							builder.Append ("\"/Date(0)/\"");
+						} else {
+							builder.Append ("new Date(0)");
+						}
+					} else {
+						int index = 24;
+						char[] chArr = new char[24];
+
+						if (kind != DateTimeKind.Utc) {
+							TimeSpan tz = dto.Offset;
+							if (tz.Ticks != 0L) {
+								index -= 2;
+								WriteDatePart (chArr, tz.Minutes, index, 2);
+
+								index -= 2;
+								WriteDatePart (chArr, tz.Hours, index, 2);
+
+								chArr [--index] = tz.Ticks > 0 ? '+' : '-';
+							}
+						}
+
+						int mod;
+						while (epoc > 0L) {
+							mod = (int)(epoc % 10);
+							epoc = epoc / 10;
+
+							chArr [--index] = (char)('0' + mod);
+						}
+
+						if (DateFormatType == JaysonDateFormatType.Microsoft) {
+							builder.Append ("\"/Date(");
+							builder.Append (chArr, index, 24 - index);
+							builder.Append (")/\"");
+						} else {
+							builder.Append ("new Date(");
+							builder.Append (chArr, index, 24 - index);
+							builder.Append (')');
+						}
+					}
+				}
+				break;
+			case JaysonDateFormatType.UnixEpoch:
+				{
+					if (kind != DateTimeKind.Utc) {
+						dt = dto.UtcDateTime;
+					}
+
+					long epoc = JaysonCommon.ToUnixTimeMsec(dt);
+
+					int index = 20;
+					char[] chArr = new char[20];
+
+					int mod;
+					while (epoc > 0L) {
+						mod = (int)(epoc % 10);
+						epoc = epoc / 10;
+
+						chArr [--index] = (char)('0' + mod);
+					}
+
+					builder.Append (chArr, index, 20 - index);
+				}
+				break;
+			case JaysonDateFormatType.CustomDate:
+				{
+					FormatString(dto.ToString(DateTimeOffsetFormat, FormatingCulture), builder, EscapeChars,
 						EscapeUnicodeChars);
 				}
 				break;
@@ -463,12 +637,12 @@ namespace Jayson
 				}
 			case JaysonTypeCode.DateTimeOffset:
 				{
-					builder.Append(((DateTimeOffset)obj).ToString(FormatingCulture));
+					Format((DateTimeOffset)obj, builder);
 					break;
 				}
 			case JaysonTypeCode.DateTimeOffsetNullable:
 				{
-					builder.Append(((DateTimeOffset?)obj).Value.ToString(FormatingCulture));
+					Format(((DateTimeOffset?)obj).Value, builder);
 					break;
 				}
 			default:

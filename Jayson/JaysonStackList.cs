@@ -41,6 +41,8 @@ namespace Jayson
 		private int m_FrameCount = FrameLength;
 		private int m_FrameCountMin1 = FrameLength - 1;
 
+        private readonly object m_SyncRoot = new object();
+
 		private Frame[] m_Frames = new Frame[FrameLength] { new Frame() };
 
 		private JaysonStackList()
@@ -48,13 +50,13 @@ namespace Jayson
 			Init();
 		}
 
-		private void Init()
-		{
-			m_Count = 0;
-			m_ItemIndex = -1;
-			m_FrameIndex = 0;
-			m_CurrentItems = m_Frames[0].Items;
-		}
+        private void Init()
+        {
+            m_Count = 0;
+            m_ItemIndex = -1;
+            m_FrameIndex = 0;
+            m_CurrentItems = m_Frames[0].Items;
+        }
 
 		public static JaysonStackList Get()
 		{
@@ -90,23 +92,26 @@ namespace Jayson
 
 		private void EnsureCapacity(int min)
 		{
-			if (m_FrameCount < min)
-			{
-				Frame[] curFrames = m_Frames;
-				Frame[] tmpFrames = new Frame[min];
+            lock (m_SyncRoot)
+            {
+                if (m_FrameCount < min)
+                {
+                    Frame[] curFrames = m_Frames;
+                    Frame[] tmpFrames = new Frame[min];
 
-				Array.Copy(curFrames, tmpFrames, m_FrameCount);
+                    Array.Copy(curFrames, tmpFrames, m_FrameCount);
 
-				int toFrame = m_FrameCount - 1;
-				for (int i = tmpFrames.Length - 1; i > toFrame; i--)
-				{
-					tmpFrames[i] = new Frame();
-				}
+                    int toFrame = m_FrameCount - 1;
+                    for (int i = tmpFrames.Length - 1; i > toFrame; i--)
+                    {
+                        tmpFrames[i] = new Frame();
+                    }
 
-				m_Frames = tmpFrames;
-				m_FrameCount += FrameLength;
-				m_FrameCountMin1 = m_FrameCount - 1;
-			}
+                    m_Frames = tmpFrames;
+                    m_FrameCount += FrameLength;
+                    m_FrameCountMin1 = m_FrameCount - 1;
+                }
+            }
 		}
 
 		public int Count
@@ -116,56 +121,68 @@ namespace Jayson
 
 		public void Push(object obj)
 		{
-			if ((m_ItemIndex == FrameSizeMin1) && (m_FrameIndex == m_FrameCountMin1))
-			{
-				EnsureCapacity(m_FrameCount + FrameLength);
-			}
+            lock (m_SyncRoot)
+            {
+                if ((m_ItemIndex == FrameSizeMin1) && (m_FrameIndex == m_FrameCountMin1))
+                {
+                    EnsureCapacity(m_FrameCount + FrameLength);
+                }
 
-			if (++m_ItemIndex == FrameSize)
-			{
-				m_ItemIndex = 0;
-				m_FrameIndex++;
-				m_CurrentItems = m_Frames[m_FrameIndex].Items;
-			}
+                if (++m_ItemIndex == FrameSize)
+                {
+                    m_ItemIndex = 0;
+                    m_FrameIndex++;
+                    m_CurrentItems = m_Frames[m_FrameIndex].Items;
+                }
 
-			m_CurrentItems[m_ItemIndex] = obj;
-			m_Count++;
+                m_CurrentItems[m_ItemIndex] = obj;
+                m_Count++;
+            }
 		}
 
 		public void Pop()
 		{
-			if (m_Count > 0)
-			{
-				m_CurrentItems[m_ItemIndex] = null;
-				m_Count--;
-
-				if (--m_ItemIndex < 0)
-				{
-					m_ItemIndex = 0;
-					if (--m_FrameIndex < 0)
-					{
-						m_FrameIndex = 0;
-					}
-				}
-			}
+            lock (m_SyncRoot)
+            {
+                if (m_Count > 0)
+                {
+                    int index = m_ItemIndex--;
+                    if (index > -1)
+                    {
+                        m_Count--;
+                        m_CurrentItems[index] = null;
+                    }
+                    else
+                    {
+                        m_ItemIndex = 0;
+                        if (--m_FrameIndex < 0)
+                        {
+                            m_FrameIndex = 0;
+                        }
+                    }
+                }
+            }
 		}
 
 		public bool Contains(object obj)
 		{
 			if (obj != null)
 			{
+                object[] curr = m_CurrentItems;
 				for (int j = m_ItemIndex; j > -1; j--)
 				{
-					if (obj == m_CurrentItems[j])
+					if (obj == curr[j])
 						return true;
 				}
-
-				if (m_FrameIndex > 0)
+                
+                if (m_FrameIndex > 0)
 				{
 					object[] items;
+                    Frame[] curFrames = m_Frames;
+
 					for (int i = m_FrameIndex - 1; i > -1; i--)
 					{
-						items = m_Frames[i].Items;
+                        items = curFrames[i].Items;
 						for (int j = FrameSizeMin1; j > -1; j--)
 						{
 							if (obj == items[j])

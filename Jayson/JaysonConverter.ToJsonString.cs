@@ -17,7 +17,7 @@ namespace Jayson
 	{
 		# region ToJsonString
 
-		private static void WriteObjectTypeValue (Type objType, JaysonSerializationContext context)
+		private static void WriteObjectTypeName (Type objType, JaysonSerializationContext context)
 		{
 			StringBuilder builder = context.Builder;
 			if (context.Settings.Formatting) {
@@ -32,7 +32,7 @@ namespace Jayson
 			builder.Append ('"');
 		}
 
-		private static void WriteListTypeValue (Type objType, JaysonSerializationContext context)
+		private static void WriteListTypeName (Type objType, JaysonSerializationContext context)
 		{
 			StringBuilder builder = context.Builder;
 			if (context.Settings.Formatting) {
@@ -52,7 +52,7 @@ namespace Jayson
 			}
 		}
 
-		private static void WritePrimitiveTypeValue (Type objType, JaysonSerializationContext context)
+		private static void WritePrimitiveTypeName (Type objType, JaysonSerializationContext context)
 		{
 			StringBuilder builder = context.Builder;
 			if (context.Settings.Formatting) {
@@ -74,27 +74,36 @@ namespace Jayson
 
 		private static bool WriteObjectType(object obj, JaysonSerializationContext context)
 		{
-			switch (context.Settings.TypeNames) {
-			case JaysonTypeNameSerialization.None:
-				break;
-			case JaysonTypeNameSerialization.Auto: 
-				{
-					Type objType = obj.GetType ();
-					if (objType != context.CurrentType &&
-						objType != JaysonConstants.DefaultDictionaryType) {
-						WriteObjectTypeValue (objType, context);
+			if (obj != null) {
+				switch (context.Settings.TypeNames) {
+				case JaysonTypeNameSerialization.None:
+					break;
+				case JaysonTypeNameSerialization.Auto: 
+					{
+						Type objType = obj.GetType ();
+						if (objType != context.CurrentType && 
+							objType != JaysonConstants.DefaultDictionaryType) {
+							WriteObjectTypeName (objType, context);
+							return true;
+						}
+					}
+					break;
+				case JaysonTypeNameSerialization.All: 
+					{
+						WriteObjectTypeName (obj.GetType (), context);
 						return true;
 					}
+				case JaysonTypeNameSerialization.Objects: 
+				case JaysonTypeNameSerialization.AllButNoPrimitive:
+					{
+						JaysonTypeInfo info = JaysonTypeInfo.GetTypeInfo (obj.GetType ());
+						if (!info.JPrimitive) {
+							WriteObjectTypeName (info.Type, context);
+							return true;
+						}
+					}
+					break;
 				}
-				break;
-			case JaysonTypeNameSerialization.All: 
-			case JaysonTypeNameSerialization.Objects: 
-				{
-					WriteObjectTypeValue (obj.GetType(), context);
-					return true;
-				}
-			default:
-				break;
 			}
 			return false;
 		}
@@ -108,18 +117,25 @@ namespace Jayson
 				{
 					if (objType != context.CurrentType &&
 						objType != JaysonConstants.DefaultDictionaryType) {
-						WriteObjectTypeValue (objType, context);
+						WriteObjectTypeName (objType, context);
 						return true;
 					}
 				}
 				break;
 			case JaysonTypeNameSerialization.All: 
-			case JaysonTypeNameSerialization.Objects: 
 				{
-					WriteObjectTypeValue (objType, context);
+					WriteObjectTypeName (objType, context);
 					return true;
 				}
-			default:
+			case JaysonTypeNameSerialization.Objects: 
+			case JaysonTypeNameSerialization.AllButNoPrimitive:
+				{
+					JaysonTypeInfo info = JaysonTypeInfo.GetTypeInfo (objType);
+					if (!info.JPrimitive) {
+						WriteObjectTypeName (objType, context);
+						return true;
+					}
+				}
 				break;
 			}
 			return false;
@@ -135,15 +151,16 @@ namespace Jayson
 					Type objType = obj.GetType ();
 					if (objType != context.CurrentType &&
 						objType != JaysonConstants.DefaultDictionaryType) {
-						WriteListTypeValue (objType, context);
+						WriteListTypeName (objType, context);
 						return true;
 					}
 				}
 				break;
 			case JaysonTypeNameSerialization.All: 
 			case JaysonTypeNameSerialization.Arrays: 
+			case JaysonTypeNameSerialization.AllButNoPrimitive:
 				{
-					WriteListTypeValue (obj.GetType (), context);
+					WriteListTypeName (obj.GetType (), context);
 					return true;
 				}
 			default:
@@ -161,15 +178,16 @@ namespace Jayson
 				{
 					if (objType != context.CurrentType &&
 						objType != JaysonConstants.DefaultDictionaryType) {
-						WriteListTypeValue (objType, context);
+						WriteListTypeName (objType, context);
 						return true;
 					}
 				}
 				break;
 			case JaysonTypeNameSerialization.All: 
 			case JaysonTypeNameSerialization.Arrays: 
+			case JaysonTypeNameSerialization.AllButNoPrimitive:
 				{
-					WriteListTypeValue (objType, context);
+					WriteListTypeName (objType, context);
 					return true;
 				}
 			default:
@@ -186,15 +204,16 @@ namespace Jayson
 			case JaysonTypeNameSerialization.Auto: 
 				{
 					if (context.CurrentType != typeof(byte[])) {
-						WritePrimitiveTypeValue (typeof(byte[]), context);
+						WritePrimitiveTypeName (typeof(byte[]), context);
 						return true;
 					}
 				}
 				break;
 			case JaysonTypeNameSerialization.All: 
-			case JaysonTypeNameSerialization.Arrays: 
+			case JaysonTypeNameSerialization.Arrays:
+			case JaysonTypeNameSerialization.AllButNoPrimitive:
 				{
-					WritePrimitiveTypeValue (typeof(byte[]), context);
+					WritePrimitiveTypeName (typeof(byte[]), context);
 					return true;
 				}
 			default:
@@ -222,7 +241,7 @@ namespace Jayson
 					builder.Append ('"');
 
 					if (!settings.CaseSensitive) {
-						key = key.ToLowerInvariant();
+						key = key.ToLower(JaysonConstants.InvariantCulture);
 					}
 
 					if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
@@ -580,19 +599,24 @@ namespace Jayson
 						members = members.OrderBy(kvp => kvp.Key);
 					}
 
-					string fKey;
-
-					foreach (var memberKvp in members)
-					{
-						fKey = memberKvp.Key;
-						value = memberKvp.Value.Get(obj);
-
-						if ((value != null) && canFilter)
+					Type currentType = context.CurrentType;
+					try {
+						string fKey;
+						foreach (var memberKvp in members)
 						{
-							value = filter(fKey, value);
-						}
+							fKey = memberKvp.Key;
+							value = memberKvp.Value.Get(obj);
 
-						isFirst = WriteKeyValueEntry(memberKvp.Key, value, context, isFirst, true);
+							if ((value != null) && canFilter)
+							{
+								value = filter(fKey, value);
+							}
+
+							context.CurrentType = memberKvp.Value.MemberType;
+							isFirst = WriteKeyValueEntry(memberKvp.Key, value, context, isFirst, true);
+						}
+					} finally {
+						context.CurrentType = currentType;
 					}
 				}
 
@@ -656,15 +680,21 @@ namespace Jayson
 						members = members.OrderBy (kvp => kvp.Key);
 					}
 
-					foreach (var memberKvp in members) {
-						key = memberKvp.Key;
-						value = memberKvp.Value.Get (obj);
+					Type currentType = context.CurrentType;
+					try {
+						foreach (var memberKvp in members) {
+							key = memberKvp.Key;
+							value = memberKvp.Value.Get (obj);
 
-						if ((value != null) && canFilter) {
-							value = filter (key, value);
+							if ((value != null) && canFilter) {
+								value = filter (key, value);
+							}
+
+							context.CurrentType = memberKvp.Value.MemberType;
+							isFirst = WriteKeyValueEntry (memberKvp.Key, value, context, isFirst, true);
 						}
-
-						isFirst = WriteKeyValueEntry (memberKvp.Key, value, context, isFirst, true);
+					} finally {
+						context.CurrentType = currentType;
 					}
 				}
 			} finally {
@@ -1101,18 +1131,24 @@ namespace Jayson
 								Func<string, object, object> filter = context.Filter;
 								bool canFilter = (filter != null);
 
-								while (enumerator.MoveNext ()) {
-									keyObj = keyFm.Get (enumerator.Current);
-									if (keyObj != null) {
-										key = (keyObj is string) ? (string)keyObj : keyObj.ToString ();
-										value = valueFm.Get (enumerator.Current);
+								Type currentType = context.CurrentType;
+								try {
+									while (enumerator.MoveNext ()) {
+										keyObj = keyFm.Get (enumerator.Current);
+										if (keyObj != null) {
+											key = (keyObj is string) ? (string)keyObj : keyObj.ToString ();
+											value = valueFm.Get (enumerator.Current);
 
-										if ((value != null) && canFilter) {
-											value = filter (key, value);
+											if ((value != null) && canFilter) {
+												value = filter (key, value);
+											}
+
+											context.CurrentType = valueFm.MemberType;
+											isFirst = WriteKeyValueEntry (key, value, context, isFirst);
 										}
-
-										isFirst = WriteKeyValueEntry (key, value, context, isFirst);
 									}
+								} finally {
+									context.CurrentType = currentType;
 								}
 							}
 						} else {
@@ -1198,25 +1234,35 @@ namespace Jayson
 				return;
 			}
 
-			if (JaysonTypeInfo.IsJPrimitive(objType))
+			var info = JaysonTypeInfo.GetTypeInfo(objType);
+
+			if (info.JPrimitive)
 			{
-				if (objType != typeof(string) &&
-					objType != typeof(bool) &&
-					context.Settings.TypeNames != JaysonTypeNameSerialization.None) {
-					StringBuilder builder = context.Builder;
+				JaysonTypeCode jtc = info.JTypeCode;
 
-					context.ObjectDepth++;
-					WritePrimitiveTypeValue (objType, context);
-					context.Formatter.Format (obj, objType, builder);
+				if (jtc != JaysonTypeCode.String && jtc != JaysonTypeCode.Bool) {
+					JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
-					context.ObjectDepth--;
-					if (context.Settings.Formatting) {
-						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					if (jtns == JaysonTypeNameSerialization.All ||
+						((jtns == JaysonTypeNameSerialization.Auto ||
+							jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
+							(jtc == JaysonTypeCode.Nullable || 
+							((JaysonTypeCode.Primitive & jtc) == jtc &&
+								(JaysonTypeCode.Number & jtc) != jtc)))) {
+						StringBuilder builder = context.Builder;
+
+						context.ObjectDepth++;
+						WritePrimitiveTypeName (objType, context);
+						context.Formatter.Format (obj, objType, builder);
+
+						context.ObjectDepth--;
+						if (context.Settings.Formatting) {
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						}
+						builder.Append ('}');
+						return;
 					}
-					builder.Append ('}');
-					return;
 				}
-
 				context.Formatter.Format(obj, objType, context.Builder);
 				return;
 			}
@@ -1229,8 +1275,6 @@ namespace Jayson
 				}
 				return;
 			}
-
-			var info = JaysonTypeInfo.GetTypeInfo(objType);
 
 			JaysonStackList stack = null;
 			if (info.Class)
@@ -1351,6 +1395,7 @@ namespace Jayson
 				dateFormatType: settings.DateFormatType,
 				dateTimeFormat: settings.DateTimeFormat,
 				dateTimeZoneType: settings.DateTimeZoneType,
+				dateTimeOffsetFormat: settings.DateTimeOffsetFormat,
 				useEnumNames: settings.UseEnumNames,
 				escapeChars: settings.EscapeChars,
 				escapeUnicodeChars: settings.EscapeUnicodeChars,
@@ -1377,7 +1422,7 @@ namespace Jayson
 					);
 
 					context.ObjectDepth++;
-					WritePrimitiveTypeValue (objType, context);
+					WritePrimitiveTypeName (objType, context);
 					formatter.Format (obj, objType, builder);
 
 					context.ObjectDepth--;

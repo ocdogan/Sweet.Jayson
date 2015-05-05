@@ -615,7 +615,7 @@ namespace Jayson
 					if (digitCount > 19 || (digitCount == 19 && startChar == '9'))
 					{
 						decimal d;
-						if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.ParseCulture, out d))
+						if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.InvariantCulture, out d))
 						{
 							throw new JaysonException("Invalid decimal number.");
 						}

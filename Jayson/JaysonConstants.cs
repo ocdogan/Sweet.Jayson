@@ -12,16 +12,33 @@ namespace Jayson
 		public const int CacheInitialCapacity = 100;
 		public const int DictionaryCapacity = 5;
 
+		public const string TimeSpanDefaultFormat = "HH:mm:ss";
+		public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
+		public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";
+		public const string DateMicrosoftJsonFormat = "\\/Date({0})\\/";
+
+		internal const string MicrosoftDateFormatStart = "/Date(";
+		internal const string MicrosoftDateFormatEnd = ")/";
+
 		# endregion Constants
 
 		# region Static Members
+
+		internal static readonly int MicrosoftDateFormatLen = "/Date()/".Length;
+		internal static readonly int MicrosoftDateFormatStartLen = "/Date(".Length;
+		internal static readonly int MicrosoftDateFormatEndLen = ")/".Length;
+
+		public static readonly string[] DateDefaultFormats = new string[] {
+			DateIso8601Format,
+			DateDefaultFormat
+		};
 
 		public static readonly char CharA10 = (char)('A' - 10);
 		public static readonly char Chara10 = (char)('a' - 10);
 
 		public static readonly object[] EmptyObjArray = new object[0];
 
-		public static readonly CultureInfo ParseCulture = CultureInfo.InvariantCulture;
+		public static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
 		public static readonly Type DefaultDictionaryType = typeof(Dictionary<string, object>);
 
 		public static readonly decimal LongMaxValueAsDecimal = Convert.ToDecimal(long.MaxValue);

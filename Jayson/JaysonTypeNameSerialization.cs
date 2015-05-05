@@ -8,9 +8,10 @@ namespace Jayson
 	{
 		None = 0,
 		All = 1,
-		Auto = 2,
-		Arrays = 3,
-		Objects = 4
+		AllButNoPrimitive = 2,
+		Auto = 3,
+		Arrays = 4,
+		Objects = 5
     }
 
     # endregion JaysonTypeNameSerialization

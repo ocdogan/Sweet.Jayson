@@ -230,7 +230,7 @@ namespace Jayson
                             }
                             else if (value is IFormattable)
                             {
-                                nvcollection.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.ParseCulture));
+                                nvcollection.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
                             }
                             else
                             {
@@ -266,7 +266,7 @@ namespace Jayson
                             }
                             else if (value is IFormattable)
                             {
-                                sidic.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.ParseCulture));
+                                sidic.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
                             }
                             else
                             {
@@ -301,7 +301,7 @@ namespace Jayson
                     {
 						if (!hasStype || entry.Key != "$type")
                         {
-							memberName = "<" + (caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.ParseCulture)) + ">";
+							memberName = "<" + (caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture)) + ">";
 							if (members.TryGetValue(memberName, out member))
                             {
                                 if (member.CanWrite)
@@ -368,7 +368,7 @@ namespace Jayson
 
 						foreach (var entry in obj)
                         {
-                            memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.ParseCulture);
+                            memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
 
 							if (members.TryGetValue(memberName, out member))
                             {
@@ -896,11 +896,11 @@ namespace Jayson
 			{
 				if (obj is IFormattable)
 				{
-					return ((IFormattable)obj).ToString(null, JaysonConstants.ParseCulture);
+					return ((IFormattable)obj).ToString(null, JaysonConstants.InvariantCulture);
 				}
 				if (obj is IConvertible)
 				{
-					return ((IConvertible)obj).ToString(JaysonConstants.ParseCulture);
+					return ((IConvertible)obj).ToString(JaysonConstants.InvariantCulture);
 				}
 				return obj.ToString();
 			}
@@ -915,36 +915,26 @@ namespace Jayson
 				return ConvertList((IList<object>)obj, toType, settings);
 			}
 
-            if (!JaysonTypeInfo.IsClass(toType))
+			var tInfo = JaysonTypeInfo.GetTypeInfo(toType);
+			if (!tInfo.Class)
 			{
-                if (toType == typeof(DateTime) || toType == typeof(DateTime?))
-                {
-                    string str = obj as string;
-                    if (str != null)
-                    {
-                        if (str.Length == 0)
-                        {
-                            if (toType == typeof(DateTime?))
-                            {
-                                return null;
-                            }
-                            return default(DateTime);
-                        }
+				bool converted;
 
-                        if ((JaysonCommon.StartsWith(str, "/Date(") && JaysonCommon.EndsWith(str, ")/")))
-                        {
-                            str = str.Substring("/Date(".Length, str.Length - "/Date()/".Length);
-                            DateTime? date = JaysonCommon.ParseUnixEpoch(str);
-                            if (toType == typeof(DateTime?))
-                            {
-                                return date;
-                            }
-                            return date.HasValue ? date.Value : default(DateTime);
-                        }
-                    }
+				JaysonTypeCode jtc = tInfo.JTypeCode;
+				if (jtc == JaysonTypeCode.DateTime)
+                {
+					return JaysonCommon.TryConvertDateTime (obj, settings.DateTimeFormat, settings.DateTimeZoneType);
                 }
 
-				bool converted;
+				if (jtc == JaysonTypeCode.DateTimeNullable)
+				{
+					DateTime dt = JaysonCommon.TryConvertDateTime (obj, settings.DateTimeFormat, settings.DateTimeZoneType);
+					if (dt == default(DateTime)) {
+						return null;
+					}
+					return (DateTime?)dt;
+				}
+
 				object result = JaysonCommon.ConvertToPrimitive(obj, toType, out converted);
 				if (converted)
 				{

@@ -12,6 +12,9 @@ namespace Jayson
 
         public SerializationBinder Binder;
         
+		public string DateTimeFormat;
+		public string DateTimeOffsetFormat;
+
 		public bool CaseSensitive = true;
 		public bool ConvertDecimalToDouble = false;
         public bool IgnoreAnonymousTypes = true;
@@ -20,6 +23,7 @@ namespace Jayson
 		public int MaxObjectDepth;
 
 		public ArrayDeserializationType ArrayType = ArrayDeserializationType.List;
+		public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 		public DictionaryDeserializationType DictionaryType = DictionaryDeserializationType.Dictionary;
 
 		internal void AssignTo(JaysonDeserializationSettings destination)
@@ -28,6 +32,9 @@ namespace Jayson
             destination.Binder = Binder;
 			destination.CaseSensitive = CaseSensitive;
 			destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
+			destination.DateTimeFormat = DateTimeFormat;
+			destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
+			destination.DateTimeZoneType = DateTimeZoneType;
 			destination.DictionaryType = DictionaryType;
 			destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
 			destination.MaxObjectDepth = MaxObjectDepth;

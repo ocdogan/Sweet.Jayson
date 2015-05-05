@@ -10,6 +10,7 @@ namespace Jayson
 		private static readonly JaysonSerializationSettings Initial = new JaysonSerializationSettings ();
 
 		public string DateTimeFormat;
+		public string DateTimeOffsetFormat;
 		public string NumberFormat;
 		public string TimeSpanFormat;
 
@@ -44,6 +45,7 @@ namespace Jayson
 			destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
 			destination.DateFormatType = DateFormatType;
 			destination.DateTimeFormat = DateTimeFormat;
+			destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
 			destination.DateTimeZoneType = DateTimeZoneType;
 			destination.TimeSpanFormat = TimeSpanFormat;
 			destination.DisableAnonymousTypes = DisableAnonymousTypes;

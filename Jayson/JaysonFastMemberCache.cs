@@ -67,7 +67,7 @@ namespace Jayson
 						member = new JaysonFastProperty(pi, true, true);
 
 						members.Add(pi.Name, member);
-						membersInvariant.Add(pi.Name.ToLowerInvariant(), member);
+						membersInvariant.Add(pi.Name.ToLower(JaysonConstants.InvariantCulture), member);
 					}
 				}
 			}
@@ -83,7 +83,7 @@ namespace Jayson
 					member = new JaysonFastField(fi, true, true);
 
 					members.Add(fi.Name, member);
-					membersInvariant.Add(fi.Name.ToLowerInvariant(), member);
+                    membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), member);
 				}
 			}
 		}
@@ -151,7 +151,7 @@ namespace Jayson
 					fastField = new JaysonFastField(fi, true, true);
 
 					members.Add(fi.Name, fastField);
-					membersInvariant.Add(fi.Name.ToLowerInvariant(), fastField);
+                    membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), fastField);
 				}
 			}
 		}

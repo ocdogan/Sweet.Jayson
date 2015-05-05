@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 
 namespace Jayson
 {
-	internal static class JaysonCommon
+	public static class JaysonCommon
 	{
 		# region ExpressionAssigner<> for .Net3.5
 
@@ -25,6 +25,9 @@ namespace Jayson
 		# region Static Members
 
 		private static int s_IsMono = -1;
+
+        private static TimeSpan s_UtcOffsetUpdate;
+        private static long s_LastUtcOffsetUpdate = -1;
 
         private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
         private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
@@ -55,9 +58,34 @@ namespace Jayson
 
 		# region DateTime Methods
 
-		public static TimeSpan GetCurrentUtcOffset(DateTime dateTime)
+		public static TimeSpan GetUtcOffset(DateTime dateTime)
 		{
-			return JaysonConstants.CurrentTimeZone.GetUtcOffset (dateTime);
+			if (dateTime.Kind == DateTimeKind.Utc) {
+				return TimeSpan.Zero;
+			}
+			if ((dateTime.Ticks / TimeSpan.TicksPerHour) == (DateTime.UtcNow.Ticks / TimeSpan.TicksPerHour)) {
+				return GetCurrentUtcOffset ();
+			}
+			return JaysonConstants.CurrentTimeZone.GetUtcOffset(dateTime);
+		}
+
+		public static TimeSpan GetCurrentUtcOffset()
+		{
+			if (s_LastUtcOffsetUpdate < 0)
+			{
+				s_LastUtcOffsetUpdate = DateTime.UtcNow.Ticks;
+				s_UtcOffsetUpdate = JaysonConstants.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+			}
+			else
+			{
+				long utcNow = DateTime.UtcNow.Ticks;
+				if (utcNow - s_LastUtcOffsetUpdate > 10000000)
+				{
+					s_LastUtcOffsetUpdate = utcNow;
+					s_UtcOffsetUpdate = JaysonConstants.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+				}
+			}
+			return s_UtcOffsetUpdate;
 		}
 
 		public static DateTime ToLocalTime(DateTime dateTime)
@@ -66,10 +94,24 @@ namespace Jayson
 			if (kind == DateTimeKind.Local) {
 				return dateTime;
 			}
-			if (kind == DateTimeKind.Unspecified) {
-				return new DateTime (dateTime.Ticks, DateTimeKind.Local);
+
+			TimeSpan utcOffset = GetUtcOffset(dateTime);
+
+			long utcOffsetTicks = utcOffset.Ticks;
+			if (utcOffsetTicks == 0) {
+				new DateTime (dateTime.Ticks, DateTimeKind.Local);
 			}
-			return JaysonConstants.CurrentTimeZone.ToLocalTime(dateTime);
+
+			if (utcOffsetTicks > 0) {
+				if (DateTime.MaxValue - utcOffset < dateTime) {
+					return new DateTime (DateTime.MaxValue.Ticks, DateTimeKind.Local);
+				}
+			}
+			else if (dateTime.Ticks + utcOffsetTicks < DateTime.MinValue.Ticks) {
+				return new DateTime (DateTime.MinValue.Ticks, DateTimeKind.Local);
+			}
+
+			return new DateTime (dateTime.AddTicks (utcOffsetTicks).Ticks, DateTimeKind.Local);			
 		}
 
 		public static DateTime ToUniversalTime(DateTime dateTime)
@@ -82,10 +124,10 @@ namespace Jayson
 				return JaysonConstants.DateTimeUtcMinValue;
 			}
 			if (kind == DateTimeKind.Unspecified) {
-				return new DateTime (dateTime.Subtract (GetCurrentUtcOffset (dateTime)).Ticks, DateTimeKind.Utc);
+				return new DateTime (dateTime.Subtract (GetUtcOffset (dateTime)).Ticks, DateTimeKind.Utc);
 			}
 
-            long ticks = dateTime.Ticks - GetCurrentUtcOffset(dateTime).Ticks;
+            long ticks = dateTime.Ticks - GetUtcOffset(dateTime).Ticks;
             if (ticks > 3155378975999999999L) {
                 return new DateTime(3155378975999999999L, DateTimeKind.Utc);
             }
@@ -132,6 +174,172 @@ namespace Jayson
 		{
 			return new DateTime(JaysonConstants.DateTimeUnixEpochMinValueUnspecified.Ticks + 
 				TimeSpan.FromMilliseconds(msecSince1970).Ticks + offset.Ticks, DateTimeKind.Local);
+		}
+
+
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
+		public static DateTime Parse_YYYY_MM_DD_DateTime(string str, JaysonDateTimeZoneType timeZoneType)
+		{
+			DateTime dateTime;
+			TimeSpan timeSpan;
+			Parse_YYYY_MM_DD_DateTimeOffset (str, out dateTime, out timeSpan);
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				{
+					if (timeSpan == TimeSpan.Zero) {
+						return dateTime;
+					}
+					return dateTime.Subtract (timeSpan);
+				}
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				{
+					if (timeSpan == TimeSpan.Zero) {
+						return JaysonCommon.ToLocalTime(dateTime);
+					}
+					return JaysonCommon.ToLocalTime (dateTime.Subtract (timeSpan));
+				}
+			default:
+				{
+					if (timeSpan == TimeSpan.Zero) {
+						return dateTime;
+					}
+					return JaysonCommon.ToLocalTime (dateTime.Subtract (timeSpan));
+				}
+			}
+		}
+
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
+		public static DateTimeOffset Parse_YYYY_MM_DD_DateTimeOffset(string str)
+		{
+			DateTime dateTime;
+			TimeSpan timeSpan;
+			Parse_YYYY_MM_DD_DateTimeOffset (str, out dateTime, out timeSpan);
+			return new DateTimeOffset (dateTime, timeSpan);
+		}
+
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
+		public static void Parse_YYYY_MM_DD_DateTimeOffset(string str, out DateTime dateTime, out TimeSpan timeSpan)
+		{
+			timeSpan = TimeSpan.Zero;
+			if (str == null) {
+				dateTime = default(DateTime);
+				return;
+			}
+
+			int length = str.Length;
+			if (length == 0) {
+				dateTime = default(DateTime);
+				return;
+			}
+
+			if (length < 10) {
+				throw new JaysonException ("Invalid date format.");
+			}
+
+			DateTimeKind kind = DateTimeKind.Unspecified;
+			if (str [length - 1] == 'Z') {
+				kind = DateTimeKind.Utc;
+			}
+
+			int year = 0;
+			int month = 1;
+			int day = 1;
+
+			if (str [2] == '-') {
+				day = 10 * (int)(str [0] - '0') + (int)(str [1] - '0');
+				month = 10 * (int)(str [3] - '0') + (int)(str [4] - '0');
+
+				year = 1000 * (int)(str [6] - '0') + 100 * (int)(str [7] - '0') +
+					10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+			} else {
+				year = 1000 * (int)(str [0] - '0') + 100 * (int)(str [1] - '0') +
+					10 * (int)(str [2] - '0') + (int)(str [3] - '0');
+
+				month = 10 * (int)(str [5] - '0') + (int)(str [6] - '0');
+				day = 10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+			}
+
+			if (month > 12 && day < 13) {
+				int tmp = month;
+				month = day;
+				day = tmp;
+			}
+
+			if (length == 10) {
+				dateTime = new DateTime(year, month, day, 0, 0, 0, kind);
+				return;
+			}
+
+			char ch = str [10];
+			if (!(ch == 'T' || ch == ' ')) {
+				dateTime = new DateTime(year, month, day, 0, 0, 0, kind);
+				return;
+			}
+
+			int pos = 10;
+
+			int minute = 0;
+			int second = 0;
+			int millisecond = 0;
+
+			int hour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+			pos += 3;
+
+			if (pos < length) {
+				ch = str [pos];
+				if (ch == ':') {
+					minute = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+					pos += 3;
+
+					if (pos < length) {
+						ch = str [pos];
+						if (ch == ':') {
+							second = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+							pos += 3;
+						}
+					}
+				}
+
+				if (pos < length) {
+					ch = str [pos];
+					if (ch == 'Z') {
+						dateTime = new DateTime (year, month, day, hour, minute, second, kind);
+						return;
+					}
+
+					if (ch == '.') {
+						int msIndex = 0;
+						while (++pos < length) {
+							ch = str [pos];
+							if (ch < '0' || ch > '9') {
+								break;
+							}
+
+							msIndex++;
+							if (msIndex < 4) {
+								millisecond *= 10;
+								millisecond += (int)(ch - '0');
+							}
+						}
+					}
+
+					if (pos < length) {
+						ch = str [pos];
+						if (ch == '+' || ch == '-') {
+							int tzHour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+							int tzMinute = 10 * (int)(str [pos + 3] - '0') + (int)(str [pos + 4] - '0');
+
+							timeSpan = new TimeSpan (tzHour, tzMinute, 0);
+							dateTime = new DateTime (year, month, day, hour, minute, 
+								second, millisecond, DateTimeKind.Unspecified);
+							return;
+						}
+					}
+				}
+			}
+
+			dateTime = new DateTime(year, month, day, hour, minute, second, millisecond, kind);
 		}
 
 		# endregion DateTime Methods
@@ -326,12 +534,16 @@ namespace Jayson
 			return result;
 		}
 
-		public static DateTime? ParseUnixEpoch(string str)
+		public static DateTime ParseUnixEpoch(string str)
 		{
+			if (str == null) {
+				return default(DateTime);
+			}
+
 			int length = str.Length;
 			if (length == 0)
 			{
-				return null;
+				return default(DateTime);
 			}
 
 			char ch;
@@ -357,7 +569,7 @@ namespace Jayson
 			long l;
 			if (timeZonePos == -1)
 			{
-				if (!long.TryParse(str, NumberStyles.AllowLeadingSign, JaysonConstants.ParseCulture, out l))
+				if (!long.TryParse(str, NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
 				{
 					throw new JaysonException("Invalid Unix Epoch date format.");
 				}
@@ -370,16 +582,13 @@ namespace Jayson
 				return dt1;
 			}
 
-			if (!long.TryParse(str.Substring(0, timeZonePos), NumberStyles.AllowLeadingSign, JaysonConstants.ParseCulture, out l))
+			if (!long.TryParse(str.Substring(0, timeZonePos), NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
 			{
 				throw new JaysonException("Invalid Unix Epoch date format.");
 			}
 
 			TimeSpan tz = new TimeSpan(10 * (str[length - 4] - '0') + (str[length - 3] - '0'),
 				10 * (str[length - 2] - '0') + (str[length - 1] - '0'), 0);
-
-			//TimeSpan tz = new TimeSpan(int.Parse(str.Substring(length - 4, 2), NumberStyles.None, JaysonConstants.ParseCulture),
-			//    int.Parse(str.Substring(length - 2, 2), NumberStyles.None, JaysonConstants.ParseCulture), 0);
 
 			if (timeZoneSign == -1)
 			{
@@ -394,707 +603,868 @@ namespace Jayson
 			return dt2;
 		}
 
+		private static DateTime DefaultDateTime (JaysonDateTimeZoneType timeZoneType)
+		{
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return new DateTime (0, DateTimeKind.Utc);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return new DateTime (0, DateTimeKind.Local);
+			default:
+				return default(DateTime);
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime(timeZoneType);
+				}
+
+				DateTime result;
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					result = ParseUnixEpoch (str);
+				} else {
+					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);
+				}
+
+				switch (timeZoneType) {
+				case JaysonDateTimeZoneType.ConvertToUtc:
+					return ToUniversalTime (result);
+				case JaysonDateTimeZoneType.ConvertToLocal:
+					return ToLocalTime (result);
+				default:
+					return result;
+				}
+			}
+
+			DateTime dateTime;
+			if (value is DateTime) {
+				dateTime = (DateTime)value;
+			} else if (value is DateTime?) {
+				dateTime = ((DateTime?)value).Value;
+			} else if (value is int) {
+				dateTime = FromUnixTimeSec ((int)value);
+			} else if (value is long) {
+				dateTime = FromUnixTimeSec ((long)value);
+			} else {
+				dateTime = Convert.ToDateTime (value);
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, string dateFormat, 
+			JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime(timeZoneType);
+				}
+
+				DateTime result;
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
+					result = ParseUnixEpoch (str);
+				} else if (String.IsNullOrEmpty (dateFormat)) {
+					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
+				} else if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
+					DateTimeStyles.None, out result)) {
+					throw new JaysonException ("Invalid date format.");
+				}
+			
+				switch (timeZoneType) {
+				case JaysonDateTimeZoneType.ConvertToUtc:
+					return ToUniversalTime (result);
+				case JaysonDateTimeZoneType.ConvertToLocal:
+					return ToLocalTime (result);
+				default:
+					return result;
+				}
+			}
+
+			DateTime dateTime;
+			if (value is DateTime) {
+				dateTime = (DateTime)value;
+			} else if (value is DateTime?) {
+				dateTime = ((DateTime?)value).Value;
+			} else if (value is int) {
+				dateTime = FromUnixTimeSec ((int)value);
+			} else if (value is long) {
+				dateTime = FromUnixTimeSec ((long)value);
+			} else {
+				dateTime = Convert.ToDateTime (value);
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, string[] dateFormats, 
+			JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime (timeZoneType);
+				}
+
+				DateTime result;
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					result = ParseUnixEpoch (str);
+				} else if (dateFormats == null || dateFormats.Length == 0) {
+					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
+				} else if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
+					DateTimeStyles.None, out result)) {
+					throw new JaysonException ("Invalid date format.");
+				}
+
+				switch (timeZoneType) {
+				case JaysonDateTimeZoneType.ConvertToUtc:
+					return ToUniversalTime (result);
+				case JaysonDateTimeZoneType.ConvertToLocal:
+					return ToLocalTime (result);
+				default:
+					return result;
+				}
+			}
+
+			DateTime dateTime;
+			if (value is DateTime) {
+				dateTime = (DateTime)value;
+			} else if (value is DateTime?) {
+				dateTime = ((DateTime?)value).Value;
+			} else if (value is int) {
+				dateTime = FromUnixTimeSec ((int)value);
+			} else if (value is long) {
+				dateTime = FromUnixTimeSec ((long)value);
+			} else {
+				dateTime = Convert.ToDateTime (value);
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				DateTimeOffset result;
+				converted = DateTimeOffset.TryParse (str, JaysonConstants.InvariantCulture, 
+					DateTimeStyles.None, out result);
+				return result;
+			}
+
+			if (value == null) {
+				return default(DateTimeOffset);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTime?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+			return new DateTimeOffset(Convert.ToDateTime (value));
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, string dateFormat, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				DateTimeOffset result;
+				converted = DateTimeOffset.TryParseExact (str,
+					!String.IsNullOrEmpty (dateFormat) ? dateFormat : JaysonConstants.DateIso8601Format,
+					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+				return result;
+			}
+
+			if (value == null) {
+				return default(DateTimeOffset);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTimeOffset?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+			return new DateTimeOffset(Convert.ToDateTime (value));
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, string[] dateFormats, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				DateTimeOffset result;
+				converted = DateTimeOffset.TryParseExact (str,
+					(dateFormats != null && dateFormats.Length > 0) ? dateFormats : JaysonConstants.DateDefaultFormats,
+					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+				return result;
+			}
+
+			if (value == null) {
+				return default(DateTime);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTimeOffset?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+			return new DateTimeOffset(Convert.ToDateTime (value));
+		}
+
 		public static object ConvertToPrimitive(object value, Type toPrimitiveType, out bool converted)
-        {
-            var info = JaysonTypeInfo.GetTypeInfo(toPrimitiveType);
+		{
+			var info = JaysonTypeInfo.GetTypeInfo (toPrimitiveType);
 
-            // Do not change the type check order
-            converted = false;
-            switch (info.JTypeCode)
-            {
-                case JaysonTypeCode.Int:
-                    {
-                        converted = true;
-                        if (value is int)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return 0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return 0;
-                            }
-                            return int.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToInt32(value);
-                    }
-                case JaysonTypeCode.Bool:
-                    {
-                        converted = true;
-                        if (value is bool)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return false;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return false;
-                            }
-                            return bool.Parse(s);
-                        }
-                        return Convert.ToBoolean(value);
-                    }
-                case JaysonTypeCode.Long:
-                    {
-                        converted = true;
-                        if (value is long)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return 0L;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return 0L;
-                            }
-                            return long.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToInt64(value);
-                    }
-                case JaysonTypeCode.Double:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return 0d;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return 0d;
-                            }
-                            return double.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToDouble(value);
-                    }
-                case JaysonTypeCode.DateTime:
-                    {
-                        converted = true;
-                        if (value is DateTime)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return default(DateTime);
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return default(DateTime);
-                            }
-							if (StartsWith(s, "/Date(") && EndsWith(s, ")/"))
-							{
-								s = s.Substring("/Date(".Length, s.Length - "/Date()/".Length);
-								DateTime? date = ParseUnixEpoch(s);
-								return date.HasValue ? date.Value : default(DateTime);
-							}
-                            return DateTime.Parse(s, JaysonConstants.ParseCulture);
-                        }
-						if (value is int) {
-							return FromUnixTimeSec ((int)value);
+			// Do not change the type check order
+			converted = false;
+			switch (info.JTypeCode) {
+			case JaysonTypeCode.Int:
+				{
+					converted = true;
+					if (value is int) {
+						return value;
+					}
+					if (value == null) {
+						return 0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return 0;
 						}
-						if (value is long) {
-							return FromUnixTimeSec ((long)value);
+						return int.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToInt32 (value);
+				}
+			case JaysonTypeCode.Bool:
+				{
+					converted = true;
+					if (value is bool) {
+						return value;
+					}
+					if (value == null) {
+						return false;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return false;
 						}
-                        return Convert.ToDateTime(value);
-                    }
-                case JaysonTypeCode.Short:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (short)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (short)0;
-                            }
-                            return short.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToInt16(value);
-                    }
-                case JaysonTypeCode.IntNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (int?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (int?)null;
-                            }
-                            return (int?)int.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (int?)Convert.ToInt32(value);
-                    }
-                case JaysonTypeCode.BoolNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (bool?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (bool?)null;
-                            }
-                            return (bool?)bool.Parse(s);
-                        }
-                        return (bool?)Convert.ToBoolean(value);
-                    }
-                case JaysonTypeCode.LongNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (long?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (long?)null;
-                            }
-                            return (long?)long.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (long?)Convert.ToInt64(value);
-                    }
-                case JaysonTypeCode.DoubleNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (double?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (double?)null;
-                            }
-                            return (double?)decimal.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return (double?)Convert.ToDouble(value);
-                    }
-                case JaysonTypeCode.DateTimeNullable:
-                    {
-                        converted = true;
-                        if (value is DateTime)
-                        {
-                            return (DateTime?)((DateTime)value);
-                        }
-                        if (value == null)
-                        {
-                            return (DateTime?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (DateTime?)null;
-                            }
-							if (StartsWith(s, "/Date(") && EndsWith(s, ")/"))
-							{
-								s = s.Substring("/Date(".Length, s.Length - "/Date()/".Length);
-								return ParseUnixEpoch(s);
-							}
-                            return (DateTime?)DateTime.Parse(s, JaysonConstants.ParseCulture);
-                        }
-						if (value is int) {
-							return FromUnixTimeSec ((int)value);
+						return bool.Parse (s);
+					}
+					return Convert.ToBoolean (value);
+				}
+			case JaysonTypeCode.Long:
+				{
+					converted = true;
+					if (value is long) {
+						return value;
+					}
+					if (value == null) {
+						return 0L;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return 0L;
 						}
-						if (value is long) {
-							return FromUnixTimeSec ((long)value);
+						return long.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToInt64 (value);
+				}
+			case JaysonTypeCode.Double:
+				{
+					converted = true;
+					if (value == null) {
+						return 0d;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return 0d;
 						}
-                        return (DateTime?)Convert.ToDateTime(value);
-                    }
-                case JaysonTypeCode.ShortNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (short?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (short?)null;
-                            }
-                            return (short?)short.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (short?)Convert.ToInt16(value);
-                    }
+						return double.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToDouble (value);
+				}
+			case JaysonTypeCode.DateTime:
+				{
+					converted = true;
+					return TryConvertDateTime (value, JaysonDateTimeZoneType.KeepAsIs);
+				}
+			case JaysonTypeCode.Short:
+				{
+					converted = true;
+					if (value == null) {
+						return (short)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (short)0;
+						}
+						return short.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToInt16 (value);
+				}
+			case JaysonTypeCode.IntNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (int?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (int?)null;
+						}
+						return (int?)int.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (int?)Convert.ToInt32 (value);
+				}
+			case JaysonTypeCode.BoolNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (bool?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (bool?)null;
+						}
+						return (bool?)bool.Parse (s);
+					}
+					return (bool?)Convert.ToBoolean (value);
+				}
+			case JaysonTypeCode.LongNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (long?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (long?)null;
+						}
+						return (long?)long.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (long?)Convert.ToInt64 (value);
+				}
+			case JaysonTypeCode.DoubleNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (double?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (double?)null;
+						}
+						return (double?)decimal.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return (double?)Convert.ToDouble (value);
+				}
+			case JaysonTypeCode.DateTimeNullable:
+				{
+					converted = true;
+					DateTime dt = TryConvertDateTime (value, JaysonDateTimeZoneType.KeepAsIs);
+					if (dt == default(DateTime)) {
+						return null;
+					}
+					return (DateTime?)dt;
+				}
+			case JaysonTypeCode.ShortNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (short?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (short?)null;
+						}
+						return (short?)short.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (short?)Convert.ToInt16 (value);
+				}
 
-                case JaysonTypeCode.Float:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return 0f;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return 0f;
-                            }
-                            return float.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToSingle(value);
-                    }
-                case JaysonTypeCode.Decimal:
-                    {
-                        converted = true;
-                        if (value is decimal)
-                        {
-                            return value;
-                        }
-                        if (value is double)
-                        {
-                            return Convert.ToDecimal((double)value);
-                        }
-                        if (value == null)
-                        {
-                            return 0m;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return 0m;
-                            }
-                            return decimal.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToDecimal(value);
-                    }
-                case JaysonTypeCode.Byte:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (byte)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (byte)0;
-                            }
-                            return byte.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToByte(value);
-                    }
-                case JaysonTypeCode.Char:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (char)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (char)0;
-                            }
-                            return s[0];
-                        }
-                        return Convert.ToChar(value);
-                    }
-                case JaysonTypeCode.TimeSpan:
-                    {
-                        converted = true;
-                        if (value is TimeSpan)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return default(TimeSpan);
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return default(TimeSpan);
-                            }
+			case JaysonTypeCode.Float:
+				{
+					converted = true;
+					if (value == null) {
+						return 0f;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return 0f;
+						}
+						return float.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToSingle (value);
+				}
+			case JaysonTypeCode.Decimal:
+				{
+					converted = true;
+					if (value is decimal) {
+						return value;
+					}
+					if (value is double) {
+						return Convert.ToDecimal ((double)value);
+					}
+					if (value == null) {
+						return 0m;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return 0m;
+						}
+						return decimal.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToDecimal (value);
+				}
+			case JaysonTypeCode.Byte:
+				{
+					converted = true;
+					if (value == null) {
+						return (byte)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (byte)0;
+						}
+						return byte.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToByte (value);
+				}
+			case JaysonTypeCode.Char:
+				{
+					converted = true;
+					if (value == null) {
+						return (char)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (char)0;
+						}
+						return s [0];
+					}
+					return Convert.ToChar (value);
+				}
+			case JaysonTypeCode.TimeSpan:
+				{
+					converted = true;
+					if (value is TimeSpan) {
+						return value;
+					}
+					if (value == null) {
+						return default(TimeSpan);
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return default(TimeSpan);
+						}
 						#if !(NET3500 || NET3000 || NET2000)
-                            return TimeSpan.Parse(s, JaysonConstants.ParseCulture);
+						return TimeSpan.Parse (s, JaysonConstants.InvariantCulture);
 						#else
 							return TimeSpan.Parse(s);
 						#endif
-                        }
-                        return new TimeSpan(Convert.ToInt64(value));
-                    }
+					}
+					return new TimeSpan (Convert.ToInt64 (value));
+				}
 
-                case JaysonTypeCode.FloatNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (float?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (float?)null;
-                            }
-                            return (float?)float.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return (float?)Convert.ToSingle(value);
-                    }
-                case JaysonTypeCode.DecimalNullable:
-                    {
-                        converted = true;
-                        if (value is decimal)
-                        {
-                            return (decimal?)((decimal)value);
-                        }
-                        if (value is double)
-                        {
-                            return (decimal?)Convert.ToDecimal((double)value);
-                        }
-                        if (value == null)
-                        {
-                            return (decimal?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (decimal?)null;
-                            }
-                            return (decimal?)decimal.Parse(s, NumberStyles.Float, JaysonConstants.ParseCulture);
-                        }
-                        return (decimal?)Convert.ToDecimal(value);
-                    }
-                case JaysonTypeCode.ByteNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (byte?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (byte?)null;
-                            }
-                            return (byte?)byte.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (byte?)Convert.ToByte(value);
-                    }
-                case JaysonTypeCode.CharNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (char?)null;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (char?)null;
-                            }
-                            return (char?)s[0];
-                        }
-                        return Convert.ToChar(value);
-                    }
-                case JaysonTypeCode.TimeSpanNullable:
-                    {
-                        converted = true;
-                        if (value is TimeSpan)
-                        {
-                            return (TimeSpan?)((TimeSpan)value);
-                        }
-                        if (value == null)
-                        {
-                            return (TimeSpan?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (TimeSpan?)null;
-                            }
+			case JaysonTypeCode.FloatNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (float?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (float?)null;
+						}
+						return (float?)float.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return (float?)Convert.ToSingle (value);
+				}
+			case JaysonTypeCode.DecimalNullable:
+				{
+					converted = true;
+					if (value is decimal) {
+						return (decimal?)((decimal)value);
+					}
+					if (value is double) {
+						return (decimal?)Convert.ToDecimal ((double)value);
+					}
+					if (value == null) {
+						return (decimal?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (decimal?)null;
+						}
+						return (decimal?)decimal.Parse (s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+					}
+					return (decimal?)Convert.ToDecimal (value);
+				}
+			case JaysonTypeCode.ByteNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (byte?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (byte?)null;
+						}
+						return (byte?)byte.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (byte?)Convert.ToByte (value);
+				}
+			case JaysonTypeCode.CharNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (char?)null;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (char?)null;
+						}
+						return (char?)s [0];
+					}
+					return Convert.ToChar (value);
+				}
+			case JaysonTypeCode.TimeSpanNullable:
+				{
+					converted = true;
+					if (value is TimeSpan) {
+						return (TimeSpan?)((TimeSpan)value);
+					}
+					if (value == null) {
+						return (TimeSpan?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (TimeSpan?)null;
+						}
 						#if !(NET3500 || NET3000 || NET2000)
-                            return (TimeSpan?)TimeSpan.Parse(s, JaysonConstants.ParseCulture);
+						return (TimeSpan?)TimeSpan.Parse (s, JaysonConstants.InvariantCulture);
 						#else
 							return (TimeSpan?)TimeSpan.Parse(s);
 						#endif
-                        }
-                        return (TimeSpan?)(new TimeSpan(Convert.ToInt64(value)));
-                    }
-                case JaysonTypeCode.UInt:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (uint)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (uint)0;
-                            }
-                            return uint.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToUInt32(value);
-                    }
-                case JaysonTypeCode.ULong:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (ulong)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (ulong)0;
-                            }
-                            return ulong.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToUInt64(value);
-                    }
-                case JaysonTypeCode.UShort:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (ushort)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (ushort)0;
-                            }
-                            return ushort.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToUInt16(value);
-                    }
-                case JaysonTypeCode.SByte:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (sbyte)0;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (sbyte)0;
-                            }
-                            return sbyte.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return Convert.ToSByte(value);
-                    }
-                case JaysonTypeCode.UIntNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (uint?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (uint?)null;
-                            }
-                            return (uint?)uint.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (uint?)Convert.ToUInt32(value);
-                    }
-                case JaysonTypeCode.ULongNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (ulong?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (ulong?)null;
-                            }
-                            return (ulong?)ulong.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (ulong?)Convert.ToUInt64(value);
-                    }
-                case JaysonTypeCode.UShortNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (ushort?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (ushort?)null;
-                            }
-                            return (ushort?)ushort.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (ushort?)Convert.ToUInt16(value);
-                    }
-                case JaysonTypeCode.SByteNullable:
-                    {
-                        converted = true;
-                        if (value == null)
-                        {
-                            return (sbyte?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (sbyte?)null;
-                            }
-                            return (sbyte?)sbyte.Parse(s, NumberStyles.Integer, JaysonConstants.ParseCulture);
-                        }
-                        return (sbyte?)Convert.ToSByte(value);
-                    }
-                case JaysonTypeCode.DateTimeOffset:
-                    {
-                        converted = true;
-                        if (value is DateTimeOffset)
-                        {
-                            return value;
-                        }
-                        if (value == null)
-                        {
-                            return default(DateTimeOffset);
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return default(DateTimeOffset);
-                            }
-                            return DateTimeOffset.Parse(s, JaysonConstants.ParseCulture);
-                        }
-                        return new DateTimeOffset(Convert.ToDateTime(value));
-                    }
-                case JaysonTypeCode.DateTimeOffsetNullable:
-                    {
-                        converted = true;
-                        if (value is DateTimeOffset)
-                        {
-                            return (DateTimeOffset?)((DateTimeOffset)value);
-                        }
-                        if (value == null)
-                        {
-                            return (DateTimeOffset?)value;
-                        }
-                        if (value is string)
-                        {
-                            string s = (string)value;
-                            if (s.Length == 0)
-                            {
-                                return (DateTimeOffset?)null;
-                            }
-                            return (DateTimeOffset?)DateTimeOffset.Parse(s, JaysonConstants.ParseCulture);
-                        }
-                        return (DateTimeOffset?)(new DateTimeOffset(Convert.ToDateTime(value)));
-                    }
-            }
+					}
+					return (TimeSpan?)(new TimeSpan (Convert.ToInt64 (value)));
+				}
+			case JaysonTypeCode.UInt:
+				{
+					converted = true;
+					if (value == null) {
+						return (uint)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (uint)0;
+						}
+						return uint.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToUInt32 (value);
+				}
+			case JaysonTypeCode.ULong:
+				{
+					converted = true;
+					if (value == null) {
+						return (ulong)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (ulong)0;
+						}
+						return ulong.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToUInt64 (value);
+				}
+			case JaysonTypeCode.UShort:
+				{
+					converted = true;
+					if (value == null) {
+						return (ushort)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (ushort)0;
+						}
+						return ushort.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToUInt16 (value);
+				}
+			case JaysonTypeCode.SByte:
+				{
+					converted = true;
+					if (value == null) {
+						return (sbyte)0;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (sbyte)0;
+						}
+						return sbyte.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return Convert.ToSByte (value);
+				}
+			case JaysonTypeCode.UIntNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (uint?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (uint?)null;
+						}
+						return (uint?)uint.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (uint?)Convert.ToUInt32 (value);
+				}
+			case JaysonTypeCode.ULongNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (ulong?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (ulong?)null;
+						}
+						return (ulong?)ulong.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (ulong?)Convert.ToUInt64 (value);
+				}
+			case JaysonTypeCode.UShortNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (ushort?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (ushort?)null;
+						}
+						return (ushort?)ushort.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (ushort?)Convert.ToUInt16 (value);
+				}
+			case JaysonTypeCode.SByteNullable:
+				{
+					converted = true;
+					if (value == null) {
+						return (sbyte?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return (sbyte?)null;
+						}
+						return (sbyte?)sbyte.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
+					}
+					return (sbyte?)Convert.ToSByte (value);
+				}
+			case JaysonTypeCode.DateTimeOffset:
+				{
+					return TryConvertDateTimeOffset (value, out converted);
+				}
+			case JaysonTypeCode.DateTimeOffsetNullable:
+				{
+					if (value == null) {
+						return (DateTimeOffset?)value;
+					}
+					DateTimeOffset dto = TryConvertDateTimeOffset (value, out converted);
+					if (dto == default(DateTimeOffset)) {
+						return null;
+					}
+					return dto;
+				}
+			}
 
-            if (info.Enum)
-            {
-                if (value == null)
-                {
-                    return Enum.ToObject(toPrimitiveType, 0L);
-                }
+			if (info.Enum) {
+				if (value == null) {
+					return Enum.ToObject (toPrimitiveType, 0L);
+				}
 
-                if (value is long)
-                {
-                    return Enum.ToObject(toPrimitiveType, (long)value);
-                }
-                if (value is int)
-                {
-                    return Enum.ToObject(toPrimitiveType, (long)((int)value));
-                }
+				if (value is long) {
+					return Enum.ToObject (toPrimitiveType, (long)value);
+				}
+				if (value is int) {
+					return Enum.ToObject (toPrimitiveType, (long)((int)value));
+				}
 
-                if (value is string)
-                {
-                    string s = (string)value;
-                    if (s.Length == 0)
-                    {
-                        return Enum.ToObject(toPrimitiveType, 0L);
-                    }
-                    return JaysonEnumCache.Parse(s, toPrimitiveType);
-                }
+				if (value is string) {
+					string s = (string)value;
+					if (s.Length == 0) {
+						return Enum.ToObject (toPrimitiveType, 0L);
+					}
+					return JaysonEnumCache.Parse (s, toPrimitiveType);
+				}
 
-                return Enum.ToObject(toPrimitiveType, Convert.ToInt64(value));
-            }
-            return value;
-        }
+				return Enum.ToObject (toPrimitiveType, Convert.ToInt64 (value));
+			}
+			return value;
+		}
 
         public static bool IsWhiteSpace(char ch)
 		{

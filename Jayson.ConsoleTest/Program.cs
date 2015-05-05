@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -11,39 +12,94 @@ namespace Jayson.ConsoleTest
 	class MainClass
 	{
 		public static void Main (string[] args)
-		{
-			var methods = typeof(PrimaryTest).GetMethods ().OrderBy (m => m.Name);
-			foreach (var method in methods) {
-				if (method.Name.StartsWith ("Test")) {
-					try{
-						Console.WriteLine("Testing {0} ...", method.Name);
-						method.Invoke (null, new object[0]);
-						Console.WriteLine("Test {0} passed.", method.Name);
-					} catch (Exception e) {
-						Console.WriteLine ("Test {0} failed.", method.Name);
-						while (e is TargetInvocationException) {
-							if (e.InnerException == null)
-								break;
-							e = e.InnerException;
-						}
-
-						Console.WriteLine(e.Message);
-					}
-					Console.WriteLine ();
-				}
+		{	
+			if (Console.IsOutputRedirected)
+			{
+				PerformanceTests();
+				return;
 			}
 
-			Console.WriteLine ();
-			do {
-				PerformanceTest1 ();
-				Console.WriteLine ();
-				PerformanceTest2 ();
-				Console.WriteLine ();
-				PerformanceTest3 ();
-				Console.WriteLine ();
+            do
+            {
+                int testType = ReadTestType();
+				switch (testType) {
+				case 1:
+	                {
+	                    UnitTests();
+						break;
+	                }
+				case 2:
+                	{
+                    	PerformanceTests();
+						break;
+					} 
+				default:
+					return;
+				}
+
 				Console.WriteLine ("Press Escape to exit, any other to continue...");
 			} while (Console.ReadKey (true).Key != ConsoleKey.Escape);
 		}
+
+        private static int ReadTestType()
+        {
+            ConsoleKey key;
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("Press,");
+                Console.WriteLine("  1) for Unit Tests");
+                Console.WriteLine("  2) for Performance Tests");
+				Console.WriteLine("  3) for Exit");
+                Console.WriteLine();
+
+                key = Console.ReadKey(true).Key;
+			} while (!(key == ConsoleKey.D1 || key == ConsoleKey.D2 || 
+				key == ConsoleKey.D3));
+
+            Console.Clear();
+            return (int)(key - ConsoleKey.D1) + 1;
+        }
+
+        private static void PerformanceTests()
+        {
+            PerformanceTest1();
+            Console.WriteLine();
+            PerformanceTest2();
+            Console.WriteLine();
+            PerformanceTest3();
+            Console.WriteLine();
+        }
+
+        private static void UnitTests()
+        {
+            var methods = typeof(PrimaryTest).GetMethods().OrderBy(m => m.Name);
+            foreach (var method in methods)
+            {
+                if (method.Name.StartsWith("Test"))
+                {
+                    try
+                    {
+                        Console.WriteLine("Testing {0} ...", method.Name);
+                        method.Invoke(null, new object[0]);
+                        Console.WriteLine("Test {0} passed.", method.Name);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Test {0} failed.", method.Name);
+                        while (e is TargetInvocationException)
+                        {
+                            if (e.InnerException == null)
+                                break;
+                            e = e.InnerException;
+                        }
+
+                        Console.WriteLine(e.Message);
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
 
 		static void PerformanceTest1()
 		{
@@ -53,8 +109,7 @@ namespace Jayson.ConsoleTest
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
-			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-			jaysonSerializationSettings.CaseSensitive = false;
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.Auto;
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 

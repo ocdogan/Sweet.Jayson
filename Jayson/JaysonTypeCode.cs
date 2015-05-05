@@ -43,7 +43,8 @@ namespace Jayson
 		DateTimeOffsetNullable = 8589934592L,
 		Object = 17179869184L,
 
-        All = String |
+        All = 
+			String |
             Int |
             Bool |
             Long |
@@ -80,7 +81,24 @@ namespace Jayson
             DateTimeOffsetNullable |
             Object,
 
-		Number = Int |
+		Primitive = 
+			Int |
+			Long |
+			Bool |
+			DateTime |
+			Double |
+			Byte |
+			Float |
+			Decimal |
+			UInt |
+			ULong |
+			UShort |
+			SByte |
+			Char |
+			TimeSpan,
+
+		Number = 
+			Int |
 			Long |
 			Double |
 			Short |
@@ -103,21 +121,50 @@ namespace Jayson
 			UShortNullable |
 			SByteNullable,
 
-        Primitive = Int |
-            Long |
-            Bool |
-            DateTime |
-            Double |
-            Byte |
-            Float |
-            Decimal |
-            UInt |
-            ULong |
-            UShort |
-            SByte |
-            Char |
-            TimeSpan
+		PrimitiveNumber = 
+			Int |
+			Long |
+			Double |
+			Short |
+			Byte |
+			Float |
+			Decimal |
+			UInt |
+			ULong |
+			UShort |
+			SByte,
 
+		NullableNumber = 
+			IntNullable |
+			LongNullable |
+			DoubleNullable |
+			ShortNullable |
+			ByteNullable |
+			FloatNullable |
+			DecimalNullable |
+			UIntNullable |
+			ULongNullable |
+			UShortNullable |
+			SByteNullable,
+
+		Nullable = 
+			IntNullable |
+			BoolNullable |
+			LongNullable |
+			DateTimeNullable |
+			DoubleNullable |
+			ShortNullable |
+			ByteNullable |
+			FloatNullable |
+			DecimalNullable |
+			UIntNullable |
+			ULongNullable |
+			CharNullable |
+			UShortNullable |
+			SByteNullable |
+			GuidNullable |
+			TimeSpanNullable |
+			DateTimeOffsetNullable
 	}
 
 	# endregion JaysonTypeCode
