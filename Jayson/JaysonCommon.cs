@@ -796,6 +796,7 @@ namespace Jayson
 				if (str.Length == 0) {
 					return default(DateTime);
 				}
+
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
 					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
@@ -803,10 +804,7 @@ namespace Jayson
 					return new DateTimeOffset(ParseUnixEpoch (str));
 				}
 
-				DateTimeOffset result;
-				converted = DateTimeOffset.TryParse (str, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out result);
-				return result;
+				return Parse_YYYY_MM_DD_DateTimeOffset (str);
 			}
 
 			if (value == null) {
@@ -836,6 +834,7 @@ namespace Jayson
 			if (value is long) {
 				return new DateTimeOffset(FromUnixTimeSec ((long)value));
 			}
+
 			return new DateTimeOffset(Convert.ToDateTime (value));
 		}
 
@@ -853,6 +852,10 @@ namespace Jayson
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);
 					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				if (String.IsNullOrEmpty (dateFormat)) {
+					return Parse_YYYY_MM_DD_DateTimeOffset (str);
 				}
 
 				DateTimeOffset result;
@@ -889,6 +892,7 @@ namespace Jayson
 			if (value is long) {
 				return new DateTimeOffset(FromUnixTimeSec ((long)value));
 			}
+
 			return new DateTimeOffset(Convert.ToDateTime (value));
 		}
 
@@ -908,15 +912,18 @@ namespace Jayson
 					return new DateTimeOffset(ParseUnixEpoch (str));
 				}
 
+				if (dateFormats == null || dateFormats.Length == 0) {
+					return Parse_YYYY_MM_DD_DateTimeOffset (str);
+				}
+
 				DateTimeOffset result;
-				converted = DateTimeOffset.TryParseExact (str,
-					(dateFormats != null && dateFormats.Length > 0) ? dateFormats : JaysonConstants.DateDefaultFormats,
+				converted = DateTimeOffset.TryParseExact (str, dateFormats,
 					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
 				return result;
 			}
 
 			if (value == null) {
-				return default(DateTime);
+				return default(DateTimeOffset);
 			}
 
 			if (value is DateTimeOffset) {
@@ -942,6 +949,7 @@ namespace Jayson
 			if (value is long) {
 				return new DateTimeOffset(FromUnixTimeSec ((long)value));
 			}
+
 			return new DateTimeOffset(Convert.ToDateTime (value));
 		}
 
