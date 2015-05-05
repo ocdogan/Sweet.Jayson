@@ -176,7 +176,6 @@ namespace Jayson
 				TimeSpan.FromMilliseconds(msecSince1970).Ticks + offset.Ticks, DateTimeKind.Local);
 		}
 
-
 		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
 		public static DateTime Parse_YYYY_MM_DD_DateTime(string str, JaysonDateTimeZoneType timeZoneType)
 		{
@@ -188,9 +187,9 @@ namespace Jayson
 			case JaysonDateTimeZoneType.ConvertToUtc:
 				{
 					if (timeSpan == TimeSpan.Zero) {
-						return dateTime;
+						return new DateTime(dateTime.Ticks, DateTimeKind.Utc);
 					}
-					return dateTime.Subtract (timeSpan);
+					return new DateTime(dateTime.Subtract (timeSpan).Ticks, DateTimeKind.Utc);
 				}
 			case JaysonDateTimeZoneType.ConvertToLocal:
 				{
