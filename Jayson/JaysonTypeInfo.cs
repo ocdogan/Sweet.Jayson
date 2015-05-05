@@ -9,10 +9,10 @@ using System.Threading;
 
 namespace Jayson
 {
-    # region JaysonTypeInfo
+	# region JaysonTypeInfo
 
-    internal sealed class JaysonTypeInfo
-    {
+	internal sealed class JaysonTypeInfo
+	{
 		# region InfoItem
 
 		private class InfoItem<T>
@@ -23,71 +23,115 @@ namespace Jayson
 
 		# endregion InfoItem
 
+		# region JaysonTypeName
+
+		public sealed class JaysonTypeName
+		{
+			private Type m_Type;
+			private JaysonTypeInfo m_Info;
+			private string[] m_TypeNames = new string[3];
+
+			public JaysonTypeName(JaysonTypeInfo info)
+			{
+				m_Info = info;
+				m_Type = info.Type;
+			}
+
+			public string this [int indexer] {
+				get {
+					string result = m_TypeNames [indexer];
+					if (result == null) {
+						if (indexer == 0) {
+							m_TypeNames [0] = m_Type.ToString ();
+						} else if (indexer == 2) {
+							m_TypeNames [2] = m_Type.AssemblyQualifiedName;
+						} else if (indexer == 1) {
+							if (!m_Info.Generic) {
+								if (m_TypeNames [0] == null) {
+									m_TypeNames [0] = m_Type.ToString ();
+								}
+								m_TypeNames [1] = m_TypeNames [0] + ", " + m_Type.Assembly.GetName ().Name;
+							} else {
+								if (m_TypeNames [2] == null) {
+									m_TypeNames [2] = m_Type.AssemblyQualifiedName;
+								}
+								m_TypeNames [1] = GetTypeNameWithAssembly (m_TypeNames [2]);
+							}
+						}
+						return m_TypeNames [indexer];
+					}
+					return result;
+				}
+			}
+		}
+
+		# endregion JaysonTypeName
+
 		# region Static Members
 
-        private static Dictionary<Type, JaysonTypeInfo> s_InfoCache = new Dictionary<Type, JaysonTypeInfo>();
+		private static Dictionary<Type, JaysonTypeInfo> s_InfoCache = new Dictionary<Type, JaysonTypeInfo>();
 
-        # endregion Static Members
+		# endregion Static Members
 
-        # region Field Members
+		# region Field Members
 
 		private bool? m_IsArray;
-        private bool? m_IsClass;
-        private bool? m_IsEnum;
-        private bool? m_IsAnonymous;
-        private bool? m_IsNullable;
-        private bool? m_IsGeneric;
+		private bool? m_IsClass;
+		private bool? m_IsEnum;
+		private bool? m_IsAnonymous;
+		private bool? m_IsNullable;
+		private bool? m_IsGeneric;
 		private bool? m_IsGenericTypeDefinition;
 		private bool? m_IsInterface;
 		private bool? m_IsNumber;
 		private bool? m_IsJPrimitive;
-        private bool? m_IsPrimitive;
+		private bool? m_IsPrimitive;
 		private bool? m_IsValueType;
-        private bool? m_DefaultJConstructor;
-		private string[] m_TypeNames;
+		private bool? m_DefaultJConstructor;
 		private Type[] m_GenericArguments;
 		private Type[] m_Interfaces;
 		private TypeCode? m_TypeCode;
+		private JaysonTypeName m_TypeName;
 		private JaysonTypeCode? m_JTypeCode;
 		private InfoItem<object> m_Default = new InfoItem<object>();
-        private InfoItem<Type> m_ElementType = new InfoItem<Type>();
-        private InfoItem<Type> m_GenericTypeDefinition = new InfoItem<Type>();
+		private InfoItem<Type> m_ElementType = new InfoItem<Type>();
+		private InfoItem<Type> m_GenericTypeDefinition = new InfoItem<Type>();
 
-        private object m_SyncRoot;
+		private object m_SyncRoot;
 
-        public readonly Type Type;
+		public readonly Type Type;
 
-        # endregion Field Members
+		# endregion Field Members
 
-        private JaysonTypeInfo(Type type)
-        {
-            Type = type;
-        }
+		private JaysonTypeInfo(Type type)
+		{
+			Type = type;
+		}
 
-        public bool Anonymous
-        {
-            get
-            {
-                if (!m_IsAnonymous.HasValue)
-                {
-                    if (!Generic && (Type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
-                    {
-                        string typeName = Type.Name;
+		public bool Anonymous
+		{
+			get
+			{
+				if (!m_IsAnonymous.HasValue)
+				{
+					if (!Generic && (Type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
+					{
+						string typeName = Type.Name;
 
-                        m_IsAnonymous = (typeName.Length > 12) &&
-                            ((typeName[0] == '<' && typeName[1] == '>') ||
-                                (typeName[0] == 'V' && typeName[1] == 'B' && typeName[2] == '$')) &&
-                            (typeName.Contains("AnonType") || typeName.Contains("AnonymousType")) &&
-                            Attribute.IsDefined(Type, typeof(CompilerGeneratedAttribute), false);
+						m_IsAnonymous = (typeName.Length > 12) &&
+							((typeName[0] == '<' && typeName[1] == '>') ||
+								(typeName[0] == 'V' && typeName[1] == 'B' && typeName[2] == '$')) &&
+							(typeName.Contains("AnonType") || typeName.Contains("AnonymousType")) &&
+							Attribute.IsDefined(Type, typeof(CompilerGeneratedAttribute), false);
 
-                        return m_IsAnonymous.Value;
-                    }
+						return m_IsAnonymous.Value;
+					}
 
-                    m_IsAnonymous = false;
-                }
-                return m_IsAnonymous.Value;
-            }
-        }
+					m_IsAnonymous = false;
+				}
+				return m_IsAnonymous.Value;
+			}
+		}
 
 		public bool Array
 		{
@@ -102,16 +146,16 @@ namespace Jayson
 		}
 
 		public bool Class
-        {
-            get
-            {
-                if (!m_IsClass.HasValue)
-                {
-                    m_IsClass = Type.IsClass;
-                }
-                return m_IsClass.Value;
-            }
-        }
+		{
+			get
+			{
+				if (!m_IsClass.HasValue)
+				{
+					m_IsClass = Type.IsClass;
+				}
+				return m_IsClass.Value;
+			}
+		}
 
 		public object Default
 		{
@@ -124,8 +168,8 @@ namespace Jayson
 						BindingFlags.NonPublic |
 						BindingFlags.InvokeMethod).MakeGenericMethod(new Type[] { Type });
 
-                    m_Default.Value = defaultMi.Invoke(null, null);
-                    m_Default.HasValue = true;
+					m_Default.Value = defaultMi.Invoke(null, null);
+					m_Default.HasValue = true;
 				}
 				return m_Default.Value;
 			}
@@ -145,42 +189,42 @@ namespace Jayson
 			}
 		}
 
-        public Type ElementType
-        {
-            get
-            {
-                if (!m_ElementType.HasValue)
-                {
-                    m_ElementType.Value = Type.GetElementType();
-                    m_ElementType.HasValue = true;
-                }
-                return m_ElementType.Value;
-            }
-        }
+		public Type ElementType
+		{
+			get
+			{
+				if (!m_ElementType.HasValue)
+				{
+					m_ElementType.Value = Type.GetElementType();
+					m_ElementType.HasValue = true;
+				}
+				return m_ElementType.Value;
+			}
+		}
 
-        public bool Enum
-        {
-            get
-            {
-                if (!m_IsEnum.HasValue)
-                {
-                    m_IsEnum = Type.IsEnum;
-                }
-                return m_IsEnum.Value;
-            }
-        }
+		public bool Enum
+		{
+			get
+			{
+				if (!m_IsEnum.HasValue)
+				{
+					m_IsEnum = Type.IsEnum;
+				}
+				return m_IsEnum.Value;
+			}
+		}
 
 		public bool Generic
-        {
-            get
-            {
-                if (!m_IsGeneric.HasValue)
-                {
-                    m_IsGeneric = Type.IsGenericType;
-                }
-                return m_IsGeneric.Value;
-            }
-        }
+		{
+			get
+			{
+				if (!m_IsGeneric.HasValue)
+				{
+					m_IsGeneric = Type.IsGenericType;
+				}
+				return m_IsGeneric.Value;
+			}
+		}
 
 		public Type[] GenericArguments
 		{
@@ -213,7 +257,7 @@ namespace Jayson
 				if (!m_GenericTypeDefinition.HasValue) 
 				{
 					m_GenericTypeDefinition.Value = Type.GetGenericTypeDefinition();
-                    m_GenericTypeDefinition.HasValue = true;
+					m_GenericTypeDefinition.HasValue = true;
 				}
 				return m_GenericTypeDefinition.Value;
 			}
@@ -243,17 +287,17 @@ namespace Jayson
 			}
 		}
 
-        public bool JPrimitive
-        {
-            get
-            {
-                if (!m_IsJPrimitive.HasValue)
-                {
-                    m_IsJPrimitive = IsJPrimitiveType(Type);
-                }
-                return m_IsJPrimitive.Value;
-            }
-        }
+		public bool JPrimitive
+		{
+			get
+			{
+				if (!m_IsJPrimitive.HasValue)
+				{
+					m_IsJPrimitive = IsJPrimitiveType(Type);
+				}
+				return m_IsJPrimitive.Value;
+			}
+		}
 
 		public JaysonTypeCode JTypeCode
 		{
@@ -268,17 +312,17 @@ namespace Jayson
 		}
 
 		public bool Nullable
-        {
-            get
-            {
-                if (!m_IsNullable.HasValue)
-                {
-                    m_IsNullable = (Generic &&
-                        GenericTypeDefinitionType == typeof(Nullable<>));
-                }
-                return m_IsNullable.Value;
-            }
-        }
+		{
+			get
+			{
+				if (!m_IsNullable.HasValue)
+				{
+					m_IsNullable = (Generic &&
+						GenericTypeDefinitionType == typeof(Nullable<>));
+				}
+				return m_IsNullable.Value;
+			}
+		}
 
 		public bool Number
 		{
@@ -292,29 +336,29 @@ namespace Jayson
 			}
 		}
 
-        public bool Primitive
-        {
-            get
-            {
-                if (!m_IsPrimitive.HasValue)
-                {
-                    m_IsPrimitive = (JaysonTypeCode.Primitive & JTypeCode) == JTypeCode;
-                }
-                return m_IsPrimitive.Value;
-            }
-        }
+		public bool Primitive
+		{
+			get
+			{
+				if (!m_IsPrimitive.HasValue)
+				{
+					m_IsPrimitive = (JaysonTypeCode.Primitive & JTypeCode) == JTypeCode;
+				}
+				return m_IsPrimitive.Value;
+			}
+		}
 
-        public object SyncRoot
-        {
-            get
-            {
-                if (m_SyncRoot == null)
-                {
-                    Interlocked.CompareExchange(ref m_SyncRoot, new object(), null);
-                }
-                return m_SyncRoot;
-            }
-        }
+		public object SyncRoot
+		{
+			get
+			{
+				if (m_SyncRoot == null)
+				{
+					Interlocked.CompareExchange(ref m_SyncRoot, new object(), null);
+				}
+				return m_SyncRoot;
+			}
+		}
 
 		public TypeCode TypeCode
 		{
@@ -328,25 +372,14 @@ namespace Jayson
 			}
 		}
 
-		public string[] TypeNames
+		public JaysonTypeName TypeName
 		{
-			get
+			get 
 			{
-				if (m_TypeNames == null)
-				{
-					string[] names = new string[3];
-					names [0] = Type.ToString ();
-					names [2] = Type.AssemblyQualifiedName;
-
-					if (!Generic) {
-						names [1] = names[0]  + ", " + Type.Assembly.GetName ().Name;
-					} else {
-						names[1] = GetTypeNameWithAssembly(names[2]);
-					}
-
-					m_TypeNames = names;
+				if (m_TypeName == null) {
+					m_TypeName = new JaysonTypeName (this);
 				}
-				return m_TypeNames;
+				return m_TypeName;
 			}
 		}
 
@@ -362,36 +395,36 @@ namespace Jayson
 			}
 		}
 
-        public static bool HasDefaultJConstructor(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.DefaultJConstructor;
-        }
+		public static bool HasDefaultJConstructor(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.DefaultJConstructor;
+		}
 
-        public static bool IsAnonymous(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Anonymous;
-        }
+		public static bool IsAnonymous(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Anonymous;
+		}
 
-        public static bool IsAnonymous(string typeName)
-        {
-            return !String.IsNullOrEmpty(typeName) &&
-                (typeName.Length > 12) &&
-                ((typeName[0] == '<' && typeName[1] == '>') ||
-                (typeName[0] == 'V' && typeName[1] == 'B' && typeName[2] == '$')) &&
-                (typeName.Contains("AnonType") || typeName.Contains("AnonymousType"));
-        }
+		public static bool IsAnonymous(string typeName)
+		{
+			return !String.IsNullOrEmpty(typeName) &&
+				(typeName.Length > 12) &&
+				((typeName[0] == '<' && typeName[1] == '>') ||
+					(typeName[0] == 'V' && typeName[1] == 'B' && typeName[2] == '$')) &&
+				(typeName.Contains("AnonType") || typeName.Contains("AnonymousType"));
+		}
 
 		public static bool IsArray(Type type)
 		{
@@ -404,38 +437,38 @@ namespace Jayson
 			return info.Array;
 		}
 
-        public static bool IsClass(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Class;
-        }
+		public static bool IsClass(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Class;
+		}
 
-        public static bool IsEnum(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Enum;
-        }
+		public static bool IsEnum(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Enum;
+		}
 
-        public static bool IsGeneric(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Generic;
-        }
+		public static bool IsGeneric(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Generic;
+		}
 
 		public static bool IsGenericTypeDefinition(Type type)
 		{
@@ -459,27 +492,27 @@ namespace Jayson
 			return info.Interface;
 		}
 
-        public static bool IsJPrimitive(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.JPrimitive;
-        }
+		public static bool IsJPrimitive(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.JPrimitive;
+		}
 
-        public static bool IsNullable(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Nullable;
-        }
+		public static bool IsNullable(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Nullable;
+		}
 
 		public static bool IsNumber(Type type)
 		{
@@ -492,16 +525,16 @@ namespace Jayson
 			return info.Number;
 		}
 
-        public static bool IsPrimitive(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Primitive;
-        }
+		public static bool IsPrimitive(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.Primitive;
+		}
 
 		public static bool IsValue(Type type)
 		{
@@ -530,18 +563,18 @@ namespace Jayson
 			return info.Default;
 		}
 
-        public static Type GetElementType(Type type)
-        {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ElementType;
-        }
-        
-        public static Type[] GetGenericArguments(Type type)
+		public static Type GetElementType(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.ElementType;
+		}
+
+		public static Type[] GetGenericArguments(Type type)
 		{
 			JaysonTypeInfo info;
 			if (!s_InfoCache.TryGetValue(type, out info))
@@ -607,7 +640,7 @@ namespace Jayson
 			return info;
 		}
 
-        public static string GetTypeName(Type type, JaysonTypeNameInfo nameInfo)
+		public static string GetTypeName(Type type, JaysonTypeNameInfo nameInfo)
 		{
 			JaysonTypeInfo info;
 			if (!s_InfoCache.TryGetValue(type, out info))
@@ -615,7 +648,7 @@ namespace Jayson
 				info = new JaysonTypeInfo(type);
 				s_InfoCache[type] = info;
 			}
-			return info.TypeNames [(int)nameInfo];
+			return info.TypeName [(int)nameInfo];
 		}
 
 		private static JaysonTypeCode JTypeCodeOf(Type type)
@@ -721,20 +754,20 @@ namespace Jayson
 			return builder.ToString();
 		}
 
-        public override bool Equals(object obj)
-        {
-            if (obj is JaysonTypeInfo)
-            {
-                return ((JaysonTypeInfo)obj).Type == Type;
-            }
-            return false;
-        }
+		public override bool Equals(object obj)
+		{
+			if (obj is JaysonTypeInfo)
+			{
+				return ((JaysonTypeInfo)obj).Type == Type;
+			}
+			return false;
+		}
 
-        public override int GetHashCode()
-        {
-            return Type.GetHashCode();
-        }
-    }
+		public override int GetHashCode()
+		{
+			return Type.GetHashCode();
+		}
+	}
 
-    # endregion JaysonTypeInfo
+	# endregion JaysonTypeInfo
 }
