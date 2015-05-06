@@ -80,7 +80,7 @@ namespace Jayson
 			int start = pos;
 			bool terminated = false;
 
-            StringBuilder charStore = new StringBuilder(20, int.MaxValue); // JaysonParserBuilderCache.Acquire(20);
+			StringBuilder charStore = new StringBuilder(20, int.MaxValue); // JaysonParserBuilderCache.Acquire(20);
 			do
 			{
 				ch = str[pos];
@@ -181,7 +181,7 @@ namespace Jayson
 				charStore.Append(str, start, len);
 			}
 			// return JaysonParserBuilderCache.GetStringAndRelease(charStore);
-            return charStore.ToString();
+			return charStore.ToString();
 		}
 
 		# endregion Parse String
@@ -679,47 +679,47 @@ namespace Jayson
 
 		# region Helper Methods
 
-        private static void EatWhitesAndCheckChar(JaysonDeserializationContext context, char charToCheck)
-        {
-            if (context.Position >= context.Length - 1)
-            {
-                throw new JaysonException("Invalid Json.");
-            }
+		private static void EatWhitesAndCheckChar(JaysonDeserializationContext context, int charToCheck)
+		{
+			if (context.Position >= context.Length - 1)
+			{
+				throw new JaysonException("Invalid Json.");
+			}
 
-            char ch = context.Text[context.Position];
-            if (ch == charToCheck)
-            {
-                context.Position++;
-            }
-            else
-            {
-                if (JaysonCommon.IsWhiteSpace(ch))
-                {
-                    string str = context.Text;
-                    int length = context.Length;
+			int ch = (int)context.Text[context.Position];
+			if (ch == charToCheck)
+			{
+				context.Position++;
+			}
+			else
+			{
+				if (JaysonCommon.IsWhiteSpace(ch))
+				{
+					string str = context.Text;
+					int length = context.Length;
 
-                    do
-                    {
-                        context.Position++;
-                        if (context.Position < length)
-                        {
-                            ch = str[context.Position];
-                            if (ch == charToCheck)
-                                return;
+					do
+					{
+						context.Position++;
+						if (context.Position < length)
+						{
+							ch = (int)str[context.Position];
+							if (ch == charToCheck)
+								return;
 
-                            if (JaysonCommon.IsWhiteSpace(ch))
-                                continue;
-                        }
-                        throw new JaysonException("Invalid Json.");
-                    } while (true);
-                }
-                throw new JaysonException("Invalid Json.");
-            }
-        }
+							if (JaysonCommon.IsWhiteSpace(ch))
+								continue;
+						}
+						throw new JaysonException("Invalid Json.");
+					} while (true);
+				}
+				throw new JaysonException("Invalid Json.");
+			}
+		}
 
-        # endregion Helper Methods
+		# endregion Helper Methods
 
-        # region Parse List
+		# region Parse List
 
 		private static IList ListAsArray(IList list)
 		{
@@ -768,9 +768,9 @@ namespace Jayson
 			return objectArray;
 		}
 
-        private static IList ParseList(JaysonDeserializationContext context)
+		private static IList ParseList(JaysonDeserializationContext context)
 		{
-            EatWhitesAndCheckChar(context, '[');
+			EatWhitesAndCheckChar(context, '[');
 
 			context.ObjectDepth++;
 
@@ -782,14 +782,14 @@ namespace Jayson
 
 			IList result = 
 				context.Settings.ArrayType == ArrayDeserializationType.ArrayList ? 
-                	(IList)(new ArrayList(10)) :
-					new List<object>(10);
+				(IList)(new ArrayList(10)) :
+				new List<object>(10);
 
-            string str = context.Text;
-            int length = context.Length;
+			string str = context.Text;
+			int length = context.Length;
 
-            char ch;
-            JaysonSerializationToken token = JaysonSerializationToken.Value;
+			char ch;
+			JaysonSerializationToken token = JaysonSerializationToken.Value;
 
 			while (context.Position < length)
 			{
@@ -797,10 +797,10 @@ namespace Jayson
 				if (token == JaysonSerializationToken.Comma)
 				{
 					token = JaysonSerializationToken.Value;
-                    if (ch == ',' || ch == ']' || ch == '}')
-                    {
-                        throw new JaysonException("Invalid Json list.");
-                    }
+					if (ch == ',' || ch == ']' || ch == '}')
+					{
+						throw new JaysonException("Invalid Json list.");
+					}
 				}
 
 				switch (ch)
@@ -874,8 +874,8 @@ namespace Jayson
 						result.Add(ParseNumber(context, JaysonSerializationToken.Value));
 						break;
 					}
-				    if (JaysonCommon.IsWhiteSpace(ch))
-					    continue;
+					if (JaysonCommon.IsWhiteSpace(ch))
+						continue;
 					throw new JaysonException("Invalid Json list item.");
 				}
 			}
@@ -889,8 +889,8 @@ namespace Jayson
 
 		private static IDictionary<string, object> ParseDictionary(JaysonDeserializationContext context)
 		{
-            EatWhitesAndCheckChar(context, '{');
-            
+			EatWhitesAndCheckChar(context, '{');
+
 			context.ObjectDepth++;
 
 			if (context.Settings.MaxObjectDepth > 0 && 
@@ -902,20 +902,20 @@ namespace Jayson
 			#if !(NET3500 || NET3000 || NET2000)
 			IDictionary<string, object> result = 
 				(context.Settings.DictionaryType == DictionaryDeserializationType.Expando) ? 
-					(IDictionary<string, object>)(new ExpandoObject()) :
-					new Dictionary<string, object>(10);
+				(IDictionary<string, object>)(new ExpandoObject()) :
+				new Dictionary<string, object>(10);
 			#else
 			IDictionary<string, object> result = new Dictionary<string, object>(10);
 			#endif
 
-            char ch;
+			char ch;
 			object value;
 			string key = null;
 
-            string str = context.Text;
-            int length = context.Length;
+			string str = context.Text;
+			int length = context.Length;
 
-            JaysonSerializationToken token = JaysonSerializationToken.Key;
+			JaysonSerializationToken token = JaysonSerializationToken.Key;
 			JaysonSerializationToken prevToken = JaysonSerializationToken.Undefined;
 
 			while (context.Position < length)
@@ -948,8 +948,8 @@ namespace Jayson
 						context.ObjectDepth--;
 						return result;
 					default:
-                        if (JaysonCommon.IsWhiteSpace(ch))
-                            continue;
+						if (JaysonCommon.IsWhiteSpace(ch))
+							continue;
 						throw new JaysonException("Invalid Json object key.");
 					}
 					break;
@@ -960,8 +960,8 @@ namespace Jayson
 						token = JaysonSerializationToken.Value;
 						break;
 					}
-                    if (JaysonCommon.IsWhiteSpace(ch))
-                        continue;
+					if (JaysonCommon.IsWhiteSpace(ch))
+						continue;
 					throw new JaysonException("Invalid Json object value.");
 				case JaysonSerializationToken.Value:
 					switch (ch)
@@ -1023,14 +1023,14 @@ namespace Jayson
 							result[key] = value;
 							break;
 						}
-                        if (JaysonCommon.IsWhiteSpace(ch))
-                            continue;
+						if (JaysonCommon.IsWhiteSpace(ch))
+							continue;
 						throw new JaysonException("Invalid Json object value.");
 					}
 
 					key = null;
 					token = JaysonSerializationToken.Key;
-                    prevToken = JaysonSerializationToken.Value;
+					prevToken = JaysonSerializationToken.Value;
 					break;
 				}
 			}

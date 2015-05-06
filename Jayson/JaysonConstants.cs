@@ -50,8 +50,6 @@ namespace Jayson
 		public static readonly char[] NewLine = Environment.NewLine.ToCharArray ();
 		public static readonly string[] Indentation = new string[61];
 
-		public static readonly bool IsOnMono = JaysonCommon.IsOnMono();
-
 		public static readonly TimeZone CurrentTimeZone = TimeZone.CurrentTimeZone;
 
 		// Min: 621355968000000000L, Max: 642830688000000000L

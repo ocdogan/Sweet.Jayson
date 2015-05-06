@@ -801,64 +801,7 @@ namespace Jayson
 
 			return result;
 		}
-
-        /*
-		private static DateTime? ConvertToDateTime(string str)
-		{
-			int length = str.Length;
-			if (length == 0) {
-				return null;
-			}
-
-			char ch;
-			int timeZonePos = -1;
-			int timeZoneSign = 1;
-
-			for (int i = 1; i < length; i++) {
-				ch = str [i];
-				if (ch == '-') {
-					timeZonePos = i;
-					timeZoneSign = -1;
-					break;
-				}
-				if (ch == '+') {
-					timeZonePos = i;
-					break;
-				}
-			}
-
-			long l;
-			if (timeZonePos == -1) {
-				if (!long.TryParse (str, out l)) {
-					throw new JaysonException ("Invalid Unix Epoch date format.");
-				}
-
-				DateTime dt1 = JaysonCommon.FromUnixTimeMsec (l);
-				if (dt1 > JaysonConstants.DateTimeUnixEpochMaxValue) {
-					throw new JaysonException ("Invalid Unix Epoch date format.");
-				}
-				return dt1;
-			}
-
-			if (!long.TryParse (str.Substring (0, timeZonePos), out l)) {
-				throw new JaysonException ("Invalid Unix Epoch date format.");
-			}
-
-			TimeSpan tz = new TimeSpan (int.Parse (str.Substring (length - 4, 2)),
-				int.Parse (str.Substring (length - 2, 2)), 0);
-
-			if (timeZoneSign == -1) {
-				tz = new TimeSpan (-tz.Ticks);
-			}
-
-			DateTime dt2 = JaysonCommon.FromUnixTimeMsec (l, tz);
-			if (dt2 > JaysonConstants.DateTimeUnixEpochMaxValue) {
-				throw new JaysonException ("Invalid Unix Epoch date format.");
-			}
-			return dt2;
-		}
-        */
-		        
+				        
         private static object ConvertObject(object obj, Type toType, JaysonDeserializationSettings settings)
 		{
 			toType = BindToType(settings, toType);

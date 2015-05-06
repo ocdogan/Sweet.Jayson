@@ -401,10 +401,11 @@ namespace Jayson
 			}
 
 			char ch;
+			long l = 0;
 			int timeZonePos = -1;
 			int timeZoneSign = 1;
 
-			for (int i = 1; i < length; i++)
+			for (int i = 0; i < length; i++)
 			{
 				ch = str[i];
 				if (ch == '-')
@@ -413,21 +414,26 @@ namespace Jayson
 					timeZoneSign = -1;
 					break;
 				}
+
 				if (ch == '+')
 				{
 					timeZonePos = i;
 					break;
 				}
-			}
 
-			long l;
-			if (timeZonePos == -1)
-			{
-				if (!long.TryParse(str, NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
+				if (ch < '0' || ch > '9')
 				{
+					if (l == 0 && IsWhiteSpace(ch))
+						continue;
 					throw new JaysonException("Invalid Unix Epoch date format.");
 				}
 
+				l *= 10;
+				l += (long)(ch - '0');
+			}
+
+			if (timeZonePos == -1)
+			{
 				DateTime dt1 = JaysonCommon.FromUnixTimeMsec(l);
 				if (dt1 > JaysonConstants.DateTimeUnixEpochMaxValue)
 				{
@@ -436,13 +442,13 @@ namespace Jayson
 				return dt1;
 			}
 
-			if (!long.TryParse(str.Substring(0, timeZonePos), NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
+			if (timeZonePos > length - 5)
 			{
 				throw new JaysonException("Invalid Unix Epoch date format.");
 			}
 
-			TimeSpan tz = new TimeSpan(10 * (str[length - 4] - '0') + (str[length - 3] - '0'),
-				10 * (str[length - 2] - '0') + (str[length - 1] - '0'), 0);
+			TimeSpan tz = new TimeSpan(10 * (str[timeZonePos + 1] - '0') + (str[timeZonePos + 2] - '0'),
+				10 * (str[timeZonePos + 3] - '0') + (str[timeZonePos + 4] - '0'), 0);
 
 			if (timeZoneSign == -1)
 			{
@@ -850,6 +856,62 @@ namespace Jayson
 			return false;
 		}
 
+		public static bool ParseBoolean(string str) 
+		{
+			if (!String.IsNullOrEmpty (str)) {
+				char ch;
+				int pos = 0;
+				int length = str.Length;
+
+				while (pos < length) {
+					ch = str [pos];
+
+					if (IsWhiteSpace (ch)) {
+						pos++;
+						continue;
+					}
+
+					if (ch == 't' || ch == 'T') {
+						if (pos < length - 3 &&
+						   (str [++pos] == 'r' || str [pos] == 'R') &&
+						   (str [++pos] == 'u' || str [pos] == 'U') &&
+						   (str [++pos] == 'e' || str [pos] == 'E')) {
+							if (++pos < length) {
+								do {
+									if (!IsWhiteSpace (str [pos++])) {
+										throw new JaysonException ("Invalid boolean string.");
+									}
+								} while (pos < length);
+							}
+							return true;
+						}
+						throw new JaysonException ("Invalid boolean string.");
+					}
+
+					if (ch == 'f' || ch == 'F') {
+						if (pos < length - 4 &&
+						   (str [++pos] == 'a' || str [pos] == 'A') &&
+						   (str [++pos] == 'l' || str [pos] == 'L') &&
+						   (str [++pos] == 's' || str [pos] == 'S') &&
+						   (str [++pos] == 'e' || str [pos] == 'E')) {
+							if (++pos < length) {
+								do {
+									if (!IsWhiteSpace (str [pos++])) {
+										throw new JaysonException ("Invalid boolean string.");
+									}
+								} while (pos < length);
+							}
+							return false;
+						}
+						throw new JaysonException ("Invalid boolean string.");
+					}
+
+					throw new JaysonException ("Invalid boolean string.");
+				}
+			}
+			throw new JaysonException ("Invalid boolean string.");
+		}
+
 		# endregion String Methods
 
 		public static bool IsOnMono()
@@ -1030,7 +1092,7 @@ namespace Jayson
 						if (s.Length == 0) {
 							return false;
 						}
-						return bool.Parse (s);
+						return ParseBoolean (s);
 					}
 					return Convert.ToBoolean (value);
 				}
@@ -1113,7 +1175,7 @@ namespace Jayson
 						if (s.Length == 0) {
 							return (bool?)null;
 						}
-						return (bool?)bool.Parse (s);
+						return (bool?)ParseBoolean (s);
 					}
 					return (bool?)Convert.ToBoolean (value);
 				}
@@ -1511,9 +1573,17 @@ namespace Jayson
 			return value;
 		}
 
-		public static bool IsWhiteSpace(char ch)
+		public static bool IsWhiteSpaceChar(char ch)
 		{
-			return ch == ' ' || (ch >= '\x0009' && ch <= '\x000d') || ch == '\x00a0' || ch == '\x0085';
+			return IsWhiteSpace(ch);
+			// return ch == ' ' || (ch >= '\x0009' && ch <= '\x000d') || ch == '\x00a0' || ch == '\x0085';
+		}
+
+		public static bool IsWhiteSpace(int ch)
+		{
+			if (ch != 32 && (ch < 9 || ch > 13) && ch != 160)
+				return ch == 133;
+			return true; 
 		}
 
 		internal static bool FindInterface(Type objType, Type interfaceType, out Type[] arguments)
@@ -1738,41 +1808,41 @@ namespace Jayson
 		#else
 		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
-			var declaringT = methodInfo.DeclaringType;
-			var methodParams = methodInfo.GetParameters();
+		var declaringT = methodInfo.DeclaringType;
+		var methodParams = methodInfo.GetParameters();
 
-			var paramExp = Expression.Parameter(typeof (object[]), "args");
-			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
+		var paramExp = Expression.Parameter(typeof (object[]), "args");
+		var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
-			var inputCastExp = !declaringT.IsValueType ?
-			Expression.TypeAs (inputObjExp, declaringT) : 
-			Expression.Convert(inputObjExp, declaringT);
+		var inputCastExp = !declaringT.IsValueType ?
+		Expression.TypeAs (inputObjExp, declaringT) : 
+		Expression.Convert(inputObjExp, declaringT);
 
-			Expression callExp;
-			if (methodParams.Length == 0) {
-				callExp = Expression.Call (inputCastExp, methodInfo);
-			} else {
-				var callArguments = new Expression[methodParams.Length];
+		Expression callExp;
+		if (methodParams.Length == 0) {
+		callExp = Expression.Call (inputCastExp, methodInfo);
+		} else {
+		var callArguments = new Expression[methodParams.Length];
 
-				Type paramType;
-				Expression arrayAccessExp;
-				Expression arrayValueCastExp;
+		Type paramType;
+		Expression arrayAccessExp;
+		Expression arrayValueCastExp;
 
-				for (var i = 0; i < methodParams.Length; i++) {
-					paramType = methodParams [i].ParameterType;
+		for (var i = 0; i < methodParams.Length; i++) {
+		paramType = methodParams [i].ParameterType;
 
-					arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
+		arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
 
-					arrayValueCastExp = !paramType.IsValueType ?
-					Expression.TypeAs (arrayAccessExp, paramType) : 
-					Expression.Convert (arrayAccessExp, paramType);
+		arrayValueCastExp = !paramType.IsValueType ?
+		Expression.TypeAs (arrayAccessExp, paramType) : 
+		Expression.Convert (arrayAccessExp, paramType);
 
-					callArguments [i] = arrayValueCastExp;
-				}
+		callArguments [i] = arrayValueCastExp;
+		}
 
-				callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
-			}
-			return Expression.Lambda<Action<object, object[]>>(callExp, paramExp).Compile ();            
+		callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
+		}
+		return Expression.Lambda<Action<object, object[]>>(callExp, paramExp).Compile ();            
 		}
 		#endif
 
