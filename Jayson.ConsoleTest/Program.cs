@@ -4,7 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+#if !(NET3500 || NET3000 || NET2000)
 using System.Threading.Tasks;
+#endif
 
 using Jayson;
 using Jayson.Tests;
@@ -71,8 +73,10 @@ namespace Jayson.ConsoleTest
             Console.WriteLine();
             PerformanceTest3();
             Console.WriteLine();
+			#if !(NET3500 || NET3000 || NET2000)
 			PerformanceTest4();
 			Console.WriteLine();
+			#endif
         }
 
         private static void UnitTests()
@@ -219,7 +223,7 @@ namespace Jayson.ConsoleTest
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
-			jaysonDeserializationSettings.CaseSensitive = false;
+			jaysonDeserializationSettings.CaseSensitive = true;
 
 			string s;
 
@@ -252,6 +256,7 @@ namespace Jayson.ConsoleTest
 			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
 		}
 
+		#if !(NET3500 || NET3000 || NET2000)
 		static void PerformanceTest4()
 		{
 			Stopwatch sw = new Stopwatch();
@@ -304,5 +309,6 @@ namespace Jayson.ConsoleTest
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
 		}
+		#endif
 	}
 }
