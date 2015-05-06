@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 
 namespace Jayson
 {
-	public static class JaysonCommon
+	internal static class JaysonCommon
 	{
 		# region ExpressionAssigner<> for .Net3.5
 
@@ -26,21 +26,21 @@ namespace Jayson
 
 		private static int s_IsMono = -1;
 
-        private static TimeSpan s_UtcOffsetUpdate;
-        private static long s_LastUtcOffsetUpdate = -1;
+		private static TimeSpan s_UtcOffsetUpdate;
+		private static long s_LastUtcOffsetUpdate = -1;
 
-        private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
-        private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
-        private static readonly Dictionary<Type, bool> s_IsGenericList = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, bool> s_IsGenericList = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 
-        private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-        private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 
-        private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
 
-        private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
-        private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
-        private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 
 		# endregion Static Members
 
@@ -99,7 +99,7 @@ namespace Jayson
 
 			long utcOffsetTicks = utcOffset.Ticks;
 			if (utcOffsetTicks == 0) {
-				new DateTime (dateTime.Ticks, DateTimeKind.Local);
+				return new DateTime (dateTime.Ticks, DateTimeKind.Local);
 			}
 
 			if (utcOffsetTicks > 0) {
@@ -127,15 +127,15 @@ namespace Jayson
 				return new DateTime (dateTime.Subtract (GetUtcOffset (dateTime)).Ticks, DateTimeKind.Utc);
 			}
 
-            long ticks = dateTime.Ticks - GetUtcOffset(dateTime).Ticks;
-            if (ticks > 3155378975999999999L) {
-                return new DateTime(3155378975999999999L, DateTimeKind.Utc);
-            }
-            if (ticks < 0L) {
-                return new DateTime(0L, DateTimeKind.Utc);
-            }
-            return new DateTime(ticks, DateTimeKind.Utc);
-        }
+			long ticks = dateTime.Ticks - GetUtcOffset(dateTime).Ticks;
+			if (ticks > 3155378975999999999L) {
+				return new DateTime(3155378975999999999L, DateTimeKind.Utc);
+			}
+			if (ticks < 0L) {
+				return new DateTime(0L, DateTimeKind.Utc);
+			}
+			return new DateTime(ticks, DateTimeKind.Utc);
+		}
 
 		public static TimeSpan SinceUnixEpochStart(DateTime dateTime)
 		{
@@ -233,7 +233,7 @@ namespace Jayson
 			}
 
 			if (length < 10) {
-				throw new JaysonException ("Invalid date format.");
+				throw new JaysonException ("Invalid ISO8601 date format.");
 			}
 
 			DateTimeKind kind = DateTimeKind.Unspecified;
@@ -241,160 +241,192 @@ namespace Jayson
 				kind = DateTimeKind.Utc;
 			}
 
-			int year = 0;
-			int month = 1;
-			int day = 1;
+			try {
+				int year = 0;
+				int month = 1;
+				int day = 1;
 
-			if (str [2] == '-') {
-				day = 10 * (int)(str [0] - '0') + (int)(str [1] - '0');
-				month = 10 * (int)(str [3] - '0') + (int)(str [4] - '0');
+				if (str [2] == '-') {
+					day = 10 * (int)(str [0] - '0') + (int)(str [1] - '0');
+					month = 10 * (int)(str [3] - '0') + (int)(str [4] - '0');
 
-				year = 1000 * (int)(str [6] - '0') + 100 * (int)(str [7] - '0') +
-					10 * (int)(str [8] - '0') + (int)(str [9] - '0');
-			} else {
-				year = 1000 * (int)(str [0] - '0') + 100 * (int)(str [1] - '0') +
-					10 * (int)(str [2] - '0') + (int)(str [3] - '0');
+					year = 1000 * (int)(str [6] - '0') + 100 * (int)(str [7] - '0') +
+						10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+				} else {
+					year = 1000 * (int)(str [0] - '0') + 100 * (int)(str [1] - '0') +
+						10 * (int)(str [2] - '0') + (int)(str [3] - '0');
 
-				month = 10 * (int)(str [5] - '0') + (int)(str [6] - '0');
-				day = 10 * (int)(str [8] - '0') + (int)(str [9] - '0');
-			}
-
-			if (month > 12 && day < 13) {
-				int tmp = month;
-				month = day;
-				day = tmp;
-			}
-
-			if (length == 10) {
-				dateTime = new DateTime(year, month, day, 0, 0, 0, kind);
-				return;
-			}
-
-			char ch = str [10];
-			if (!(ch == 'T' || ch == ' ')) {
-				dateTime = new DateTime(year, month, day, 0, 0, 0, kind);
-				return;
-			}
-
-			int pos = 10;
-
-			int minute = 0;
-			int second = 0;
-			int millisecond = 0;
-
-			int hour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
-			pos += 3;
-
-			if (pos < length) {
-				ch = str [pos];
-				if (ch == ':') {
-					minute = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
-					pos += 3;
-
-					if (pos < length) {
-						ch = str [pos];
-						if (ch == ':') {
-							second = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
-							pos += 3;
-						}
-					}
+					month = 10 * (int)(str [5] - '0') + (int)(str [6] - '0');
+					day = 10 * (int)(str [8] - '0') + (int)(str [9] - '0');
 				}
+
+				if (month > 12 && day < 13) {
+					int tmp = month;
+					month = day;
+					day = tmp;
+				}
+
+				if (length == 10) {
+					dateTime = new DateTime (year, month, day, 0, 0, 0, kind);
+					return;
+				}
+
+				char ch = str [10];
+				if (!(ch == 'T' || ch == ' ')) {
+					dateTime = new DateTime (year, month, day, 0, 0, 0, kind);
+					return;
+				}
+
+				int pos = 10;
+
+				int minute = 0;
+				int second = 0;
+				int millisecond = 0;
+
+				int hour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+				pos += 3;
 
 				if (pos < length) {
 					ch = str [pos];
-					if (ch == 'Z') {
-						dateTime = new DateTime (year, month, day, hour, minute, second, kind);
-						return;
-					}
+					if (ch == ':') {
+						minute = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+						pos += 3;
 
-					if (ch == '.') {
-						int msIndex = 0;
-						while (++pos < length) {
+						if (pos < length) {
 							ch = str [pos];
-							if (ch < '0' || ch > '9') {
-								break;
-							}
-
-							msIndex++;
-							if (msIndex < 4) {
-								millisecond *= 10;
-								millisecond += (int)(ch - '0');
+							if (ch == ':') {
+								second = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+								pos += 3;
 							}
 						}
 					}
 
 					if (pos < length) {
 						ch = str [pos];
-						if (ch == '+' || ch == '-') {
-							int tzHour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
-							int tzMinute = 10 * (int)(str [pos + 3] - '0') + (int)(str [pos + 4] - '0');
-
-							timeSpan = new TimeSpan (tzHour, tzMinute, 0);
-							dateTime = new DateTime (year, month, day, hour, minute, 
-								second, millisecond, DateTimeKind.Unspecified);
+						if (ch == 'Z') {
+							dateTime = new DateTime (year, month, day, hour, minute, second, kind);
 							return;
+						}
+
+						if (ch == '.') {
+							int msIndex = 0;
+							while (++pos < length) {
+								ch = str [pos];
+								if (ch < '0' || ch > '9') {
+									break;
+								}
+
+								msIndex++;
+								if (msIndex < 4) {
+									millisecond *= 10;
+									millisecond += (int)(ch - '0');
+								}
+							}
+						}
+
+						if (pos < length) {
+							ch = str [pos];
+							if (ch == '+' || ch == '-') {
+								int tzHour = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
+								int tzMinute = 0;
+								pos += 3;
+
+								if (pos < length) {
+									ch = str [pos];
+									if (ch == ':') {
+										pos++;
+									}
+
+									tzMinute = 10 * (int)(str [pos] - '0') + (int)(str [pos + 1] - '0');
+								}
+
+								timeSpan = new TimeSpan (tzHour, tzMinute, 0);
+								dateTime = new DateTime (year, month, day, hour, minute, 
+									second, millisecond, DateTimeKind.Unspecified);
+								return;
+							}
 						}
 					}
 				}
-			}
 
-			dateTime = new DateTime(year, month, day, hour, minute, second, millisecond, kind);
+				dateTime = new DateTime (year, month, day, hour, minute, second, millisecond, kind);
+			} catch (Exception) {
+				throw new JaysonException ("Invalid ISO8601 date format.");
+			}
 		}
 
 		# endregion DateTime Methods
 
-        # region String Methods
+		# region String Methods
 
-        public static bool StartsWith(string str1, string str2)
-        {
-            if (str1 != null && str2 != null)
-            {
-                int length2 = str2.Length;
-                if (str1.Length >= length2)
-                {
-                    for (int i = 0; i < length2; i++)
-                    {
-                        if (str1[i] != str2[i])
-                            return false;
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+		public static bool StartsWith(string str1, string str2)
+		{
+			if (str1 != null && str2 != null)
+			{
+				int length2 = str2.Length;
+				if (str1.Length >= length2)
+				{
+					for (int i = 0; i < length2; i++)
+					{
+						if (str1[i] != str2[i])
+							return false;
+					}
+					return true;
+				}
+			}
+			return false;
+		}
 
-        public static bool EndsWith(string str1, string str2)
-        {
-            if (str1 != null && str2 != null)
-            {
-                int length2 = str2.Length;
-                int offset = str1.Length - length2;
+		public static bool StartsWith(string str, char ch)
+		{
+			return !String.IsNullOrEmpty(str) && str [0] == ch;
+		}
 
-                if (offset == 0)
-                {
-                    for (int i = 0; i < length2; i++)
-                    {
-                        if (str1[i] != str2[i])
-                            return false;
-                    }
-                    return true;
-                }
-                else if (offset > 0)
-                {
-                    for (int i = length2 - 1; i > -1; i--)
-                    {
-                        if (str1[offset + i] != str2[i])
-                            return false;
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+		public static bool EndsWith(string str1, string str2)
+		{
+			if (str1 != null && str2 != null)
+			{
+				int length2 = str2.Length;
+				int offset = str1.Length - length2;
 
-        # endregion String Methods
+				if (offset == 0)
+				{
+					for (int i = 0; i < length2; i++)
+					{
+						if (str1[i] != str2[i])
+							return false;
+					}
+					return true;
+				}
+				else if (offset > 0)
+				{
+					for (int i = length2 - 1; i > -1; i--)
+					{
+						if (str1[offset + i] != str2[i])
+							return false;
+					}
+					return true;
+				}
+			}
+			return false;
+		}
 
-        public static bool IsOnMono()
+		public static bool EndsWith(string str, char ch)
+		{
+			if (str != null)
+			{
+				int length = str.Length;
+				if (length > 0)
+				{
+					return str [length - 1] == ch;
+				}
+			}
+			return false;
+		}
+
+		# endregion String Methods
+
+		public static bool IsOnMono()
 		{
 			if (s_IsMono == -1) {
 				s_IsMono = Type.GetType ("Mono.Runtime") != null ? 1 : 0;
@@ -402,130 +434,130 @@ namespace Jayson
 			return (s_IsMono == -1);
 		}
 
-        public static object EnumToObject(Type enumType, object value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException("value");
-            }
+		public static object EnumToObject(Type enumType, object value)
+		{
+			if (value == null)
+			{
+				throw new ArgumentNullException("value");
+			}
 
-            JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(value.GetType());
-            switch (jtc)
-            {
-                case JaysonTypeCode.Long:
-                    {
-                        return Enum.ToObject(enumType, (long)value);
-                    }
-                case JaysonTypeCode.Int:
-                    {
-                        return Enum.ToObject(enumType, (long)((int)value));
-                    }
-                case JaysonTypeCode.Short:
-                    {
-                        return Enum.ToObject(enumType, (long)((short)value));
-                    }
-                case JaysonTypeCode.Byte:
-                    {
-                        return Enum.ToObject(enumType, (long)((byte)value));
-                    }
-                case JaysonTypeCode.ULong:
-                    {
-                        return Enum.ToObject(enumType, (long)((ulong)value));
-                    }
-                case JaysonTypeCode.UInt:
-                    {
-                        return Enum.ToObject(enumType, (long)((uint)value));
-                    }
-                case JaysonTypeCode.UShort:
-                    {
-                        return Enum.ToObject(enumType, (long)((ushort)value));
-                    }
-                case JaysonTypeCode.SByte:
-                    {
-                        return Enum.ToObject(enumType, (long)((sbyte)value));
-                    }
-                case JaysonTypeCode.Char:
-                    {
-                        return Enum.ToObject(enumType, (long)((char)value));
-                    }
-                case JaysonTypeCode.Double:
-                    {
-                        return Enum.ToObject(enumType, (long)((double)value));
-                    }
-                case JaysonTypeCode.Float:
-                    {
-                        return Enum.ToObject(enumType, (long)((float)value));
-                    }
-                case JaysonTypeCode.LongNullable:
-                    {
-                        return Enum.ToObject(enumType, ((long?)value).Value);
-                    }
-                case JaysonTypeCode.IntNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((int?)value).Value);
-                    }
-                case JaysonTypeCode.ShortNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((short?)value).Value);
-                    }
-                case JaysonTypeCode.ByteNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((byte?)value).Value);
-                    }
-                case JaysonTypeCode.ULongNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((ulong?)value).Value);
-                    }
-                case JaysonTypeCode.UIntNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((uint?)value).Value);
-                    }
-                case JaysonTypeCode.UShortNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((ushort?)value).Value);
-                    }
-                case JaysonTypeCode.SByteNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((sbyte?)value).Value);
-                    }
-                case JaysonTypeCode.CharNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((char?)value).Value);
-                    }
-                case JaysonTypeCode.BoolNullable:
-                    {
-                        return Enum.ToObject(enumType, ((bool?)value).Value ? 1L : 0L);
-                    }
-                case JaysonTypeCode.DoubleNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((double?)value).Value);
-                    }
-                case JaysonTypeCode.FloatNullable:
-                    {
-                        return Enum.ToObject(enumType, (long)((float?)value).Value);
-                    }
-                default:
-                    throw new JaysonException("Argument must be Enum base type or Enum");
-            }
-        }
-		        
-        public static Type GetType(string typeName, SerializationBinder binder = null)
+			JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(value.GetType());
+			switch (jtc)
+			{
+			case JaysonTypeCode.Long:
+				{
+					return Enum.ToObject(enumType, (long)value);
+				}
+			case JaysonTypeCode.Int:
+				{
+					return Enum.ToObject(enumType, (long)((int)value));
+				}
+			case JaysonTypeCode.Short:
+				{
+					return Enum.ToObject(enumType, (long)((short)value));
+				}
+			case JaysonTypeCode.Byte:
+				{
+					return Enum.ToObject(enumType, (long)((byte)value));
+				}
+			case JaysonTypeCode.ULong:
+				{
+					return Enum.ToObject(enumType, (long)((ulong)value));
+				}
+			case JaysonTypeCode.UInt:
+				{
+					return Enum.ToObject(enumType, (long)((uint)value));
+				}
+			case JaysonTypeCode.UShort:
+				{
+					return Enum.ToObject(enumType, (long)((ushort)value));
+				}
+			case JaysonTypeCode.SByte:
+				{
+					return Enum.ToObject(enumType, (long)((sbyte)value));
+				}
+			case JaysonTypeCode.Char:
+				{
+					return Enum.ToObject(enumType, (long)((char)value));
+				}
+			case JaysonTypeCode.Double:
+				{
+					return Enum.ToObject(enumType, (long)((double)value));
+				}
+			case JaysonTypeCode.Float:
+				{
+					return Enum.ToObject(enumType, (long)((float)value));
+				}
+			case JaysonTypeCode.LongNullable:
+				{
+					return Enum.ToObject(enumType, ((long?)value).Value);
+				}
+			case JaysonTypeCode.IntNullable:
+				{
+					return Enum.ToObject(enumType, (long)((int?)value).Value);
+				}
+			case JaysonTypeCode.ShortNullable:
+				{
+					return Enum.ToObject(enumType, (long)((short?)value).Value);
+				}
+			case JaysonTypeCode.ByteNullable:
+				{
+					return Enum.ToObject(enumType, (long)((byte?)value).Value);
+				}
+			case JaysonTypeCode.ULongNullable:
+				{
+					return Enum.ToObject(enumType, (long)((ulong?)value).Value);
+				}
+			case JaysonTypeCode.UIntNullable:
+				{
+					return Enum.ToObject(enumType, (long)((uint?)value).Value);
+				}
+			case JaysonTypeCode.UShortNullable:
+				{
+					return Enum.ToObject(enumType, (long)((ushort?)value).Value);
+				}
+			case JaysonTypeCode.SByteNullable:
+				{
+					return Enum.ToObject(enumType, (long)((sbyte?)value).Value);
+				}
+			case JaysonTypeCode.CharNullable:
+				{
+					return Enum.ToObject(enumType, (long)((char?)value).Value);
+				}
+			case JaysonTypeCode.BoolNullable:
+				{
+					return Enum.ToObject(enumType, ((bool?)value).Value ? 1L : 0L);
+				}
+			case JaysonTypeCode.DoubleNullable:
+				{
+					return Enum.ToObject(enumType, (long)((double?)value).Value);
+				}
+			case JaysonTypeCode.FloatNullable:
+				{
+					return Enum.ToObject(enumType, (long)((float?)value).Value);
+				}
+			default:
+				throw new JaysonException("Argument must be Enum base type or Enum");
+			}
+		}
+
+		public static Type GetType(string typeName, SerializationBinder binder = null)
 		{
 			Type result;
 			if (!s_TypeCache.TryGetValue (typeName, out result)) {
-                if (binder != null)
-                {
-                    string[] typeParts = typeName.Split(',');
-                    if (typeParts.Length > 1)
-                    {
-                        result = binder.BindToType(typeParts[0], typeParts[1]);
-                    }
-                }
+				if (binder != null)
+				{
+					string[] typeParts = typeName.Split(',');
+					if (typeParts.Length > 1)
+					{
+						result = binder.BindToType(typeParts[0], typeParts[1]);
+					}
+				}
 
-                if (result == null)
-                {
-                    result = Type.GetType(typeName, false);
-                }
+				if (result == null)
+				{
+					result = Type.GetType(typeName, false);
+				}
 
 				s_TypeCache[typeName] = result;
 			}
@@ -620,43 +652,34 @@ namespace Jayson
 				return DefaultDateTime(timeZoneType);
 			}
 
+			DateTime dateTime;
+
 			string str = value as string;
 			if (str != null) {
 				if (str.Length == 0) {
-					return DefaultDateTime(timeZoneType);
+					return DefaultDateTime (timeZoneType);
 				}
 
-				DateTime result;
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
 				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					result = ParseUnixEpoch (str);
+					dateTime = ParseUnixEpoch (str);
 				} else {
-					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);
+					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);
 				}
-
-				switch (timeZoneType) {
-				case JaysonDateTimeZoneType.ConvertToUtc:
-					return ToUniversalTime (result);
-				case JaysonDateTimeZoneType.ConvertToLocal:
-					return ToLocalTime (result);
-				default:
-					return result;
-				}
-			}
-
-			DateTime dateTime;
-			if (value is DateTime) {
-				dateTime = (DateTime)value;
-			} else if (value is DateTime?) {
-				dateTime = ((DateTime?)value).Value;
-			} else if (value is int) {
-				dateTime = FromUnixTimeSec ((int)value);
-			} else if (value is long) {
-				dateTime = FromUnixTimeSec ((long)value);
 			} else {
-				dateTime = Convert.ToDateTime (value);
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
 			}
 
 			switch (timeZoneType) {
@@ -676,46 +699,37 @@ namespace Jayson
 				return DefaultDateTime(timeZoneType);
 			}
 
+			DateTime dateTime;
+
 			string str = value as string;
 			if (str != null) {
 				if (str.Length == 0) {
-					return DefaultDateTime(timeZoneType);
+					return DefaultDateTime (timeZoneType);
 				}
 
-				DateTime result;
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
-					result = ParseUnixEpoch (str);
+					dateTime = ParseUnixEpoch (str);
 				} else if (String.IsNullOrEmpty (dateFormat)) {
-					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
+					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
 				} else if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out result)) {
+					DateTimeStyles.None, out dateTime)) {
 					throw new JaysonException ("Invalid date format.");
 				}
-			
-				switch (timeZoneType) {
-				case JaysonDateTimeZoneType.ConvertToUtc:
-					return ToUniversalTime (result);
-				case JaysonDateTimeZoneType.ConvertToLocal:
-					return ToLocalTime (result);
-				default:
-					return result;
-				}
-			}
-
-			DateTime dateTime;
-			if (value is DateTime) {
-				dateTime = (DateTime)value;
-			} else if (value is DateTime?) {
-				dateTime = ((DateTime?)value).Value;
-			} else if (value is int) {
-				dateTime = FromUnixTimeSec ((int)value);
-			} else if (value is long) {
-				dateTime = FromUnixTimeSec ((long)value);
 			} else {
-				dateTime = Convert.ToDateTime (value);
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
 			}
 
 			switch (timeZoneType) {
@@ -735,46 +749,37 @@ namespace Jayson
 				return DefaultDateTime(timeZoneType);
 			}
 
+			DateTime dateTime;
+
 			string str = value as string;
 			if (str != null) {
 				if (str.Length == 0) {
 					return DefaultDateTime (timeZoneType);
 				}
 
-				DateTime result;
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					result = ParseUnixEpoch (str);
+					dateTime = ParseUnixEpoch (str);
 				} else if (dateFormats == null || dateFormats.Length == 0) {
-					result = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
+					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
 				} else if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out result)) {
+					           DateTimeStyles.None, out dateTime)) {
 					throw new JaysonException ("Invalid date format.");
 				}
-
-				switch (timeZoneType) {
-				case JaysonDateTimeZoneType.ConvertToUtc:
-					return ToUniversalTime (result);
-				case JaysonDateTimeZoneType.ConvertToLocal:
-					return ToLocalTime (result);
-				default:
-					return result;
-				}
-			}
-
-			DateTime dateTime;
-			if (value is DateTime) {
-				dateTime = (DateTime)value;
-			} else if (value is DateTime?) {
-				dateTime = ((DateTime?)value).Value;
-			} else if (value is int) {
-				dateTime = FromUnixTimeSec ((int)value);
-			} else if (value is long) {
-				dateTime = FromUnixTimeSec ((long)value);
 			} else {
-				dateTime = Convert.ToDateTime (value);
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
 			}
 
 			switch (timeZoneType) {
@@ -1217,7 +1222,7 @@ namespace Jayson
 						#if !(NET3500 || NET3000 || NET2000)
 						return TimeSpan.Parse (s, JaysonConstants.InvariantCulture);
 						#else
-							return TimeSpan.Parse(s);
+						return TimeSpan.Parse(s);
 						#endif
 					}
 					return new TimeSpan (Convert.ToInt64 (value));
@@ -1306,7 +1311,7 @@ namespace Jayson
 						#if !(NET3500 || NET3000 || NET2000)
 						return (TimeSpan?)TimeSpan.Parse (s, JaysonConstants.InvariantCulture);
 						#else
-							return (TimeSpan?)TimeSpan.Parse(s);
+						return (TimeSpan?)TimeSpan.Parse(s);
 						#endif
 					}
 					return (TimeSpan?)(new TimeSpan (Convert.ToInt64 (value)));
@@ -1473,9 +1478,9 @@ namespace Jayson
 			return value;
 		}
 
-        public static bool IsWhiteSpace(char ch)
+		public static bool IsWhiteSpace(char ch)
 		{
-            return ch == ' ' || (ch >= '\x0009' && ch <= '\x000d') || ch == '\x00a0' || ch == '\x0085';
+			return ch == ' ' || (ch >= '\x0009' && ch <= '\x000d') || ch == '\x00a0' || ch == '\x0085';
 		}
 
 		internal static bool FindInterface(Type objType, Type interfaceType, out Type[] arguments)
@@ -1509,7 +1514,7 @@ namespace Jayson
 			Type[] arguments;
 			bool found = FindInterface(objType, typeof(ICollection<>), out arguments);
 
-            s_IsGenericCollection[objType] = found;
+			s_IsGenericCollection[objType] = found;
 			s_GenericCollectionArgs[objType] = found ? arguments[0] : null;
 		}
 
@@ -1518,7 +1523,7 @@ namespace Jayson
 			Type[] arguments;
 			bool found = FindInterface(objType, typeof(IDictionary<,>), out arguments);
 
-            s_IsGenericDictionary[objType] = found;
+			s_IsGenericDictionary[objType] = found;
 			s_GenericDictionaryArgs[objType] = arguments;
 		}
 
@@ -1527,7 +1532,7 @@ namespace Jayson
 			Type[] arguments;
 			bool found = FindInterface(objType, typeof(IList<>), out arguments);
 
-            s_IsGenericList[objType] = found;
+			s_IsGenericList[objType] = found;
 			s_GenericListArgs[objType] = found ? arguments[0] : null;
 		}
 
@@ -1626,7 +1631,7 @@ namespace Jayson
 				argExpConverted = (!ctorType.IsValueType) ?
 					Expression.TypeAs (argExp, ctorType) : 
 					Expression.Convert (argExp, ctorType);
-			
+
 				expArr [i] = argExpConverted;
 			}
 
@@ -1707,8 +1712,8 @@ namespace Jayson
 			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
 			var inputCastExp = !declaringT.IsValueType ?
-				Expression.TypeAs (inputObjExp, declaringT) : 
-				Expression.Convert(inputObjExp, declaringT);
+			Expression.TypeAs (inputObjExp, declaringT) : 
+			Expression.Convert(inputObjExp, declaringT);
 
 			Expression callExp;
 			if (methodParams.Length == 0) {
@@ -1726,8 +1731,8 @@ namespace Jayson
 					arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
 
 					arrayValueCastExp = !paramType.IsValueType ?
-						Expression.TypeAs (arrayAccessExp, paramType) : 
-						Expression.Convert (arrayAccessExp, paramType);
+					Expression.TypeAs (arrayAccessExp, paramType) : 
+					Expression.Convert (arrayAccessExp, paramType);
 
 					callArguments [i] = arrayValueCastExp;
 				}
