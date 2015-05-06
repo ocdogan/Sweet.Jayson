@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Jayson;
 using Jayson.Tests;
@@ -69,6 +71,8 @@ namespace Jayson.ConsoleTest
             Console.WriteLine();
             PerformanceTest3();
             Console.WriteLine();
+			PerformanceTest4();
+			Console.WriteLine();
         }
 
         private static void UnitTests()
@@ -117,7 +121,6 @@ namespace Jayson.ConsoleTest
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			object c;
 			string s;
 
 			sw.Restart();
@@ -133,7 +136,7 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.Parse(s, jaysonDeserializationSettings);
+				JaysonConverter.Parse(s, jaysonDeserializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
@@ -143,7 +146,7 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
+				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
@@ -168,7 +171,6 @@ namespace Jayson.ConsoleTest
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			object c;
 			string s;
 
 			sw.Restart();
@@ -184,7 +186,7 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.Parse(s, jaysonDeserializationSettings);
+				JaysonConverter.Parse(s, jaysonDeserializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
@@ -194,7 +196,7 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
+				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
@@ -219,13 +221,12 @@ namespace Jayson.ConsoleTest
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			object c;
 			string s;
 
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
+				JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Convert to String {0} ms", sw.ElapsedMilliseconds);
@@ -235,7 +236,7 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.Parse(s, jaysonDeserializationSettings);
+				JaysonConverter.Parse(s, jaysonDeserializationSettings);
 			}
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
@@ -245,8 +246,61 @@ namespace Jayson.ConsoleTest
 			sw.Restart();
 			for (int i = 0; i < 10000; i++)
 			{
-				c = JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
+				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
 			}
+			sw.Stop();
+			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
+		}
+
+		static void PerformanceTest4()
+		{
+			Stopwatch sw = new Stopwatch();
+
+			var obj = TestClasses.GetTypedContainerDto();
+
+			JaysonSerializationSettings jaysonSerializationSettings = 
+				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = false;
+			jaysonSerializationSettings.IgnoreNullValues = true;
+			jaysonSerializationSettings.CaseSensitive = true;
+			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
+			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = 
+				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string s;
+
+			sw.Restart();
+			var pResult = Parallel.For (0, 10000, i => {
+				JaysonConverter.ToJsonString (obj, jaysonSerializationSettings);
+			});
+			while (!pResult.IsCompleted)
+				Thread.Yield ();
+			sw.Stop();
+			Console.WriteLine("JaysonConverter Convert to String {0} ms", sw.ElapsedMilliseconds);
+
+			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
+
+			sw.Restart();
+			pResult = Parallel.For (0, 10000, i => {
+				JaysonConverter.Parse (s, jaysonDeserializationSettings);
+			});
+			while (!pResult.IsCompleted)
+				Thread.Yield ();
+			sw.Stop();
+			Console.WriteLine("JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
+
+			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
+
+			sw.Restart();
+			pResult = Parallel.For (0, 10000, i => {
+				JaysonConverter.ToObject<TypedContainerDto> (s, jaysonDeserializationSettings);
+			});
+			while (!pResult.IsCompleted)
+				Thread.Yield ();
 			sw.Stop();
 			Console.WriteLine("JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
 		}
