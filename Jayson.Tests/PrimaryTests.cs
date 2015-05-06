@@ -119,9 +119,36 @@ namespace Jayson.Tests
 		}
 
 		[Test]
+		public static void TestSerializeDeserializeDateWithCustomDateTimeFormat()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+
+			JaysonSerializationSettings jaysonSerializationSettings = 
+				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
+
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.DateTimeFormat = "dd/MM/yyyy HH:mm:ss.fff%K";
+			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.CustomDate;
+			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = 
+				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
+			jaysonDeserializationSettings.DateTimeFormat = "dd/MM/yyyy HH:mm:ss.fff%K";
+
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
+
+			Assert.True(json.Contains ("25\\/10\\/1972 12:45:32.000Z"));
+			var date2 = JaysonConverter.ToObject<DateTime?>(json, jaysonDeserializationSettings);
+			Assert.NotNull(date2);
+			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.True(date1 == (DateTime)date2);
+		}
+
+		[Test]
 		public static void TestSerializeDateTimeUtc()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -131,18 +158,18 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32Z"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
-			Assert.True(date == (DateTime)date2);
+			Assert.True(date1 == (DateTime)date2);
 		}
 
 		[Test]
 		public static void TestSerializeDateTimeLocal()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -152,18 +179,18 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32+") || json.Contains ("1972-10-25T12:45:32-"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
-			Assert.True(date == (DateTime)date2);
+			Assert.True(date1 == (DateTime)date2);
 		}
 
 		[Test]
 		public static void TestSerializeDateTimeUnspecified()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -173,20 +200,20 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32+") || json.Contains ("1972-10-25T12:45:32-"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
-			Assert.True(date == (DateTime)date2);
+			Assert.True(date1 == (DateTime)date2);
 		}
 
 		[Test]
 		public static void TestSerializeDateTimeUtcMicrosoft()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 			var dto1 = new VerySimpleJsonValue {
-				Value = date
+				Value = date1
 			};
 
 			JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings ();
@@ -202,15 +229,15 @@ namespace Jayson.Tests
 			Assert.NotNull(dto2);
 			Assert.NotNull(dto2.Value);
 			Assert.IsAssignableFrom<DateTime>(dto2.Value);
-			Assert.True(date == (DateTime)dto2.Value);
+			Assert.True(date1 == (DateTime)dto2.Value);
 		}
 
 		[Test]
 		public static void TestSerializeDateTimeLocalMicrosoft()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 			var dto1 = new VerySimpleJsonValue {
-				Value = date
+				Value = date1
 			};
 
 			JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings ();
@@ -226,15 +253,15 @@ namespace Jayson.Tests
 			Assert.NotNull(dto2);
 			Assert.NotNull(dto2.Value);
 			Assert.IsAssignableFrom<DateTime>(dto2.Value);
-			Assert.True(date == (DateTime)dto2.Value);
+			Assert.True(date1 == (DateTime)dto2.Value);
 		}
 
 		[Test]
 		public static void TestSerializeDateTimeUnspecifiedMicrosoft()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
 			var dto1 = new VerySimpleJsonValue {
-				Value = date
+				Value = date1
 			};
 
 			JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings ();
@@ -250,13 +277,13 @@ namespace Jayson.Tests
 			Assert.NotNull(dto2);
 			Assert.NotNull(dto2.Value);
 			Assert.IsAssignableFrom<DateTime>(dto2.Value);
-			Assert.True(date == (DateTime)dto2.Value);
+			Assert.True(date1 == (DateTime)dto2.Value);
 		}
 
 		[Test]
 		public static void TestDeserializeDateTimeConvertToUtc()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -266,7 +293,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
@@ -283,7 +310,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestDeserializeDateTimeConvertToLocal()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -293,7 +320,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
@@ -310,7 +337,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestDeserializeDateTimeKeepAsIs()
 		{
-			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -320,7 +347,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
-			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
@@ -331,14 +358,14 @@ namespace Jayson.Tests
 			var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
-			Assert.True(date == date2);
+			Assert.True(date1 == date2);
 			Assert.True(date2.Kind == DateTimeKind.Local);
 		}
 
 		[Test]
 		public static void TestDecimal1()
 		{
-			var dcml = 12345.67890123456789m;
+			var dcml1 = 12345.67890123456789m;
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -346,18 +373,18 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
 			jaysonSerializationSettings.Formatting = true;
 
-			string json = JaysonConverter.ToJsonString(dcml, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
 			Assert.True(json.Contains (".Decimal"));
 			var dcml2 = JaysonConverter.ToObject(json);
 			Assert.NotNull(dcml2);
 			Assert.IsAssignableFrom<decimal>(dcml2);
-			Assert.True(dcml == (decimal)dcml2);
+			Assert.True(dcml1 == (decimal)dcml2);
 		}
 
 		[Test]
 		public static void TestDecimal2()
 		{
-			var dcml = 12345.67890123456789m;
+			var dcml1 = 12345.67890123456789m;
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -365,20 +392,20 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
 			jaysonSerializationSettings.Formatting = true;
 
-			string json = JaysonConverter.ToJsonString(dcml, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
 			Assert.True(json == "12345.67890123456789");
 			var dcml2 = JaysonConverter.ToObject(json);
 			Assert.NotNull(dcml2);
 			Assert.IsAssignableFrom<decimal>(dcml2);
-			Assert.True(dcml == (decimal)dcml2);
+			Assert.True(dcml1 == (decimal)dcml2);
 		}
 
 		[Test]
 		public static void TestDecimal3()
 		{
-			var dcml = 12345.67890123456789m;
+			var dcml1 = 12345.67890123456789m;
 			var dto1 = new VerySimpleJsonValue {
-				Value = dcml
+				Value = dcml1
 			};
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
@@ -393,7 +420,7 @@ namespace Jayson.Tests
 			Assert.NotNull(dto2);
 			Assert.NotNull(dto2.Value);
 			Assert.IsAssignableFrom<Decimal>(dto2.Value);
-			Assert.True(dcml == (Decimal)dto2.Value);
+			Assert.True(dcml1 == (Decimal)dto2.Value);
 		}
 
 		[Test]
@@ -613,12 +640,12 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestParse()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, new JaysonSerializationSettings());
+			string json = JaysonConverter.ToJsonString(dto1, new JaysonSerializationSettings());
 			var obj = JaysonConverter.Parse (json);
 			Assert.NotNull(obj);
 			Assert.True(typeof(IDictionary<string, object>).IsAssignableFrom(obj.GetType ()));
@@ -628,7 +655,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestNoFormatting()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -637,7 +664,7 @@ namespace Jayson.Tests
 				Formatting = false
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			Assert.True (json.Contains ("\"Value1\":\"Hello\"") && 
 				json.Contains ("\"Value2\":\"World\""));
 		}
@@ -645,7 +672,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestFormatting()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -654,7 +681,7 @@ namespace Jayson.Tests
 				Formatting = true
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			Assert.True (json.Contains ("\"Value1\": \"Hello\"") && 
 				json.Contains ("\"Value2\": \"World\""));
 		}
@@ -662,7 +689,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestToJsonStringSimpleObjectPerformance()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -677,7 +704,7 @@ namespace Jayson.Tests
 
 			sw.Restart ();
 			for (int i = 0; i < 10000; i++) {
-				JaysonConverter.ToJsonString (dto, jaysonSerializationSettings);
+				JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
 			}
 			sw.Stop ();
 			#if (DEBUG)
@@ -691,7 +718,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestToJsonStringComplexObjectPerformance()
 		{
-			var dto = TestClasses.GetTypedContainerDto ();
+			var dto1 = TestClasses.GetTypedContainerDto ();
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -712,7 +739,7 @@ namespace Jayson.Tests
 
 			sw.Restart ();
 			for (int i = 0; i < 10000; i++) {
-				JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+				JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			}
 			sw.Stop ();
 			#if (DEBUG)
@@ -726,7 +753,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestParseComplexObjectPerformance()
 		{
-			var dto = TestClasses.GetTypedContainerDto ();
+			var dto1 = TestClasses.GetTypedContainerDto ();
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -743,7 +770,7 @@ namespace Jayson.Tests
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json1 = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json1 = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
 			Stopwatch sw = new Stopwatch ();
 
@@ -763,7 +790,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestToObjectComplexObjectPerformance()
 		{
-			var dto = TestClasses.GetTypedContainerDto ();
+			var dto1 = TestClasses.GetTypedContainerDto ();
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -781,12 +808,12 @@ namespace Jayson.Tests
 			jaysonDeserializationSettings.CaseSensitive = false;
 
 			Assert.DoesNotThrow (() => {
-				string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+				string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 				JaysonConverter.Parse(json, jaysonDeserializationSettings);
 				JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 			});
 
-			string json1 = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json1 = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
 			Stopwatch sw = new Stopwatch ();
 
@@ -807,7 +834,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestMultiThreaded()
 		{
-			var dto = TestClasses.GetTypedContainerDto ();
+			var dto1 = TestClasses.GetTypedContainerDto ();
 
 			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.Default;
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -826,7 +853,7 @@ namespace Jayson.Tests
 
 			sw.Restart ();
 			var pResult = Parallel.For (0, 10000, i => {
-				JaysonConverter.ToJsonString (dto, jaysonSerializationSettings);
+				JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
 			});
 			while (!pResult.IsCompleted)
 				Thread.Yield ();
@@ -843,7 +870,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestIncludeTypeInfoAuto()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -854,14 +881,14 @@ namespace Jayson.Tests
 				TypeNames = JaysonTypeNameSerialization.Auto
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			Assert.AreEqual (json, @"{""$type"":""Jayson.Tests.SimpleObj"",""Value2"":""World"",""Value1"":""Hello""}");
 		}
 
 		[Test]
 		public static void TestIncludeTypeInfo()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -872,14 +899,14 @@ namespace Jayson.Tests
 				TypeNames = JaysonTypeNameSerialization.All
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			Assert.AreEqual (json, @"{""$type"":""Jayson.Tests.SimpleObj"",""Value2"":""World"",""Value1"":""Hello""}");
 		}
 
 		[Test]
 		public static void TestIncludeTypeInfoWithAssembly()
 		{
-			var dto = new SimpleObj {
+			var dto1 = new SimpleObj {
 				Value1 = "Hello",
 				Value2 = "World"
 			};
@@ -890,7 +917,7 @@ namespace Jayson.Tests
 				TypeNames = JaysonTypeNameSerialization.All
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			Assert.AreEqual (json, @"{""$type"":""Jayson.Tests.SimpleObj, Jayson.Tests"",""Value2"":""World"",""Value1"":""Hello""}");
 		}
 	}

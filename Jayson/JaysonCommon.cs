@@ -537,15 +537,24 @@ namespace Jayson
 				}
 
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
 					dateTime = ParseUnixEpoch (str);
 				} else if (String.IsNullOrEmpty (dateFormat)) {
 					dateTime = ParseIso8601DateTime (str, timeZoneType);	
-				} else if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out dateTime)) {
-					throw new JaysonException ("Invalid date format.");
+				} else {
+					DateTimeStyles dtStyle = DateTimeStyles.None;
+					if (EndsWith (str, 'Z')) {
+						dtStyle = DateTimeStyles.AdjustToUniversal;
+					} else if (timeZoneType == JaysonDateTimeZoneType.ConvertToLocal) {
+						dtStyle = DateTimeStyles.AssumeLocal;
+					}
+
+					if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
+						dtStyle, out dateTime)) {
+						throw new JaysonException ("Invalid date format.");
+					}
 				}
 			} else {
 				if (value is DateTime) {
@@ -587,15 +596,24 @@ namespace Jayson
 				}
 
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);
 					dateTime = ParseUnixEpoch (str);
 				} else if (dateFormats == null || dateFormats.Length == 0) {
 					dateTime = ParseIso8601DateTime (str, timeZoneType);	
-				} else if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out dateTime)) {
-					throw new JaysonException ("Invalid date format.");
+				} else {
+					DateTimeStyles dtStyle = DateTimeStyles.None;
+					if (EndsWith (str, 'Z')) {
+						dtStyle = DateTimeStyles.AdjustToUniversal;
+					} else if (timeZoneType == JaysonDateTimeZoneType.ConvertToLocal) {
+						dtStyle = DateTimeStyles.AssumeLocal;
+					} 
+
+					if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
+						dtStyle, out dateTime)) {
+						throw new JaysonException ("Invalid date format.");
+					}
 				}
 			} else {
 				if (value is DateTime) {
@@ -692,10 +710,15 @@ namespace Jayson
 					return ParseIso8601DateTimeOffset (str);
 				}
 
+				DateTimeStyles dtStyle = DateTimeStyles.None;
+				if (EndsWith (str, 'Z')) {
+					dtStyle = DateTimeStyles.AdjustToUniversal;
+				}
+
 				DateTimeOffset result;
 				converted = DateTimeOffset.TryParseExact (str,
 					!String.IsNullOrEmpty (dateFormat) ? dateFormat : JaysonConstants.DateIso8601Format,
-					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+					JaysonConstants.InvariantCulture, dtStyle, out result);
 				return result;
 			}
 
@@ -750,9 +773,14 @@ namespace Jayson
 					return ParseIso8601DateTimeOffset (str);
 				}
 
+				DateTimeStyles dtStyle = DateTimeStyles.None;
+				if (EndsWith (str, 'Z')) {
+					dtStyle = DateTimeStyles.AdjustToUniversal;
+				}
+
 				DateTimeOffset result;
 				converted = DateTimeOffset.TryParseExact (str, dateFormats,
-					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+					JaysonConstants.InvariantCulture, dtStyle, out result);
 				return result;
 			}
 
