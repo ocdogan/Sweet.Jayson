@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 
 namespace Jayson
 {
-	internal static class JaysonCommon
+	public static class JaysonCommon
 	{
 		# region ExpressionAssigner<> for .Net3.5
 
@@ -42,6 +42,8 @@ namespace Jayson
 		private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 
+		private static readonly Dictionary<Type, MethodInfo> s_ExpressionAssignCache = new Dictionary<Type, MethodInfo>(JaysonConstants.CacheInitialCapacity);
+
 		# endregion Static Members
 
 		# region Helper Methods
@@ -50,7 +52,11 @@ namespace Jayson
 
 		public static BinaryExpression ExpressionAssign(Expression left, Expression right)
 		{
-			var assign = typeof(ExpressionAssigner<>).MakeGenericType(left.Type).GetMethod("Assign");
+			MethodInfo assign;
+			if (!s_ExpressionAssignCache.TryGetValue (left.Type, out assign)) {
+				assign = typeof(ExpressionAssigner<>).MakeGenericType (left.Type).GetMethod ("Assign");
+				s_ExpressionAssignCache [left.Type] = assign;
+			}
 			return Expression.Add(left, right, assign);
 		}
 
@@ -176,12 +182,14 @@ namespace Jayson
 				TimeSpan.FromMilliseconds(msecSince1970).Ticks + offset.Ticks, DateTimeKind.Local);
 		}
 
-		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
-		public static DateTime Parse_YYYY_MM_DD_DateTime(string str, JaysonDateTimeZoneType timeZoneType)
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K, yyyyMMddTHHmmss.fffffff%K and
+		// dd-MM-yyyyTHH:mm:ss.fffffff%K 
+		public static DateTime ParseIso8601DateTime(string str, 
+			JaysonDateTimeZoneType timeZoneType = JaysonDateTimeZoneType.KeepAsIs)
 		{
 			DateTime dateTime;
 			TimeSpan timeSpan;
-			Parse_YYYY_MM_DD_DateTimeOffset (str, out dateTime, out timeSpan);
+			ParseIso8601DateTimeOffset (str, out dateTime, out timeSpan);
 
 			switch (timeZoneType) {
 			case JaysonDateTimeZoneType.ConvertToUtc:
@@ -208,17 +216,19 @@ namespace Jayson
 			}
 		}
 
-		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
-		public static DateTimeOffset Parse_YYYY_MM_DD_DateTimeOffset(string str)
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K, yyyyMMddTHHmmss.fffffff%K and
+		// dd-MM-yyyyTHH:mm:ss.fffffff%K 
+		public static DateTimeOffset ParseIso8601DateTimeOffset(string str)
 		{
 			DateTime dateTime;
 			TimeSpan timeSpan;
-			Parse_YYYY_MM_DD_DateTimeOffset (str, out dateTime, out timeSpan);
+			ParseIso8601DateTimeOffset (str, out dateTime, out timeSpan);
 			return new DateTimeOffset (dateTime, timeSpan);
 		}
 
-		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K and dd-MM-yyyyTHH:mm:ss.fffffff%K
-		public static void Parse_YYYY_MM_DD_DateTimeOffset(string str, out DateTime dateTime, out TimeSpan timeSpan)
+		// Supports: yyyy-MM-ddTHH:mm:ss.fffffff%K, yyyyMMddTHHmmss.fffffff%K and
+		// dd-MM-yyyyTHH:mm:ss.fffffff%K 
+		public static void ParseIso8601DateTimeOffset(string str, out DateTime dateTime, out TimeSpan timeSpan)
 		{
 			timeSpan = TimeSpan.Zero;
 			if (str == null) {
@@ -246,18 +256,32 @@ namespace Jayson
 				int month = 1;
 				int day = 1;
 
+				char ch;
+				int pos = 0;
+				bool basic = false;
+
 				if (str [2] == '-') {
 					day = 10 * (int)(str [0] - '0') + (int)(str [1] - '0');
 					month = 10 * (int)(str [3] - '0') + (int)(str [4] - '0');
 
 					year = 1000 * (int)(str [6] - '0') + 100 * (int)(str [7] - '0') +
 						10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+					pos = 10;
 				} else {
 					year = 1000 * (int)(str [0] - '0') + 100 * (int)(str [1] - '0') +
 						10 * (int)(str [2] - '0') + (int)(str [3] - '0');
 
-					month = 10 * (int)(str [5] - '0') + (int)(str [6] - '0');
-					day = 10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+					ch = str[4];
+					basic = ch >= '0' && ch <= '9';
+					if (basic) {
+						month = 10 * (int)(str [4] - '0') + (int)(str [5] - '0');
+						day = 10 * (int)(str [6] - '0') + (int)(str [7] - '0');
+						pos = 8;
+					} else {
+						month = 10 * (int)(str [5] - '0') + (int)(str [6] - '0');
+						day = 10 * (int)(str [8] - '0') + (int)(str [9] - '0');
+						pos = 10;
+					}
 				}
 
 				if (month > 12 && day < 13) {
@@ -266,18 +290,16 @@ namespace Jayson
 					day = tmp;
 				}
 
-				if (length == 10) {
+				if (length == pos) {
 					dateTime = new DateTime (year, month, day, 0, 0, 0, kind);
 					return;
 				}
 
-				char ch = str [10];
+				ch = str [pos];
 				if (!(ch == 'T' || ch == ' ')) {
 					dateTime = new DateTime (year, month, day, 0, 0, 0, kind);
 					return;
 				}
-
-				int pos = 10;
 
 				int minute = 0;
 				int second = 0;
@@ -297,6 +319,17 @@ namespace Jayson
 							if (ch == ':') {
 								second = 10 * (int)(str [pos + 1] - '0') + (int)(str [pos + 2] - '0');
 								pos += 3;
+							}
+						}
+					} else if (basic) {
+						minute = 10 * (int)(str [pos] - '0') + (int)(str [pos + 1] - '0');
+						pos += 2;
+
+						if (pos < length) {
+							ch = str [pos];
+							if (ch >= '0' || ch <= '9') {
+								second = 10 * (int)(str [pos] - '0') + (int)(str [pos + 1] - '0');
+								pos += 2;
 							}
 						}
 					}
@@ -353,6 +386,399 @@ namespace Jayson
 			} catch (Exception) {
 				throw new JaysonException ("Invalid ISO8601 date format.");
 			}
+		}
+
+		public static DateTime ParseUnixEpoch(string str)
+		{
+			if (str == null) {
+				return default(DateTime);
+			}
+
+			int length = str.Length;
+			if (length == 0)
+			{
+				return default(DateTime);
+			}
+
+			char ch;
+			int timeZonePos = -1;
+			int timeZoneSign = 1;
+
+			for (int i = 1; i < length; i++)
+			{
+				ch = str[i];
+				if (ch == '-')
+				{
+					timeZonePos = i;
+					timeZoneSign = -1;
+					break;
+				}
+				if (ch == '+')
+				{
+					timeZonePos = i;
+					break;
+				}
+			}
+
+			long l;
+			if (timeZonePos == -1)
+			{
+				if (!long.TryParse(str, NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
+				{
+					throw new JaysonException("Invalid Unix Epoch date format.");
+				}
+
+				DateTime dt1 = JaysonCommon.FromUnixTimeMsec(l);
+				if (dt1 > JaysonConstants.DateTimeUnixEpochMaxValue)
+				{
+					throw new JaysonException("Invalid Unix Epoch date format.");
+				}
+				return dt1;
+			}
+
+			if (!long.TryParse(str.Substring(0, timeZonePos), NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
+			{
+				throw new JaysonException("Invalid Unix Epoch date format.");
+			}
+
+			TimeSpan tz = new TimeSpan(10 * (str[length - 4] - '0') + (str[length - 3] - '0'),
+				10 * (str[length - 2] - '0') + (str[length - 1] - '0'), 0);
+
+			if (timeZoneSign == -1)
+			{
+				tz = new TimeSpan(-tz.Ticks);
+			}
+
+			DateTime dt2 = JaysonCommon.FromUnixTimeMsec(l, tz);
+			if (dt2 > JaysonConstants.DateTimeUnixEpochMaxValue)
+			{
+				throw new JaysonException("Invalid Unix Epoch date format.");
+			}
+			return dt2;
+		}
+
+		private static DateTime DefaultDateTime (JaysonDateTimeZoneType timeZoneType)
+		{
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return new DateTime (0, DateTimeKind.Utc);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return new DateTime (0, DateTimeKind.Local);
+			default:
+				return default(DateTime);
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			DateTime dateTime;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime (timeZoneType);
+				}
+
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					dateTime = ParseUnixEpoch (str);
+				} else {
+					dateTime = ParseIso8601DateTime (str, timeZoneType);
+				}
+			} else {
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, string dateFormat, 
+			JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			DateTime dateTime;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime (timeZoneType);
+				}
+
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
+					dateTime = ParseUnixEpoch (str);
+				} else if (String.IsNullOrEmpty (dateFormat)) {
+					dateTime = ParseIso8601DateTime (str, timeZoneType);	
+				} else if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
+					DateTimeStyles.None, out dateTime)) {
+					throw new JaysonException ("Invalid date format.");
+				}
+			} else {
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTime TryConvertDateTime (object value, string[] dateFormats, 
+			JaysonDateTimeZoneType timeZoneType)
+		{
+			if (value == null) {
+				return DefaultDateTime(timeZoneType);
+			}
+
+			DateTime dateTime;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return DefaultDateTime (timeZoneType);
+				}
+
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					dateTime = ParseUnixEpoch (str);
+				} else if (dateFormats == null || dateFormats.Length == 0) {
+					dateTime = ParseIso8601DateTime (str, timeZoneType);	
+				} else if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
+					DateTimeStyles.None, out dateTime)) {
+					throw new JaysonException ("Invalid date format.");
+				}
+			} else {
+				if (value is DateTime) {
+					dateTime = (DateTime)value;
+				} else if (value is DateTime?) {
+					dateTime = ((DateTime?)value).Value;
+				} else if (value is int) {
+					dateTime = FromUnixTimeSec ((int)value);
+				} else if (value is long) {
+					dateTime = FromUnixTimeSec ((long)value);
+				} else {
+					dateTime = Convert.ToDateTime (value);
+				}
+			}
+
+			switch (timeZoneType) {
+			case JaysonDateTimeZoneType.ConvertToUtc:
+				return ToUniversalTime (dateTime);
+			case JaysonDateTimeZoneType.ConvertToLocal:
+				return ToLocalTime (dateTime);
+			default:
+				return dateTime;
+			}
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				return ParseIso8601DateTimeOffset (str);
+			}
+
+			if (value == null) {
+				return default(DateTimeOffset);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTime?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+
+			return new DateTimeOffset(Convert.ToDateTime (value));
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, string dateFormat, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				if (String.IsNullOrEmpty (dateFormat)) {
+					return ParseIso8601DateTimeOffset (str);
+				}
+
+				DateTimeOffset result;
+				converted = DateTimeOffset.TryParseExact (str,
+					!String.IsNullOrEmpty (dateFormat) ? dateFormat : JaysonConstants.DateIso8601Format,
+					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+				return result;
+			}
+
+			if (value == null) {
+				return default(DateTimeOffset);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTimeOffset?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+
+			return new DateTimeOffset(Convert.ToDateTime (value));
+		}
+
+		public static DateTimeOffset TryConvertDateTimeOffset (object value, string[] dateFormats, out bool converted)
+		{
+			converted = true;
+
+			string str = value as string;
+			if (str != null) {
+				if (str.Length == 0) {
+					return default(DateTime);
+				}
+				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
+						str.Length - JaysonConstants.MicrosoftDateFormatLen);
+					return new DateTimeOffset(ParseUnixEpoch (str));
+				}
+
+				if (dateFormats == null || dateFormats.Length == 0) {
+					return ParseIso8601DateTimeOffset (str);
+				}
+
+				DateTimeOffset result;
+				converted = DateTimeOffset.TryParseExact (str, dateFormats,
+					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
+				return result;
+			}
+
+			if (value == null) {
+				return default(DateTimeOffset);
+			}
+
+			if (value is DateTimeOffset) {
+				return (DateTimeOffset)value;
+			}
+
+			if (value is DateTimeOffset?) {
+				return ((DateTimeOffset?)value).Value;
+			}
+
+			if (value is DateTime) {
+				return new DateTimeOffset((DateTime)value);
+			}
+
+			if (value is DateTime?) {
+				return new DateTimeOffset(((DateTime?)value).Value);
+			}
+
+			if (value is int) {
+				return new DateTimeOffset(FromUnixTimeSec ((int)value));
+			}
+
+			if (value is long) {
+				return new DateTimeOffset(FromUnixTimeSec ((long)value));
+			}
+
+			return new DateTimeOffset(Convert.ToDateTime (value));
 		}
 
 		# endregion DateTime Methods
@@ -563,399 +989,6 @@ namespace Jayson
 			}
 
 			return result;
-		}
-
-		public static DateTime ParseUnixEpoch(string str)
-		{
-			if (str == null) {
-				return default(DateTime);
-			}
-
-			int length = str.Length;
-			if (length == 0)
-			{
-				return default(DateTime);
-			}
-
-			char ch;
-			int timeZonePos = -1;
-			int timeZoneSign = 1;
-
-			for (int i = 1; i < length; i++)
-			{
-				ch = str[i];
-				if (ch == '-')
-				{
-					timeZonePos = i;
-					timeZoneSign = -1;
-					break;
-				}
-				if (ch == '+')
-				{
-					timeZonePos = i;
-					break;
-				}
-			}
-
-			long l;
-			if (timeZonePos == -1)
-			{
-				if (!long.TryParse(str, NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
-				{
-					throw new JaysonException("Invalid Unix Epoch date format.");
-				}
-
-				DateTime dt1 = JaysonCommon.FromUnixTimeMsec(l);
-				if (dt1 > JaysonConstants.DateTimeUnixEpochMaxValue)
-				{
-					throw new JaysonException("Invalid Unix Epoch date format.");
-				}
-				return dt1;
-			}
-
-			if (!long.TryParse(str.Substring(0, timeZonePos), NumberStyles.AllowLeadingSign, JaysonConstants.InvariantCulture, out l))
-			{
-				throw new JaysonException("Invalid Unix Epoch date format.");
-			}
-
-			TimeSpan tz = new TimeSpan(10 * (str[length - 4] - '0') + (str[length - 3] - '0'),
-				10 * (str[length - 2] - '0') + (str[length - 1] - '0'), 0);
-
-			if (timeZoneSign == -1)
-			{
-				tz = new TimeSpan(-tz.Ticks);
-			}
-
-			DateTime dt2 = JaysonCommon.FromUnixTimeMsec(l, tz);
-			if (dt2 > JaysonConstants.DateTimeUnixEpochMaxValue)
-			{
-				throw new JaysonException("Invalid Unix Epoch date format.");
-			}
-			return dt2;
-		}
-
-		private static DateTime DefaultDateTime (JaysonDateTimeZoneType timeZoneType)
-		{
-			switch (timeZoneType) {
-			case JaysonDateTimeZoneType.ConvertToUtc:
-				return new DateTime (0, DateTimeKind.Utc);
-			case JaysonDateTimeZoneType.ConvertToLocal:
-				return new DateTime (0, DateTimeKind.Local);
-			default:
-				return default(DateTime);
-			}
-		}
-
-		public static DateTime TryConvertDateTime (object value, JaysonDateTimeZoneType timeZoneType)
-		{
-			if (value == null) {
-				return DefaultDateTime(timeZoneType);
-			}
-
-			DateTime dateTime;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return DefaultDateTime (timeZoneType);
-				}
-
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					dateTime = ParseUnixEpoch (str);
-				} else {
-					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);
-				}
-			} else {
-				if (value is DateTime) {
-					dateTime = (DateTime)value;
-				} else if (value is DateTime?) {
-					dateTime = ((DateTime?)value).Value;
-				} else if (value is int) {
-					dateTime = FromUnixTimeSec ((int)value);
-				} else if (value is long) {
-					dateTime = FromUnixTimeSec ((long)value);
-				} else {
-					dateTime = Convert.ToDateTime (value);
-				}
-			}
-
-			switch (timeZoneType) {
-			case JaysonDateTimeZoneType.ConvertToUtc:
-				return ToUniversalTime (dateTime);
-			case JaysonDateTimeZoneType.ConvertToLocal:
-				return ToLocalTime (dateTime);
-			default:
-				return dateTime;
-			}
-		}
-
-		public static DateTime TryConvertDateTime (object value, string dateFormat, 
-			JaysonDateTimeZoneType timeZoneType)
-		{
-			if (value == null) {
-				return DefaultDateTime(timeZoneType);
-			}
-
-			DateTime dateTime;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return DefaultDateTime (timeZoneType);
-				}
-
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
-					dateTime = ParseUnixEpoch (str);
-				} else if (String.IsNullOrEmpty (dateFormat)) {
-					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
-				} else if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
-					DateTimeStyles.None, out dateTime)) {
-					throw new JaysonException ("Invalid date format.");
-				}
-			} else {
-				if (value is DateTime) {
-					dateTime = (DateTime)value;
-				} else if (value is DateTime?) {
-					dateTime = ((DateTime?)value).Value;
-				} else if (value is int) {
-					dateTime = FromUnixTimeSec ((int)value);
-				} else if (value is long) {
-					dateTime = FromUnixTimeSec ((long)value);
-				} else {
-					dateTime = Convert.ToDateTime (value);
-				}
-			}
-
-			switch (timeZoneType) {
-			case JaysonDateTimeZoneType.ConvertToUtc:
-				return ToUniversalTime (dateTime);
-			case JaysonDateTimeZoneType.ConvertToLocal:
-				return ToLocalTime (dateTime);
-			default:
-				return dateTime;
-			}
-		}
-
-		public static DateTime TryConvertDateTime (object value, string[] dateFormats, 
-			JaysonDateTimeZoneType timeZoneType)
-		{
-			if (value == null) {
-				return DefaultDateTime(timeZoneType);
-			}
-
-			DateTime dateTime;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return DefaultDateTime (timeZoneType);
-				}
-
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					dateTime = ParseUnixEpoch (str);
-				} else if (dateFormats == null || dateFormats.Length == 0) {
-					dateTime = Parse_YYYY_MM_DD_DateTime (str, timeZoneType);	
-				} else if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
-					           DateTimeStyles.None, out dateTime)) {
-					throw new JaysonException ("Invalid date format.");
-				}
-			} else {
-				if (value is DateTime) {
-					dateTime = (DateTime)value;
-				} else if (value is DateTime?) {
-					dateTime = ((DateTime?)value).Value;
-				} else if (value is int) {
-					dateTime = FromUnixTimeSec ((int)value);
-				} else if (value is long) {
-					dateTime = FromUnixTimeSec ((long)value);
-				} else {
-					dateTime = Convert.ToDateTime (value);
-				}
-			}
-
-			switch (timeZoneType) {
-			case JaysonDateTimeZoneType.ConvertToUtc:
-				return ToUniversalTime (dateTime);
-			case JaysonDateTimeZoneType.ConvertToLocal:
-				return ToLocalTime (dateTime);
-			default:
-				return dateTime;
-			}
-		}
-
-		public static DateTimeOffset TryConvertDateTimeOffset (object value, out bool converted)
-		{
-			converted = true;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return default(DateTime);
-				}
-
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					return new DateTimeOffset(ParseUnixEpoch (str));
-				}
-
-				return Parse_YYYY_MM_DD_DateTimeOffset (str);
-			}
-
-			if (value == null) {
-				return default(DateTimeOffset);
-			}
-
-			if (value is DateTimeOffset) {
-				return (DateTimeOffset)value;
-			}
-
-			if (value is DateTime?) {
-				return ((DateTimeOffset?)value).Value;
-			}
-
-			if (value is DateTime) {
-				return new DateTimeOffset((DateTime)value);
-			}
-
-			if (value is DateTime?) {
-				return new DateTimeOffset(((DateTime?)value).Value);
-			}
-
-			if (value is int) {
-				return new DateTimeOffset(FromUnixTimeSec ((int)value));
-			}
-
-			if (value is long) {
-				return new DateTimeOffset(FromUnixTimeSec ((long)value));
-			}
-
-			return new DateTimeOffset(Convert.ToDateTime (value));
-		}
-
-		public static DateTimeOffset TryConvertDateTimeOffset (object value, string dateFormat, out bool converted)
-		{
-			converted = true;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return default(DateTime);
-				}
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					return new DateTimeOffset(ParseUnixEpoch (str));
-				}
-
-				if (String.IsNullOrEmpty (dateFormat)) {
-					return Parse_YYYY_MM_DD_DateTimeOffset (str);
-				}
-
-				DateTimeOffset result;
-				converted = DateTimeOffset.TryParseExact (str,
-					!String.IsNullOrEmpty (dateFormat) ? dateFormat : JaysonConstants.DateIso8601Format,
-					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
-				return result;
-			}
-
-			if (value == null) {
-				return default(DateTimeOffset);
-			}
-
-			if (value is DateTimeOffset) {
-				return (DateTimeOffset)value;
-			}
-
-			if (value is DateTimeOffset?) {
-				return ((DateTimeOffset?)value).Value;
-			}
-
-			if (value is DateTime) {
-				return new DateTimeOffset((DateTime)value);
-			}
-
-			if (value is DateTime?) {
-				return new DateTimeOffset(((DateTime?)value).Value);
-			}
-
-			if (value is int) {
-				return new DateTimeOffset(FromUnixTimeSec ((int)value));
-			}
-
-			if (value is long) {
-				return new DateTimeOffset(FromUnixTimeSec ((long)value));
-			}
-
-			return new DateTimeOffset(Convert.ToDateTime (value));
-		}
-
-		public static DateTimeOffset TryConvertDateTimeOffset (object value, string[] dateFormats, out bool converted)
-		{
-			converted = true;
-
-			string str = value as string;
-			if (str != null) {
-				if (str.Length == 0) {
-					return default(DateTime);
-				}
-				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) && 
-					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
-					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
-						str.Length - JaysonConstants.MicrosoftDateFormatLen);
-					return new DateTimeOffset(ParseUnixEpoch (str));
-				}
-
-				if (dateFormats == null || dateFormats.Length == 0) {
-					return Parse_YYYY_MM_DD_DateTimeOffset (str);
-				}
-
-				DateTimeOffset result;
-				converted = DateTimeOffset.TryParseExact (str, dateFormats,
-					JaysonConstants.InvariantCulture, DateTimeStyles.None, out result);
-				return result;
-			}
-
-			if (value == null) {
-				return default(DateTimeOffset);
-			}
-
-			if (value is DateTimeOffset) {
-				return (DateTimeOffset)value;
-			}
-
-			if (value is DateTimeOffset?) {
-				return ((DateTimeOffset?)value).Value;
-			}
-
-			if (value is DateTime) {
-				return new DateTimeOffset((DateTime)value);
-			}
-
-			if (value is DateTime?) {
-				return new DateTimeOffset(((DateTime?)value).Value);
-			}
-
-			if (value is int) {
-				return new DateTimeOffset(FromUnixTimeSec ((int)value));
-			}
-
-			if (value is long) {
-				return new DateTimeOffset(FromUnixTimeSec ((long)value));
-			}
-
-			return new DateTimeOffset(Convert.ToDateTime (value));
 		}
 
 		public static object ConvertToPrimitive(object value, Type toPrimitiveType, out bool converted)
@@ -1642,7 +1675,7 @@ namespace Jayson
 		}
 
 		#if !(NET3500 || NET3000 || NET2000)
-		internal static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
+		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
 			Type declaringT = methodInfo.DeclaringType;
 			ParameterInfo[] parameters = methodInfo.GetParameters();
@@ -1703,7 +1736,7 @@ namespace Jayson
 			return Expression.Lambda<Action<object, object[]>>(body, inputObjExp, argsExp).Compile();
 		}
 		#else
-		internal static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
+		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
 			var declaringT = methodInfo.DeclaringType;
 			var methodParams = methodInfo.GetParameters();

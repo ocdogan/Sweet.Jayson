@@ -20,6 +20,78 @@ namespace Jayson.Tests
 	public class PrimaryTest
 	{
 		[Test]
+		public static void TestParseIso8601Date1()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date2 = JaysonCommon.ParseIso8601DateTime ("1972-10-25", JaysonDateTimeZoneType.ConvertToUtc);
+			Assert.True (date1.Date == date2.Date);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date2()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date2 = JaysonCommon.ParseIso8601DateTime ("1972-10-25T12:45:32Z");
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date3()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var tz = JaysonCommon.GetUtcOffset (date1);
+			string str = String.Format ("1972-10-25T12:45:32+{0:00}:{1:00}", tz.Hours, tz.Minutes);
+			var date2 = JaysonCommon.ParseIso8601DateTime (str);
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date4()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var tz = JaysonCommon.GetUtcOffset (date1);
+			string str = String.Format ("1972-10-25T12:45:32+{0:00}{1:00}", tz.Hours, tz.Minutes);
+			var date2 = JaysonCommon.ParseIso8601DateTime (str);
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date5()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var tz = JaysonCommon.GetUtcOffset (date1);
+			string str = String.Format ("19721025T124532+{0:00}{1:00}", tz.Hours, tz.Minutes);
+			var date2 = JaysonCommon.ParseIso8601DateTime (str);
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date6()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+			var tz = JaysonCommon.GetUtcOffset (date1);
+			string str = String.Format ("19721025T124532+{0:00}:{1:00}", tz.Hours, tz.Minutes);
+			var date2 = JaysonCommon.ParseIso8601DateTime (str);
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date7()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date2 = JaysonCommon.ParseIso8601DateTime ("19721025T124532Z");
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
+		public static void TestParseIso8601Date8()
+		{
+			var date1 = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+			var date2 = JaysonCommon.ParseIso8601DateTime ("19721025T124532Z");
+			Assert.True (date1 == date2);
+		}
+
+		[Test]
 		public static void TestComplexObject()
 		{
 			var dto = TestClasses.GetTypedContainerDto ();
@@ -49,7 +121,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeUtc()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Utc);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -60,7 +132,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32Z"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32Z"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
@@ -70,7 +142,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeLocal()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Local);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -81,7 +153,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32+") || json.Contains ("1972-09-30T12:45:32-"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32+") || json.Contains ("1972-10-25T12:45:32-"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
@@ -91,7 +163,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeUnspecified()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Unspecified);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -102,7 +174,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32+") || json.Contains ("1972-09-30T12:45:32-"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32+") || json.Contains ("1972-10-25T12:45:32-"));
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 			Assert.NotNull(date2);
 			Assert.IsAssignableFrom<DateTime>(date2);
@@ -112,7 +184,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeUtcMicrosoft()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Utc);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 			var dto1 = new VerySimpleJsonValue {
 				Value = date
 			};
@@ -136,7 +208,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeLocalMicrosoft()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Local);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 			var dto1 = new VerySimpleJsonValue {
 				Value = date
 			};
@@ -160,7 +232,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestSerializeDateTimeUnspecifiedMicrosoft()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Unspecified);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
 			var dto1 = new VerySimpleJsonValue {
 				Value = date
 			};
@@ -184,7 +256,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestDeserializeDateTimeConvertToUtc()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Local);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -195,7 +267,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
@@ -211,7 +283,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestDeserializeDateTimeConvertToLocal()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Utc);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -222,7 +294,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
@@ -238,7 +310,7 @@ namespace Jayson.Tests
 		[Test]
 		public static void TestDeserializeDateTimeKeepAsIs()
 		{
-			var date = new DateTime (1972, 09, 30, 12, 45, 32, DateTimeKind.Local);
+			var date = new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
 			JaysonSerializationSettings jaysonSerializationSettings = 
 				(JaysonSerializationSettings)JaysonSerializationSettings.Default.Clone ();
@@ -249,7 +321,7 @@ namespace Jayson.Tests
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
 			string json = JaysonConverter.ToJsonString(date, jaysonSerializationSettings);
-			Assert.True(json.Contains ("1972-09-30T12:45:32"));
+			Assert.True(json.Contains ("1972-10-25T12:45:32"));
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = 
 				(JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone ();
