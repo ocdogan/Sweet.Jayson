@@ -5,26 +5,14 @@ namespace Jayson
 {
 	# region JaysonStackList
 
-    internal sealed class JaysonStackList
+	internal sealed class JaysonStackList
 	{
 		# region Constants
 
-		private const int QueueLength = 20;
-
-		private const int FrameSize = 20;
-		private const int FrameLength = 1;
-		private static readonly int FrameSizeMin1 = FrameSize - 1;
+		private const int FrameSize = 16;
+		private const int QueueLength = 40;
 
 		# endregion Constants
-
-		# region Frame
-
-		private class Frame
-		{
-			public readonly object[] Items = new object[FrameSize];
-		}
-
-		# endregion Frame
 
 		# region Static Members
 
@@ -34,40 +22,34 @@ namespace Jayson
 
 		# endregion Static Members
 
-		private int m_Count = 0;
-		private int m_ItemIndex = -1;
-		private int m_FrameIndex;
-		private object[] m_CurrentItems;
-		private int m_FrameCount = FrameLength;
-		private int m_FrameCountMin1 = FrameLength - 1;
-
-        private readonly object m_SyncRoot = new object();
-
-		private Frame[] m_Frames = new Frame[FrameLength] { new Frame() };
+		private int m_Index = -1;
+		private int m_Length = FrameSize;
+		private object[] m_Items = new object[FrameSize];
 
 		private JaysonStackList()
 		{
-			Init();
+			Init(true);
 		}
 
-        private void Init()
-        {
-            m_Count = 0;
-            m_ItemIndex = -1;
-            m_FrameIndex = 0;
-            m_CurrentItems = m_Frames[0].Items;
-        }
+		private void Init(bool ctor)
+		{
+			m_Index = -1;
+			if (!ctor && m_Length > 2 * FrameSize) {
+				m_Items = new object[FrameSize];
+				m_Length = FrameSize;
+			}
+		}
 
 		public static JaysonStackList Get()
 		{
 			lock (s_QueueLock)
 			{
-				int index = Interlocked.Decrement(ref s_QueueIndex);
-				if (index > -1)
+				if (s_QueueIndex > -1)
 				{
-					return s_Queue[index];
+					JaysonStackList result = s_Queue[s_QueueIndex];
+					s_Queue [s_QueueIndex--] = null;
+					return result;
 				}
-				Interlocked.Exchange(ref s_QueueIndex, -1);
 			}
 			return new JaysonStackList();
 		}
@@ -76,119 +58,51 @@ namespace Jayson
 		{
 			if (stack != null)
 			{
-				stack.Init();
 				lock (s_QueueLock)
 				{
-					int index = Interlocked.Increment(ref s_QueueIndex);
-					if (index >= QueueLength)
+					if (s_QueueIndex < QueueLength-1)
 					{
-						Interlocked.Exchange(ref s_QueueIndex, QueueLength);
-						return;
+						stack.Init (false);
+						s_Queue[++s_QueueIndex] = stack;
 					}
-					s_Queue[index] = stack;
 				}
 			}
 		}
 
-		private void EnsureCapacity(int min)
+		private void EnsureCapacity()
 		{
-            lock (m_SyncRoot)
-            {
-                if (m_FrameCount < min)
-                {
-                    Frame[] curFrames = m_Frames;
-                    Frame[] tmpFrames = new Frame[min];
+			if (m_Index >= m_Length)
+			{
+				m_Length += FrameSize;
 
-                    Array.Copy(curFrames, tmpFrames, m_FrameCount);
-
-                    int toFrame = m_FrameCount - 1;
-                    for (int i = tmpFrames.Length - 1; i > toFrame; i--)
-                    {
-                        tmpFrames[i] = new Frame();
-                    }
-
-                    m_Frames = tmpFrames;
-                    m_FrameCount += FrameLength;
-                    m_FrameCountMin1 = m_FrameCount - 1;
-                }
-            }
-		}
-
-		public int Count
-		{
-			get { return m_Count; }
+				object[] newArray = new object[m_Length];
+				Array.Copy(m_Items, 0, newArray, 0, m_Items.Length);
+				m_Items = newArray;
+			}
 		}
 
 		public void Push(object obj)
 		{
-            lock (m_SyncRoot)
-            {
-                if ((m_ItemIndex == FrameSizeMin1) && (m_FrameIndex == m_FrameCountMin1))
-                {
-                    EnsureCapacity(m_FrameCount + FrameLength);
-                }
-
-                if (++m_ItemIndex == FrameSize)
-                {
-                    m_ItemIndex = 0;
-                    m_FrameIndex++;
-                    m_CurrentItems = m_Frames[m_FrameIndex].Items;
-                }
-
-                m_CurrentItems[m_ItemIndex] = obj;
-                m_Count++;
-            }
+			EnsureCapacity();
+			m_Items[++m_Index] = obj;
 		}
 
 		public void Pop()
 		{
-            lock (m_SyncRoot)
-            {
-                if (m_Count > 0)
-                {
-                    int index = m_ItemIndex--;
-                    if (index > -1)
-                    {
-                        m_Count--;
-                        m_CurrentItems[index] = null;
-                    }
-                    else
-                    {
-                        m_ItemIndex = 0;
-                        if (--m_FrameIndex < 0)
-                        {
-                            m_FrameIndex = 0;
-                        }
-                    }
-                }
-            }
+			if (m_Index > -1)
+			{
+				m_Items[m_Index--] = null;
+			}
 		}
 
 		public bool Contains(object obj)
 		{
 			if (obj != null)
 			{
-                object[] curr = m_CurrentItems;
-				for (int j = m_ItemIndex; j > -1; j--)
+				for (int i = m_Index; i > -1; i--)
 				{
-					if (obj == curr[j])
+					if (obj == m_Items[i])
 						return true;
-				}
-                
-                if (m_FrameIndex > 0)
-				{
-					object[] items;
-                    Frame[] curFrames = m_Frames;
-
-					for (int i = m_FrameIndex - 1; i > -1; i--)
-					{
-                        items = curFrames[i].Items;
-						for (int j = FrameSizeMin1; j > -1; j--)
-						{
-							if (obj == items[j])
-								return true;
-						}
-					}
 				}
 			}
 			return false;
