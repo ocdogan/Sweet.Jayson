@@ -6,6 +6,7 @@ using System.Data;
 #if !(NET3500 || NET3000 || NET2000)
 using System.Dynamic;
 #endif
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -521,6 +522,388 @@ namespace Sweet.Jayson
 			return obj;
 		}
 
+		# region DataTable & DataSet
+
+        private static List<string> AsColumnNames(DataColumn[] columns, JaysonSerializationContext context)
+        {
+            if (columns != null && columns.Length > 0)
+            {
+                List<string> result = new List<string>(columns.Length);
+                foreach (var column in columns)
+                {
+                    if (column.ColumnName != null)
+                    {
+                        result.Add(column.ColumnName);
+                    }
+                }
+                return result;
+            }
+
+            return null;
+        }
+
+		private static List<object> AsDataTableRows(DataTable dataTable, JaysonSerializationContext context)
+		{
+			var rows = dataTable.Rows;
+			int rowCount = rows.Count;
+
+			if (rowCount > 0) 
+			{
+				var columns = dataTable.Columns;
+				int columnCount = columns.Count;
+
+				if (columnCount > 0) 
+				{
+					List<object> result = new List<object> (rowCount);
+
+					DataColumn dataColumn;
+					List<Tuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<Tuple<DataColumn, JaysonTypeInfo>> ();
+
+					for (int i = 0; i < columnCount; i++) 
+					{
+						dataColumn = columns [i];
+						columnsInfo.Add (new Tuple<DataColumn, JaysonTypeInfo> (dataColumn, 
+							JaysonTypeInfo.GetTypeInfo (dataColumn.DataType)));
+					}
+
+					Func<string, object, object> filter = context.Filter;
+					bool canFilter = (filter != null);
+
+					DataRow dataRow;
+					object cellValue;
+
+					List<object> cellList;
+					Tuple<DataColumn, JaysonTypeInfo> columnInfo;
+
+					var tableName = dataTable.TableName;
+					if (dataTable.DataSet != null) 
+					{
+						tableName += "@" + dataTable.DataSet.DataSetName + "::";
+					}
+
+					for (int i = 0; i < rowCount; i++) 
+					{
+						dataRow = rows [i];
+
+						cellList = new List<object> (columnCount);
+						result.Add (cellList);
+
+						for (int j = 0; j < columnCount; j++) 
+						{
+							columnInfo = columnsInfo [j];
+							cellValue = dataRow [columnInfo.Item1];
+
+							if (cellValue == null || cellValue == DBNull.Value) 
+							{
+								cellList.Add (cellValue);
+							} 
+							else 
+							{
+								if (canFilter)
+								{
+									cellValue = filter(tableName + columnInfo.Item1.ColumnName, cellValue);
+								}
+
+								if (cellValue != null)
+								{
+									cellValue = ToJsonObject(cellValue, context);
+								}
+
+								cellList.Add(cellValue);
+							}
+						}
+					}
+					return result;
+				}
+			}
+			return null;
+		}
+
+        private static Dictionary<string, object> AsDataTableColumn(DataColumn dataColumn, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(16);
+
+            string defaultNamespace = dataColumn.Table.Namespace;
+
+            if (!dataColumn.AllowDBNull)
+            {
+                result.Add("AllowDBNull", dataColumn.AllowDBNull);
+            }
+            if (dataColumn.AutoIncrement)
+            {
+                result.Add("AutoIncrement", dataColumn.AutoIncrement);
+            }
+            if (dataColumn.AutoIncrementSeed != 0)
+            {
+                result.Add("AutoIncrementSeed", dataColumn.AutoIncrementSeed);
+            }
+            if (dataColumn.AutoIncrementStep != 1)
+            {
+                result.Add("AutoIncrementStep", dataColumn.AutoIncrementStep);
+            }
+            if (!String.IsNullOrEmpty(dataColumn.Caption) && dataColumn.Caption != dataColumn.ColumnName)
+            {
+                result.Add("Caption", dataColumn.Caption);
+            }
+            if (dataColumn.ColumnMapping != MappingType.Element)
+            {
+                result.Add("ColumnMapping", dataColumn.ColumnMapping);
+            }
+            if (!String.IsNullOrEmpty(dataColumn.ColumnName))
+            {
+                result.Add("ColumnName", dataColumn.ColumnName);
+            }
+            result.Add("DataType", JaysonTypeInfo.GetTypeName(dataColumn.DataType, JaysonTypeNameInfo.TypeNameWithAssembly));
+            if (!String.IsNullOrEmpty(dataColumn.Expression))
+            {
+                result.Add("Expression", dataColumn.Expression);
+            }
+            if (dataColumn.MaxLength != -1)
+            {
+                result.Add("MaxLength", dataColumn.MaxLength);
+            }
+            if (!String.IsNullOrEmpty(dataColumn.Namespace) && dataColumn.Namespace != defaultNamespace)
+            {
+                result.Add("Namespace", dataColumn.Namespace);
+            }
+            result.Add("Ordinal", dataColumn.Ordinal);
+            if (!String.IsNullOrEmpty(dataColumn.Prefix))
+            {
+                result.Add("Prefix", dataColumn.Prefix);
+            }
+            if (dataColumn.ReadOnly)
+            {
+                result.Add("ReadOnly", dataColumn.ReadOnly);
+            }
+            if (dataColumn.Unique)
+            {
+                result.Add("Unique", dataColumn.Unique);
+            }
+            if (dataColumn.ExtendedProperties.Count > 0)
+            {
+                result.Add("ExtendedProperties", AsDictionary(dataColumn.ExtendedProperties, context));
+            }
+
+            return result;
+        }
+
+        private static List<object> AsDataTableColumns(DataTable dataTable, JaysonSerializationContext context)
+        {
+            var columns = dataTable.Columns;
+            if (columns.Count > 0)
+            {
+				List<object> result = new List<object>(columns.Count);
+                foreach (DataColumn dataColumn in columns)
+                {
+                    result.Add(AsDataTableColumn(dataColumn, context));
+                }
+
+                return result;
+            }
+            return null;
+        }
+
+        private static Dictionary<string, object> AsDataTable(DataTable dataTable, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(10);
+
+            if (dataTable.CaseSensitive)
+            {
+                result.Add("CaseSensitive", dataTable.CaseSensitive);
+            }
+
+			var columns = AsDataTableColumns (dataTable, context);
+			if (columns != null) 
+			{
+				result.Add ("Columns", columns);
+			}
+
+            if (!String.IsNullOrEmpty(dataTable.DisplayExpression))
+            {
+                result.Add("DisplayExpression", dataTable.DisplayExpression);
+            }
+            if (dataTable.Locale != CultureInfo.InvariantCulture)
+            {
+                result.Add("Locale", dataTable.Locale.Name);
+            }
+            if (!String.IsNullOrEmpty(dataTable.Namespace))
+            {
+                result.Add("Namespace", dataTable.Namespace);
+            }
+            if (!String.IsNullOrEmpty(dataTable.Prefix))
+            {
+                result.Add("Prefix", dataTable.Prefix);
+            }
+
+            var primaryKey = AsColumnNames(dataTable.PrimaryKey, context);
+			if (primaryKey != null)
+            {
+				result.Add("PrimaryKey", primaryKey);
+            }
+
+			var rows = AsDataTableRows (dataTable, context);
+			if (columns != null) 
+			{
+				result.Add ("Rows", rows);
+			}
+            if (!String.IsNullOrEmpty(dataTable.TableName))
+            {
+                result.Add("TableName", dataTable.TableName);
+            }
+            if (dataTable.ExtendedProperties.Count > 0)
+            {
+                result.Add("ExtendedProperties", AsDictionary(dataTable.ExtendedProperties, context));
+            }
+
+            return result;
+        }
+
+        private static List<object> AsDataTables(DataSet dataSet, JaysonSerializationContext context)
+        {
+            var tables = dataSet.Tables;
+            if (tables.Count > 0)
+            {
+                List<object> result = new List<object>(tables.Count);
+                foreach (DataTable table in tables)
+                {
+                    result.Add(AsDataTable(table, context));
+                }
+                return result;
+            }
+            return null;
+        }
+
+		private static Dictionary<string, object> AsDataRelation(DataRelation relation, JaysonSerializationContext context)
+		{
+			Dictionary<string, object> result = new Dictionary<string, object>(10);
+
+			if (!String.IsNullOrEmpty(relation.RelationName))
+			{
+				result.Add("RelationName", relation.RelationName);
+			}
+
+			var columnNames = AsColumnNames(relation.ChildColumns, context);
+			if (columnNames != null)
+			{
+				result.Add("ChildColumns", columnNames);
+			}
+
+			if (relation.ChildTable != null)
+			{
+				if (relation.ChildTable.TableName != null)
+				{
+					result.Add("ChildTable", relation.ChildTable.TableName);
+				}
+
+				if (!String.IsNullOrEmpty(relation.ChildTable.Namespace))
+				{
+					result.Add("ChildTableNamespace", relation.ChildTable.Namespace);
+				}
+			}
+
+			if (relation.ExtendedProperties.Count > 0)
+			{
+				result.Add("ExtendedProperties", AsDictionary(relation.ExtendedProperties, context));
+			}
+
+			if (relation.Nested)
+			{
+				result.Add("Nested", relation.Nested);
+			}
+
+			columnNames = AsColumnNames(relation.ParentColumns, context);
+			if (columnNames != null)
+			{
+				result.Add("ParentColumns", columnNames);
+			}
+
+			if (relation.ParentTable != null)
+			{
+				if (relation.ParentTable.TableName != null)
+				{
+					result.Add("ParentTable", relation.ParentTable.TableName);
+				}
+
+				if (!String.IsNullOrEmpty(relation.ParentTable.Namespace))
+				{
+					result.Add("ParentTableNamespace", relation.ParentTable.Namespace);
+				}
+			}
+
+			return result;
+		}
+
+        private static List<object> AsDataRelations(DataRelationCollection relations, JaysonSerializationContext context)
+        {
+            if (relations.Count > 0)
+            {
+				int relationCount = relations.Count;
+				List<object> result = new List<object>(relationCount);
+
+				for (int i = 0; i < relationCount; i++) 
+				{
+					result.Add (AsDataRelation(relations [i], context));
+				}
+
+                return result;
+            }
+            return null;
+        }
+
+        private static Dictionary<string, object> AsDataSet(DataSet dataSet, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+            if (dataSet.CaseSensitive)
+            {
+                result.Add("CaseSensitive", dataSet.CaseSensitive);
+            }
+            if (!String.IsNullOrEmpty(dataSet.DataSetName))
+            {
+                result.Add("DataSetName", dataSet.DataSetName);
+            }
+            if (!dataSet.EnforceConstraints)
+            {
+                result.Add("EnforceConstraints", dataSet.EnforceConstraints);
+            }
+            if (dataSet.Locale != CultureInfo.InvariantCulture)
+            {
+                result.Add("Locale", dataSet.Locale.Name);
+            }
+            if (!String.IsNullOrEmpty(dataSet.Namespace))
+            {
+                result.Add("Namespace", dataSet.Namespace);
+            }
+            if (!String.IsNullOrEmpty(dataSet.Prefix))
+            {
+                result.Add("Prefix", dataSet.Prefix);
+            }
+            if (dataSet.SchemaSerializationMode != SchemaSerializationMode.IncludeSchema)
+            {
+                result.Add("SchemaSerializationMode", dataSet.SchemaSerializationMode);
+            }
+            if (dataSet.ExtendedProperties.Count > 0)
+            {
+                result.Add("ExtendedProperties", AsDictionary(dataSet.ExtendedProperties, context));
+            }
+
+            var relations = AsDataRelations(dataSet.Relations, context);
+            if (relations != null)
+            {
+                result.Add("Relations", relations);
+            }
+
+            var tables = AsDataTables(dataSet, context);
+            if (tables != null)
+            {
+                result.Add("Tables", tables);
+            }
+
+            return result;
+        }
+
+		# endregion DataTable & DataSet
+
 		private static object ToJsonObject(object obj, JaysonSerializationContext context)
 		{
 			if (obj != null)
@@ -536,88 +919,95 @@ namespace Sweet.Jayson
 					return obj;
 				}
 
-				if (!(obj is DataSet || obj is DataTable))
+				if (obj == DBNull.Value)
 				{
-					if (obj == DBNull.Value)
+					return null;
+				}
+
+				JaysonStackList stack = null;
+				if (info.Class)
+				{
+					stack = context.Stack;
+					if (stack.Contains(obj))
+					{
+						if (context.Settings.RaiseErrorOnCircularRef) 
+						{
+							throw new JaysonException ("Circular reference on " + info.Type.Name);
+						}
+						return null;
+					}
+
+					stack.Push(obj);
+				}
+
+				try
+				{
+					JaysonSerializationSettings settings = context.Settings;
+					#if !(NET3500 || NET3000 || NET2000)
+					if (settings.DisableExpandoObjects && (info.Type == typeof(ExpandoObject)))
+					{
+						return null;
+					}
+					#endif
+
+                    if (settings.DisableAnonymousTypes && info.Anonymous)
 					{
 						return null;
 					}
 
-					JaysonStackList stack = null;
+					if (obj is IDictionary<string, object>)
+					{
+						return AsGenericStringDictionary((IDictionary<string, object>)obj, context);
+					}
+
+					if (obj is IDictionary)
+					{
+						return AsDictionary((IDictionary)obj, context);
+					}
+
+					if (obj is StringDictionary)
+					{
+						return AsStringDictionary((StringDictionary)obj, context);
+					}
+
+					if (obj is NameValueCollection)
+					{
+						return AsNameValueCollection((NameValueCollection)obj, context);
+					}
+
+                    if (obj is DataSet)
+                    {
+                        return AsDataSet((DataSet)obj, context);
+                    }
+
+					if (obj is DataTable)
+					{
+						return AsDataTable ((DataTable)obj, context);
+					}
+
+					#if !(NET3500 || NET3000 || NET2000)
+					if (obj is DynamicObject)
+					{
+						if (!settings.DisableDynamicObjects)
+						{
+							return AsDynamicObject((DynamicObject)obj, context);
+						}
+						return null;
+					}
+					#endif
+
+					if (obj is IEnumerable)
+					{
+						return AsEnumerable((IEnumerable)obj, info.Type, context);
+					}
+
+					return AsObject(obj, info.Type, context);
+				}
+				finally
+				{
 					if (info.Class)
 					{
-						stack = context.Stack;
-						if (stack.Contains(obj))
-						{
-							if (context.Settings.RaiseErrorOnCircularRef) 
-							{
-								throw new JaysonException ("Circular reference on " + info.Type.Name);
-							}
-							return null;
-						}
-
-						stack.Push(obj);
-					}
-
-					try
-					{
-						JaysonSerializationSettings settings = context.Settings;
-						#if !(NET3500 || NET3000 || NET2000)
-						if (settings.DisableExpandoObjects && (info.Type == typeof(ExpandoObject)))
-						{
-							return null;
-						}
-						#endif
-
-                        if (settings.DisableAnonymousTypes && info.Anonymous)
-						{
-							return null;
-						}
-
-						if (obj is IDictionary<string, object>)
-						{
-							return AsGenericStringDictionary((IDictionary<string, object>)obj, context);
-						}
-
-						if (obj is IDictionary)
-						{
-							return AsDictionary((IDictionary)obj, context);
-						}
-
-						if (obj is StringDictionary)
-						{
-							return AsStringDictionary((StringDictionary)obj, context);
-						}
-
-						if (obj is NameValueCollection)
-						{
-							return AsNameValueCollection((NameValueCollection)obj, context);
-						}
-
-						#if !(NET3500 || NET3000 || NET2000)
-						if (obj is DynamicObject)
-						{
-							if (!settings.DisableDynamicObjects)
-							{
-								return AsDynamicObject((DynamicObject)obj, context);
-							}
-							return null;
-						}
-						#endif
-
-						if (obj is IEnumerable)
-						{
-							return AsEnumerable((IEnumerable)obj, info.Type, context);
-						}
-
-						return AsObject(obj, info.Type, context);
-					}
-					finally
-					{
-						if (info.Class)
-						{
-							stack.Pop();
-						}
+						stack.Pop();
 					}
 				}
 			}

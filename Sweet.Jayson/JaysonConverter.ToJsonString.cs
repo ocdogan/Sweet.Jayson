@@ -6,6 +6,7 @@ using System.Data;
 #if !(NET3500 || NET3000 || NET2000)
 using System.Dynamic;
 #endif
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -17,7 +18,9 @@ namespace Sweet.Jayson
 	{
 		# region ToJsonString
 
-		private static void WriteObjectTypeName (Type objType, JaysonSerializationContext context)
+        # region Write Type Name
+
+        private static void WriteObjectTypeName (Type objType, JaysonSerializationContext context)
 		{
 			StringBuilder builder = context.Builder;
 			if (context.Settings.Formatting) {
@@ -222,45 +225,90 @@ namespace Sweet.Jayson
 			return false;
 		}
 
+        # endregion Write Type Name
+
+        private static bool ValidObjectDepth(JaysonSerializationContext context)
+        {
+            if (context.Settings.MaxObjectDepth > 0 &&
+                context.ObjectDepth > context.Settings.MaxObjectDepth)
+            {
+                if (context.Settings.RaiseErrorOnMaxObjectDepth)
+                {
+                    throw new JaysonException(String.Format("Maximum object depth {0} exceeded.",
+                        context.Settings.MaxObjectDepth));
+                }
+                return false;
+            }
+            return true;
+        }
+
 		private static bool WriteKeyValueEntry(string key, object value, JaysonSerializationContext context, 
 			bool isFirst, bool ignoreEscape = false)
 		{
 			if ((value != null) && (value != DBNull.Value)) {
-				Type valueType = value.GetType ();
-				if (CanWriteJsonObject (value, valueType, context)) {
-					StringBuilder builder = context.Builder;
-					JaysonSerializationSettings settings = context.Settings;
+				StringBuilder builder = context.Builder;
+				JaysonSerializationSettings settings = context.Settings;
 
-					if (!isFirst) {
-						builder.Append (',');
-					}
-					if (settings.Formatting) {
-						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-					}
-
-					builder.Append ('"');
-
-					if (!settings.CaseSensitive) {
-						key = key.ToLower(JaysonConstants.InvariantCulture);
-					}
-
-					if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
-						builder.Append (key);
-					} else {
-						JaysonFormatter.EncodeUnicodeString (key, builder, settings.EscapeUnicodeChars);
-					}
-
-					if (settings.Formatting) {
-						builder.Append ("\": ");
-					} else {
-						builder.Append ('"');
-						builder.Append (':');
-					}
-
-					WriteJsonObject (value, valueType, context);
-
-					return false; // isFirst
+				if (!isFirst) {
+					builder.Append (',');
 				}
+				if (settings.Formatting) {
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+				}
+
+				builder.Append ('"');
+
+				if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
+					builder.Append (settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
+				} else {
+					JaysonFormatter.EncodeUnicodeString (settings.CaseSensitive ? key : 
+						key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
+				}
+
+				if (settings.Formatting) {
+					builder.Append ("\": ");
+				} else {
+					builder.Append ('"');
+					builder.Append (':');
+				}
+
+				var valueType = value.GetType ();
+				var jtc = JaysonTypeInfo.GetJTypeCode(valueType);
+
+				if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool) {
+					context.Formatter.Format (value, valueType, context.Builder);
+					return false; // isFirst
+				} 
+
+				if (jtc == JaysonTypeCode.Object) {
+					WriteJsonObject (value, valueType, context);
+					return false; // isFirst
+				} 
+
+				JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
+
+				if (jtns == JaysonTypeNameSerialization.All ||
+					((jtns == JaysonTypeNameSerialization.Auto ||
+						jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
+						(jtc == JaysonTypeCode.Nullable || 
+							((JaysonTypeCode.Primitive & jtc) == jtc &&
+								(JaysonTypeCode.Number & jtc) != jtc)))) {
+					context.ObjectDepth++;
+					try {
+						WritePrimitiveTypeName (valueType, context);
+						context.Formatter.Format (value, valueType, builder);
+					} finally {
+						context.ObjectDepth--;
+						if (context.Settings.Formatting) {
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						}
+						builder.Append ('}');
+					}
+					return false; // isFirst
+				} 
+
+				context.Formatter.Format(value, valueType, context.Builder);
+				return false; // isFirst
 			} else if (!context.Settings.IgnoreNullValues) {
 				StringBuilder builder = context.Builder;
 				JaysonSerializationSettings settings = context.Settings;
@@ -275,9 +323,10 @@ namespace Sweet.Jayson
 				builder.Append ('"');
 
 				if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
-					builder.Append (key);
+					builder.Append (settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
 				} else {
-					JaysonFormatter.EncodeUnicodeString (key, builder, settings.EscapeUnicodeChars);
+					JaysonFormatter.EncodeUnicodeString (settings.CaseSensitive ? key : 
+						key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
 				}
 
 				if (settings.Formatting) {
@@ -327,6 +376,787 @@ namespace Sweet.Jayson
 			return isFirst;
 		}
 
+        # region DataSet & DataTable
+
+        private static void WriteDataRows(DataTable dataTable, JaysonSerializationContext context)
+        {
+            var rows = dataTable.Rows;
+            if (rows.Count > 0)
+            {
+                StringBuilder builder = context.Builder;
+                JaysonSerializationSettings settings = context.Settings;
+                bool formatting = settings.Formatting;
+
+                if (formatting)
+                {
+                    builder.Append(',');
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    if (!settings.CaseSensitive)
+                    {
+                        builder.Append("\"rows\": [");
+                    }
+                    else
+                    {
+                        builder.Append("\"Rows\": [");
+                    }
+                }
+                else
+                {
+                    if (!settings.CaseSensitive)
+                    {
+                        builder.Append(",\"rows\":[");
+                    }
+                    else
+                    {
+                        builder.Append(",\"Rows\":[");
+                    }
+                }
+
+                context.ObjectDepth++;
+                try
+                {
+                    if (!ValidObjectDepth(context))
+                    {
+                        return;
+                    }
+
+					DataColumn dataColumn;
+                    DataColumnCollection columns = dataTable.Columns;
+
+                    int colCount = columns.Count;
+                    List<Tuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<Tuple<DataColumn, JaysonTypeInfo>>();
+
+                    for (int i = 0; i < colCount; i++)
+                    {
+						dataColumn = columns[i];
+                        columnsInfo.Add(new Tuple<DataColumn, JaysonTypeInfo>(dataColumn, JaysonTypeInfo.GetTypeInfo(dataColumn.DataType)));
+                    }
+
+					DataRow dataRow;
+					object cellValue;
+                    int rowCount = rows.Count;
+
+                    JaysonTypeCode colTypeCode;
+					Tuple<DataColumn, JaysonTypeInfo> columnInfo;
+
+                    JaysonFormatter formatter = context.Formatter;
+                    bool escapeChars = context.Settings.EscapeChars;
+                    bool escapeUnicodeChars = context.Settings.EscapeUnicodeChars;
+
+                    for (int i = 0; i < rowCount; i++)
+                    {
+                        if (i > 0)
+                        {
+                            builder.Append(',');
+                        }
+                        if (formatting)
+                        {
+                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        }
+                        builder.Append('[');
+
+                        context.ObjectDepth++;
+                        try
+                        {
+                            if (!ValidObjectDepth(context))
+                            {
+                                return;
+                            }
+
+                            dataRow = rows[i];
+                            for (int j = 0; j < colCount; j++)
+                            {
+                                if (j > 0)
+                                {
+                                    builder.Append(',');
+                                }
+                                if (formatting)
+                                {
+                                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                }
+
+                                columnInfo = columnsInfo[j];
+                                cellValue = dataRow[columnInfo.Item1];
+
+                                if (cellValue == null || cellValue == DBNull.Value)
+                                {
+                                    builder.Append("null");
+                                }
+                                else
+                                {
+                                    colTypeCode = columnInfo.Item2.JTypeCode;
+
+                                    switch (colTypeCode)
+                                    {
+                                        case JaysonTypeCode.String:
+                                            JaysonFormatter.FormatString((string)cellValue, builder,
+                                                escapeChars, escapeUnicodeChars);
+                                            break;
+                                        case JaysonTypeCode.Bool:
+                                            builder.Append((bool)cellValue ? "true" : "false");
+                                            break;
+                                        case JaysonTypeCode.BoolNullable:
+                                            builder.Append(((bool?)cellValue).Value ? "true" : "false");
+                                            break;
+                                        case JaysonTypeCode.DateTime:
+                                            formatter.Format((DateTime)cellValue, builder);
+                                            break;
+                                        case JaysonTypeCode.DateTimeNullable:
+                                            formatter.Format(((DateTime?)cellValue).Value, builder);
+                                            break;
+                                        default:
+                                            if (colTypeCode != JaysonTypeCode.Object)
+                                            {
+                                                formatter.Format(cellValue, builder);
+                                            }
+                                            else
+                                            {
+                                                context.CurrentType = columnInfo.Item2.Type;
+                                                try
+                                                {
+                                                    WriteJsonObject(cellValue, cellValue.GetType(), context);
+                                                }
+                                                finally
+                                                {
+                                                    context.CurrentType = null;
+                                                }
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            context.ObjectDepth--;
+                            if (formatting)
+                            {
+                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            }
+                            builder.Append(']');
+                        }
+                    }
+                }
+                finally
+                {
+                    context.ObjectDepth--;
+                    if (formatting)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
+                    builder.Append(']');
+                }
+            }
+        }
+
+		private static bool WriteDataColumnNames(string columnsName, DataColumn[] columns, 
+			JaysonSerializationContext context, bool isFirst)
+		{
+			if (columns == null || columns.Length == 0) {
+				return false;
+			}
+
+			StringBuilder builder = context.Builder;
+			JaysonFormatter formatter = context.Formatter;
+			bool formatting = context.Settings.Formatting;
+
+			if (!isFirst) {
+				builder.Append (',');
+			}
+			if (formatting) {
+				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+			}
+			if (!context.Settings.CaseSensitive) {
+				formatter.Format (columnsName.ToLower (JaysonConstants.InvariantCulture), builder);
+			} else {
+				formatter.Format (columnsName, builder);
+			}
+			if (formatting) {
+				builder.Append (": [");
+			} else {
+				builder.Append (":[");
+			}
+
+			context.ObjectDepth++;
+			try {
+				if (!ValidObjectDepth (context)) {
+					return true;
+				}
+
+				DataColumn column;
+				int columnCount = columns.Length;
+
+				for (int i = 0; i < columnCount; i++) {
+					if (i > 0) {
+						builder.Append (',');
+					}
+					if (formatting) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+
+					column = columns [i];
+					if (column.ColumnName == null) {
+						builder.Append ("null");
+					} else {
+						formatter.Format (column.ColumnName, builder);
+					}
+				}
+			} finally {
+				context.ObjectDepth--;
+				if (formatting) {
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+				}
+				builder.Append (']');
+			}
+			return true;
+		}
+
+        private static void WriteDataColumns(DataTable dataTable, JaysonSerializationContext context)
+        {
+            var columns = dataTable.Columns;
+            int columnCount = columns.Count;
+
+            if (columnCount > 0)
+            {
+                StringBuilder builder = context.Builder;
+                JaysonSerializationSettings settings = context.Settings;
+                bool formatting = settings.Formatting;
+
+                if (formatting)
+                {
+                    builder.Append(',');
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    if (!settings.CaseSensitive)
+                    {
+                        builder.Append("\"columns\": [");
+                    }
+                    else
+                    {
+                        builder.Append("\"Columns\": [");
+                    }
+                }
+                else
+                {
+                    if (!settings.CaseSensitive)
+                    {
+                        builder.Append(",\"columns\":[");
+                    }
+                    else
+                    {
+                        builder.Append(",\"Columns\":[");
+                    }
+                }
+
+                context.ObjectDepth++;
+                try
+                {
+                    if (!ValidObjectDepth(context))
+                    {
+                        return;
+                    }
+
+                    bool isFirst;
+                    DataColumn column;
+                    string defaultNamespace = dataTable.Namespace;
+
+                    for (int i = 0; i < columnCount; i++)
+                    {
+                        if (i > 0)
+                        {
+                            builder.Append(',');
+                        }
+                        if (formatting)
+                        {
+                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        }
+                        builder.Append('{');
+
+                        context.ObjectDepth++;
+                        try
+                        {
+                            if (!ValidObjectDepth(context))
+                            {
+                                return;
+                            }
+
+                            column = columns[i];
+
+                            isFirst = true;
+                            if (!column.AllowDBNull)
+                            {
+								isFirst = WriteKeyValueEntry("AllowDBNull", column.AllowDBNull, context, isFirst);
+                            }
+                            if (column.AutoIncrement)
+                            {
+								isFirst = WriteKeyValueEntry("AutoIncrement", column.AutoIncrement, context, isFirst);
+                            }
+                            if (column.AutoIncrementSeed != 0)
+                            {
+								isFirst = WriteKeyValueEntry("AutoIncrementSeed", column.AutoIncrementSeed, context, isFirst);
+                            }
+                            if (column.AutoIncrementStep != 1)
+                            {
+								isFirst = WriteKeyValueEntry("AutoIncrementStep", column.AutoIncrementStep, context, isFirst);
+                            }
+                            if (!String.IsNullOrEmpty(column.Caption) && column.Caption != column.ColumnName)
+                            {
+								isFirst = WriteKeyValueEntry("Caption", column.Caption, context, isFirst);
+                            }
+                            if (column.ColumnMapping != MappingType.Element)
+                            {
+								isFirst = WriteKeyValueEntry("ColumnMapping", column.ColumnMapping, context, isFirst);
+                            }
+                            if (!String.IsNullOrEmpty(column.ColumnName))
+                            {
+								isFirst = WriteKeyValueEntry("ColumnName", column.ColumnName, context, isFirst);
+                            }
+                            isFirst = WriteKeyValueEntry("DataType", JaysonTypeInfo.GetTypeName(column.DataType, JaysonTypeNameInfo.TypeNameWithAssembly), context, isFirst);
+                            if (!String.IsNullOrEmpty(column.Expression))
+                            {
+                                isFirst = WriteKeyValueEntry("Expression", column.Expression, context, isFirst);
+                            }
+                            if (column.MaxLength != -1)
+                            {
+								isFirst = WriteKeyValueEntry("MaxLength", column.MaxLength, context, isFirst);
+                            }
+                            if (!String.IsNullOrEmpty(column.Namespace) && column.Namespace != defaultNamespace)
+                            {
+								isFirst = WriteKeyValueEntry("Namespace", column.Namespace, context, isFirst);
+                            }
+							isFirst = WriteKeyValueEntry("Ordinal", column.Ordinal, context, isFirst);
+                            if (!String.IsNullOrEmpty(column.Prefix))
+                            {
+								isFirst = WriteKeyValueEntry("Prefix", column.Prefix, context, isFirst);
+                            }
+                            if (column.ReadOnly)
+                            {
+								isFirst = WriteKeyValueEntry("ReadOnly", column.ReadOnly, context, isFirst);
+                            }
+                            if (column.Unique)
+                            {
+								isFirst = WriteKeyValueEntry("Unique", column.Unique, context, isFirst);
+                            }
+
+                            if (column.ExtendedProperties.Count > 0)
+                            {
+                                context.CurrentType = typeof(PropertyCollection);
+                                try
+                                {
+                                    isFirst = WriteKeyValueEntry("ExtendedProperties", column.ExtendedProperties, context, isFirst);
+                                }
+                                finally
+                                {
+                                    context.CurrentType = null;
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            context.ObjectDepth--;
+                            if (formatting)
+                            {
+                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            }
+                            builder.Append('}');
+                        }
+                    }
+                }
+                finally
+                {
+                    context.ObjectDepth--;
+                    if (formatting)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
+                    builder.Append(']');
+                }
+            }
+        }
+
+        private static void WriteDataTable(DataTable dataTable, JaysonSerializationContext context)
+        {
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            bool formatting = context.Settings.Formatting;
+            try
+            {
+                bool isFirst = true;
+                if (WriteObjectType(dataTable, context))
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context))
+                {
+                    return;
+                }
+
+                isFirst = WriteKeyValueEntry("$datatype", "DataTable", context, isFirst);
+                if (dataTable.CaseSensitive)
+                {
+					isFirst = WriteKeyValueEntry("CaseSensitive", dataTable.CaseSensitive, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataTable.DisplayExpression))
+                {
+					isFirst = WriteKeyValueEntry("DisplayExpression", dataTable.DisplayExpression, context, isFirst);
+                }
+                if (dataTable.Locale != CultureInfo.InvariantCulture)
+                {
+					isFirst = WriteKeyValueEntry("Locale", dataTable.Locale.Name, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataTable.Namespace))
+                {
+					isFirst = WriteKeyValueEntry("Namespace", dataTable.Namespace, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataTable.Prefix))
+                {
+					isFirst = WriteKeyValueEntry("Prefix", dataTable.Prefix, context, isFirst);
+                }
+
+				var columns = dataTable.PrimaryKey;
+				if (columns != null && columns.Length > 0) 
+				{
+					isFirst = !WriteDataColumnNames ("PrimaryKey", columns, context, isFirst);
+				}
+
+                if (!String.IsNullOrEmpty(dataTable.TableName))
+                {
+					isFirst = WriteKeyValueEntry("TableName", dataTable.TableName, context, isFirst);
+                }
+
+                if (dataTable.ExtendedProperties.Count > 0)
+                {
+                    context.CurrentType = typeof(PropertyCollection);
+                    try
+                    {
+                        isFirst = WriteKeyValueEntry("ExtendedProperties", dataTable.ExtendedProperties, context, isFirst);
+                    }
+                    finally
+                    {
+                        context.CurrentType = null;
+                    }
+                }
+
+                WriteDataColumns(dataTable, context);
+                WriteDataRows(dataTable, context);
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static bool WriteDataRelations(DataSet dataSet, JaysonSerializationContext context, bool isFirst)
+        {
+            var relations = dataSet.Relations;
+            if (relations.Count == 0)
+            {
+                return false;
+            }
+
+            int relationCount = relations.Count;
+
+            StringBuilder builder = context.Builder;
+            JaysonSerializationSettings settings = context.Settings;
+            bool formatting = settings.Formatting;
+
+            if (!isFirst)
+            {
+                builder.Append(',');
+            }
+            if (formatting)
+            {
+                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                if (!settings.CaseSensitive)
+                {
+                    builder.Append("\"relations\": [");
+                }
+                else
+                {
+                    builder.Append("\"Relations\": [");
+                }
+            }
+            else
+            {
+                if (!settings.CaseSensitive)
+                {
+                    builder.Append("\"relations\":[");
+                }
+                else
+                {
+                    builder.Append("\"Relations\":[");
+                }
+            }
+
+            context.ObjectDepth++;
+            try
+            {
+                if (!ValidObjectDepth(context))
+                {
+                    return true;
+                }
+
+                DataRelation relation;
+                string defaultNamespace = dataSet.Namespace;
+
+                for (int i = 0; i < relationCount; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(',');
+                    }
+                    if (formatting)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
+                    builder.Append('{');
+
+                    context.ObjectDepth++;
+                    try
+                    {
+                        if (!ValidObjectDepth(context))
+                        {
+                            return true;
+                        }
+
+                        relation = relations[i];
+
+                        isFirst = true;
+                        if (!String.IsNullOrEmpty(relation.RelationName))
+                        {
+                            isFirst = WriteKeyValueEntry("RelationName", relation.RelationName, context, isFirst);
+                        }
+
+                        isFirst = !WriteDataColumnNames("ChildColumns", relation.ChildColumns, context, isFirst);
+
+                        if (relation.ChildTable != null)
+                        {
+                            isFirst = WriteKeyValueEntry("ChildTable", relation.ChildTable.TableName, context, isFirst);
+                            if (!String.IsNullOrEmpty(relation.ChildTable.Namespace))
+                            {
+                                isFirst = WriteKeyValueEntry("ChildTableNamespace", relation.ChildTable.Namespace, context, isFirst);
+                            }
+                        }
+
+                        if (relation.ExtendedProperties.Count > 0)
+                        {
+                            context.CurrentType = typeof(PropertyCollection);
+                            try
+                            {
+                                isFirst = WriteKeyValueEntry("ExtendedProperties", relation.ExtendedProperties, context, isFirst);
+                            }
+                            finally
+                            {
+                                context.CurrentType = null;
+                            }
+                        }
+
+                        if (relation.Nested)
+                        {
+                            isFirst = WriteKeyValueEntry("Nested", relation.Nested, context, isFirst);
+                        }
+
+                        isFirst = !WriteDataColumnNames("ParentColumns", relation.ParentColumns, context, isFirst);
+
+                        if (relation.ParentTable != null)
+                        {
+                            isFirst = WriteKeyValueEntry("ParentTable", relation.ParentTable.TableName, context, isFirst);
+                            if (!String.IsNullOrEmpty(relation.ParentTable.Namespace))
+                            {
+                                isFirst = WriteKeyValueEntry("ParentTableNamespace", relation.ParentTable.Namespace, context, isFirst);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        context.ObjectDepth--;
+                        if (formatting)
+                        {
+                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        }
+                        builder.Append('}');
+                    }
+                }
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append(']');
+            }
+
+            return true;
+        }
+
+		private static bool WriteDataTables(DataSet dataSet, JaysonSerializationContext context, bool isFirst)
+		{
+			var tables = dataSet.Tables;
+			if (tables.Count == 0) 
+			{
+				return false;
+			}
+
+			int tableCount = tables.Count;
+
+			StringBuilder builder = context.Builder;
+			JaysonSerializationSettings settings = context.Settings;
+			bool formatting = settings.Formatting;
+
+			if (!isFirst) 
+			{
+				builder.Append (',');
+			}
+			if (formatting) 
+			{
+				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+				if (!settings.CaseSensitive) 
+				{
+					builder.Append ("\"tables\": [");
+				} 
+				else 
+				{
+					builder.Append ("\"Tables\": [");
+				}
+			} 
+			else 
+			{
+				if (!settings.CaseSensitive) 
+				{
+					builder.Append ("\"tables\":[");
+				} 
+				else 
+				{
+					builder.Append ("\"Tables\":[");
+				}
+			}
+
+			context.ObjectDepth++;
+			try 
+			{
+				if (!ValidObjectDepth (context)) 
+				{
+					return true;
+				}
+
+				for (int i = 0; i < tableCount; i++) 
+				{
+					if (i > 0) 
+					{
+						builder.Append (',');
+					}
+					if (formatting) 
+					{
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+
+					WriteDataTable (tables[i], context);
+				}
+			} 
+			finally 
+			{
+				context.ObjectDepth--;
+				if (formatting) 
+				{
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+				}
+				builder.Append (']');
+			}
+
+			return true;
+		}
+
+		private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
+        {
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            bool formatting = context.Settings.Formatting;
+            try
+            {
+                bool isFirst = true;
+                if (WriteObjectType(dataSet, context))
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context))
+                {
+                    return;
+                }
+
+                isFirst = WriteKeyValueEntry("$datatype", "DataSet", context, isFirst);
+                if (dataSet.CaseSensitive)
+                {
+                    isFirst = WriteKeyValueEntry("CaseSensitive", dataSet.CaseSensitive, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataSet.DataSetName))
+                {
+					isFirst = WriteKeyValueEntry("DataSetName", dataSet.DataSetName, context, isFirst);
+                }
+                if (!dataSet.EnforceConstraints)
+                {
+					isFirst = WriteKeyValueEntry("EnforceConstraints", dataSet.EnforceConstraints, context, isFirst);
+                }
+                if (dataSet.Locale != CultureInfo.InvariantCulture)
+                {
+					isFirst = WriteKeyValueEntry("Locale", dataSet.Locale.Name, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataSet.Namespace))
+                {
+					isFirst = WriteKeyValueEntry("Namespace", dataSet.Namespace, context, isFirst);
+                }
+                if (!String.IsNullOrEmpty(dataSet.Prefix))
+                {
+					isFirst = WriteKeyValueEntry("Prefix", dataSet.Prefix, context, isFirst);
+                }
+                if (dataSet.SchemaSerializationMode != SchemaSerializationMode.IncludeSchema)
+                {
+					isFirst = WriteKeyValueEntry("SchemaSerializationMode", dataSet.SchemaSerializationMode, context, isFirst);
+                }
+                if (dataSet.ExtendedProperties.Count > 0)
+                {
+                    context.CurrentType = typeof(PropertyCollection);
+                    try
+                    {
+                        isFirst = WriteKeyValueEntry("ExtendedProperties", dataSet.ExtendedProperties, context, isFirst);
+                    }
+                    finally
+                    {
+                        context.CurrentType = null;
+                    }
+                }
+
+				isFirst = !WriteDataRelations(dataSet, context, isFirst);
+				isFirst = !WriteDataTables(dataSet, context, isFirst);
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        # endregion DataSet & DataTable
+
 		private static IEnumerable<JaysonKeyValue<string, object>> GetDictionaryEntries(IDictionary source, 
 			JaysonSerializationContext context)
 		{
@@ -357,20 +1187,7 @@ namespace Sweet.Jayson
 			}
 		}
 
-		private static bool ValidObjectDepth(JaysonSerializationContext context)
-		{
-			if (context.Settings.MaxObjectDepth > 0 && 
-				context.ObjectDepth > context.Settings.MaxObjectDepth) {
-				if (context.Settings.RaiseErrorOnMaxObjectDepth) {
-					throw new JaysonException(String.Format("Maximum object depth {0} exceeded.", 
-						context.Settings.MaxObjectDepth));
-				}
-				return false;
-			}
-			return true;
-		}
-
-		private static void WriteDictionary(IDictionary obj, JaysonSerializationContext context)
+        private static void WriteDictionary(IDictionary obj, JaysonSerializationContext context)
 		{
 			context.ObjectDepth++;
 			StringBuilder builder = context.Builder;
@@ -1215,7 +2032,7 @@ namespace Sweet.Jayson
 				return true;
 			}
 
-			if (context.Stack.Contains(obj) || (obj == DBNull.Value) || (obj is DataSet || obj is DataTable))
+			if (context.Stack.Contains(obj) || (obj == DBNull.Value))
 			{
 				return !context.Settings.IgnoreNullValues;
 			}
@@ -1240,29 +2057,35 @@ namespace Sweet.Jayson
 			{
 				JaysonTypeCode jtc = info.JTypeCode;
 
-				if (jtc != JaysonTypeCode.String && jtc != JaysonTypeCode.Bool) {
-					JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
+				if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool) {
+					context.Formatter.Format(obj, objType, context.Builder);
+					return;
+				}
 
-					if (jtns == JaysonTypeNameSerialization.All ||
-						((jtns == JaysonTypeNameSerialization.Auto ||
-							jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
-							(jtc == JaysonTypeCode.Nullable || 
-							((JaysonTypeCode.Primitive & jtc) == jtc &&
-								(JaysonTypeCode.Number & jtc) != jtc)))) {
-						StringBuilder builder = context.Builder;
+				JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
-						context.ObjectDepth++;
+				if (jtns == JaysonTypeNameSerialization.All ||
+					((jtns == JaysonTypeNameSerialization.Auto ||
+						jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
+						(jtc == JaysonTypeCode.Nullable || 
+						((JaysonTypeCode.Primitive & jtc) == jtc &&
+							(JaysonTypeCode.Number & jtc) != jtc)))) {
+					StringBuilder builder = context.Builder;
+
+					context.ObjectDepth++;
+					try {
 						WritePrimitiveTypeName (objType, context);
 						context.Formatter.Format (obj, objType, builder);
-
+					} finally {
 						context.ObjectDepth--;
 						if (context.Settings.Formatting) {
 							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
 						}
 						builder.Append ('}');
-						return;
 					}
+					return;
 				}
+
 				context.Formatter.Format(obj, objType, context.Builder);
 				return;
 			}
@@ -1280,7 +2103,7 @@ namespace Sweet.Jayson
 			if (info.Class)
 			{
 				stack = context.Stack;
-				if (stack.Contains(obj) || (obj is DataSet || obj is DataTable))
+				if (stack.Contains(obj))
 				{
 					if (context.Settings.RaiseErrorOnCircularRef) 
 					{
@@ -1361,6 +2184,14 @@ namespace Sweet.Jayson
 					}
 				}
 				#endif
+				else if (obj is DataTable)
+				{
+					WriteDataTable((DataTable)obj, context);
+				}
+				else if (obj is DataSet)
+				{
+					WriteDataSet((DataSet)obj, context);
+				}
 				else if (obj is IEnumerable)
 				{
 					WriteEnumerable((IEnumerable)obj, objType, context);

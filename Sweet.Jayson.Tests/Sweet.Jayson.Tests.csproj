@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,16 +33,36 @@
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomDataSet1.cs">
+      <DependentUpon>CustomDataSet1.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="CustomDataSet1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CustomDataSet1.xsd</DependentUpon>
+    </Compile>
     <Compile Include="TestClasses.cs" />
     <Compile Include="PrimaryTests.cs" />
     <Compile Include="PerformanceTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <None Include="CustomDataSet1.xsc">
+      <DependentUpon>CustomDataSet1.xsd</DependentUpon>
+    </None>
+    <None Include="CustomDataSet1.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CustomDataSet1.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="CustomDataSet1.xss">
+      <DependentUpon>CustomDataSet1.xsd</DependentUpon>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

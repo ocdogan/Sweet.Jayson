@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -99,7 +100,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine ("Sweet.JaysonConverter Convert to String {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to String {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -110,7 +111,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine ("Sweet.JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Parse {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -121,7 +122,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine ("Sweet.JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to Object {0} msec", sw.ElapsedMilliseconds);
 		}
 
 		[Test]
@@ -153,7 +154,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Convert to String {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to String {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -164,7 +165,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Parse {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -175,7 +176,7 @@ namespace Sweet.Jayson.Tests
 			}
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to Object {0} msec", sw.ElapsedMilliseconds);
 		}
 
 		#if !(NET3500 || NET3000 || NET2000)
@@ -209,7 +210,7 @@ namespace Sweet.Jayson.Tests
 				Thread.Yield ();
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Convert to String {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to String {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -221,7 +222,7 @@ namespace Sweet.Jayson.Tests
 				Thread.Yield ();
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Parse {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Parse {0} msec", sw.ElapsedMilliseconds);
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
@@ -233,9 +234,121 @@ namespace Sweet.Jayson.Tests
 				Thread.Yield ();
 			sw.Stop();
 			Assert.True (sw.ElapsedMilliseconds < 2000);
-			Console.WriteLine("Sweet.JaysonConverter Convert to Object {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Sweet.JaysonConverter Convert to Object {0} msec", sw.ElapsedMilliseconds);
 		}
 		#endif
-	}
+
+        [Test]
+        public static void TestPerformanceDataTable()
+		{
+			DataTable dt1 = new DataTable ("My DataTable 1", "myTableNamespace");
+			dt1.Columns.Add (new DataColumn("col1", typeof(string), null, MappingType.Element));
+			dt1.Columns.Add (new DataColumn("col2", typeof(bool)));
+			dt1.Columns.Add (new DataColumn("col3", typeof(DateTime)));
+			dt1.Columns.Add (new DataColumn("col4", typeof(SimpleObj)));
+
+			dt1.Rows.Add (new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+				new SimpleObj {
+					Value1 = "Hello",
+					Value2 = "World 1"
+				}});
+			dt1.Rows.Add (new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+				new SimpleObj {
+					Value1 = "Hello",
+					Value2 = "World 2"
+				}});
+
+			JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings {
+				Formatting = true,
+				TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+				TypeNames = JaysonTypeNameSerialization.Auto
+			};
+
+            JaysonDeserializationSettings jaysonDeserializationSettings =
+                (JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone();
+            jaysonDeserializationSettings.CaseSensitive = true;
+
+            string json = null;
+            Stopwatch sw = new Stopwatch();
+
+            sw.Restart();
+            for (int i = 0; i < 10000; i++)
+            {
+                json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
+            }
+            sw.Stop();
+            Console.WriteLine("Sweet.JaysonConverter DataTable serialization {0} msec", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds < 10000);
+
+            json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
+            sw.Restart();
+            for (int i = 0; i < 10000; i++)
+            {
+                JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
+            }
+            sw.Stop();
+            Console.WriteLine("Sweet.JaysonConverter DataTable deserialization {0} msec", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds < 10000);
+        }
+
+        [Test]
+        public static void TestPerformanceDataSet()
+        {
+            DataSet ds1 = new DataSet("My DataSet");
+
+            DataTable dt1 = new DataTable("My DataTable 1", "myTableNamespace");
+            dt1.Columns.Add(new DataColumn("col1", typeof(string), null, MappingType.Element));
+            dt1.Columns.Add(new DataColumn("col2", typeof(bool)));
+            dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
+            dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
+
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+				new SimpleObj {
+					Value1 = "Hello",
+					Value2 = "World 1"
+				}});
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+				new SimpleObj {
+					Value1 = "Hello",
+					Value2 = "World 2"
+				}});
+
+            ds1.Tables.Add(dt1);
+
+            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = true,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            JaysonDeserializationSettings jaysonDeserializationSettings =
+                (JaysonDeserializationSettings)JaysonDeserializationSettings.Default.Clone();
+            jaysonDeserializationSettings.CaseSensitive = true;
+
+            string json = null;
+            Stopwatch sw = new Stopwatch();
+
+            sw.Restart();
+            for (int i = 0; i < 10000; i++)
+            {
+                json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
+            }
+            sw.Stop();
+            Console.WriteLine("Sweet.JaysonConverter DataSet serialization {0} msec", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds < 10000);
+
+            json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
+
+            sw.Restart();
+            for (int i = 0; i < 10000; i++)
+            {
+                JaysonConverter.ToObject<DataSet>(json, jaysonDeserializationSettings);
+            }
+            sw.Stop();
+            Console.WriteLine("Sweet.JaysonConverter DataSet deserialization {0} msec", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds < 10000);
+        }
+    }
 }
 

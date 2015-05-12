@@ -56,6 +56,11 @@ namespace Sweet.Jayson
 		{
 			Initial.AssignTo (this);
 		}
+
+		public static JaysonDeserializationSettings DefaultClone()
+		{
+			return (JaysonDeserializationSettings)Default.Clone ();
+		}
 	}
 
 	# endregion JaysonDeserializationSettings

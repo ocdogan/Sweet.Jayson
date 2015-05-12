@@ -19,7 +19,7 @@ namespace Sweet.Jayson
 		private static readonly int ZeroBase = (int)'0';
 		private static readonly int ABase = 'A' - 10;
 		private static readonly int IntStringLen = 11;
-		private static readonly char Char255 = (char)255;
+		private static readonly int Char255 = 255;
 
 		public readonly string NumberFormat;
 		public readonly string DateTimeFormat;
@@ -1461,7 +1461,6 @@ namespace Sweet.Jayson
 					if (ch < ' ' || (escapeUnicodeChars && ch > Char255))
 					{
 						return IntToHex(ch, 4);
-						// return ((int)ch).ToString("X4", FormatingCulture);
 					}
 
 					return null;
@@ -1580,7 +1579,34 @@ namespace Sweet.Jayson
 			}
 		}
 
-		private static void FormatString(string str, StringBuilder builder, bool escapeChars = true,
+		public void Format(string str, StringBuilder builder)
+		{
+			if (str == null)
+			{
+				builder.Append("null");
+				return;
+			}
+
+			if (str.Length == 0)
+			{
+				builder.Append('"');
+				builder.Append('"');
+				return;
+			}
+
+			builder.Append('"');
+			if (!(EscapeChars || EscapeUnicodeChars))
+			{
+				builder.Append(str);
+			}
+			else
+			{
+				EncodeUnicodeStringInternal(str, builder, 0, EscapeUnicodeChars);
+			}
+			builder.Append('"');
+		}
+
+		public static void FormatString(string str, StringBuilder builder, bool escapeChars = true,
 			bool escapeUnicodeChars = false)
 		{
 			if (str == null)
@@ -1597,7 +1623,7 @@ namespace Sweet.Jayson
 			}
 
 			builder.Append('"');
-			if (!(escapeChars || !escapeUnicodeChars))
+			if (!(escapeChars || escapeUnicodeChars))
 			{
 				builder.Append(str);
 			}

@@ -903,9 +903,11 @@ namespace Sweet.Jayson
 			IDictionary<string, object> result = 
 				(context.Settings.DictionaryType == DictionaryDeserializationType.Expando) ? 
 				(IDictionary<string, object>)(new ExpandoObject()) :
-				new Dictionary<string, object>(10);
+				(context.Settings.CaseSensitive ? new Dictionary<string, object>(10) :
+					new Dictionary<string, object>(10, StringComparer.OrdinalIgnoreCase));
 			#else
-			IDictionary<string, object> result = new Dictionary<string, object>(10);
+			IDictionary<string, object> result = context.Settings.CaseSensitive ? new Dictionary<string, object>(10) :
+				new Dictionary<string, object>(10, StringComparer.OrdinalIgnoreCase);
 			#endif
 
 			char ch;

@@ -145,16 +145,692 @@ namespace Sweet.Jayson
         }
 		#endif
 
-		private static void SetDictionary(IDictionary<string, object> obj, object instance,
+        # region Convert DataTable & DataSet
+
+        private static void SetExtendedProperties(PropertyCollection extendedProperties, object obj, 
             JaysonDeserializationSettings settings)
         {
-			if (instance == null || obj == null || obj.Count == 0 || instance is DataTable ||
-                instance is DataSet || instance is DBNull)
+            if (obj is Hashtable)
+            {
+                foreach (DictionaryEntry ekvp in (Hashtable)obj)
+                {
+                    if (!(ekvp.Key is string) || (string)ekvp.Key != "$type")
+                    {
+                        extendedProperties.Add(ekvp.Key, ConvertObject(ekvp.Value, typeof(object), settings));
+                    }
+                }
+            }
+            else if (obj is IDictionary<string, object>)
+            {
+                foreach (var ekvp in (IDictionary<string, object>)obj)
+                {
+                    if (ekvp.Key != "$type")
+                    {
+                        extendedProperties.Add(ekvp.Key, ConvertObject(ekvp.Value, typeof(object), settings));
+                    }
+                }
+            }
+        }
+
+        private static void SetDataTableProperties(IDictionary<string, object> obj, DataTable dataTable,
+            JaysonDeserializationSettings settings)
+        {
+            object propValue;
+			if (dataTable.ChildRelations.Count == 0 && dataTable.ParentRelations.Count == 0) 
+			{
+				if (obj.TryGetValue ("CaseSensitive", out propValue)) 
+				{
+					if (propValue is bool) 
+					{
+						dataTable.CaseSensitive = (bool)propValue;
+					} 
+					else if (propValue is string) 
+					{
+						dataTable.CaseSensitive = (string)propValue == "true";
+					}
+				}
+
+				if (obj.TryGetValue ("Locale", out propValue)) 
+				{
+					dataTable.Locale = CultureInfo.GetCultureInfo ((string)propValue);
+				}
+			}
+
+            if (obj.TryGetValue("DisplayExpression", out propValue))
+            {
+                dataTable.DisplayExpression = (string)propValue;
+            }
+
+            if (obj.TryGetValue("Namespace", out propValue))
+            {
+                dataTable.Namespace = (string)propValue;
+            }
+
+            if (obj.TryGetValue("Prefix", out propValue))
+            {
+                dataTable.Prefix = (string)propValue;
+            }
+
+            if (obj.TryGetValue("TableName", out propValue))
+            {
+                dataTable.TableName = (string)propValue;
+            }
+
+            if (obj.TryGetValue("ExtendedProperties", out propValue))
+            {
+                SetExtendedProperties(dataTable.ExtendedProperties, propValue, settings);
+            }
+        }
+
+        private static void SetDataTableColumns(IDictionary<string, object> obj, DataTable dataTable,
+            JaysonDeserializationSettings settings)
+        {
+            object columnsObj;
+            if (obj.TryGetValue("Columns", out columnsObj))
+            {
+				var columnList = (IList)columnsObj;
+
+                int ordinal;
+                Type dataType;
+                string expression;
+                MappingType mappingType;
+                Dictionary<string, object> columnInfo;
+
+                object propValue;
+                DataColumn column;
+                string columnName;
+
+                List<DataColumn> unordinalColumnList = new List<DataColumn>();
+                DataColumn[] ordinalColumnList = new DataColumn[columnList.Count];
+
+                foreach (var columnInfoObj in columnList)
+                {
+                    columnInfo = (Dictionary<string, object>)columnInfoObj;
+
+                    columnName = null;
+                    if (columnInfo.TryGetValue("ColumnName", out propValue))
+                    {
+                        columnName = (string)propValue ?? String.Empty;
+                    }
+
+                    if (columnName != null && dataTable.Columns.Contains(columnName))
+                    {
+                        column = dataTable.Columns[columnName];
+                    }
+                    else
+                    {
+                        if (columnInfo.TryGetValue("DataType", out propValue) && propValue != null)
+                        {
+                            dataType = JaysonCommon.GetType((string)propValue);
+                        }
+                        else
+                        {
+                            dataType = typeof(object);
+                        }
+
+                        expression = null;
+                        if (columnInfo.TryGetValue("Expression", out propValue))
+                        {
+                            expression = (string)propValue;
+                        }
+
+                        if (columnInfo.TryGetValue("ColumnMapping", out propValue) && propValue != null)
+                        {
+                            mappingType = (MappingType)JaysonEnumCache.Parse((string)propValue, typeof(MappingType));
+                        }
+                        else
+                        {
+                            mappingType = MappingType.Element;
+                        }
+
+                        column = new DataColumn(columnName, dataType, expression, mappingType);
+
+                        ordinal = -1;
+                        if (columnInfo.TryGetValue("Ordinal", out propValue))
+                        {
+                            if (propValue is int)
+                            {
+                                ordinal = (int)propValue;
+                            }
+                            else
+                                if (propValue is long)
+                                {
+                                    ordinal = (int)((long)propValue);
+                                }
+                                else
+                                    if (propValue is string)
+                                    {
+                                        ordinal = int.Parse((string)propValue, JaysonConstants.InvariantCulture);
+                                    }
+                        }
+
+                        if (ordinal > -1)
+                        {
+                            ordinalColumnList[ordinal] = column;
+                        }
+                        else
+                        {
+                            unordinalColumnList.Add(column);
+                        }
+                    }
+
+                    if (columnInfo.TryGetValue("Namespace", out propValue))
+                    {
+                        column.Namespace = (string)propValue;
+                    }
+
+                    if (columnInfo.TryGetValue("AllowDBNull", out propValue))
+                    {
+                        if (propValue is bool)
+                        {
+                            column.AllowDBNull = (bool)propValue;
+                        }
+                        else
+                            if (propValue is string)
+                            {
+                                column.AllowDBNull = (string)propValue == "true";
+                            }
+                    }
+
+                    if (columnInfo.TryGetValue("AutoIncrement", out propValue))
+                    {
+                        if (propValue is bool)
+                        {
+                            column.AutoIncrement = (bool)propValue;
+                        }
+                        else
+                            if (propValue is string)
+                            {
+                                column.AutoIncrement = (string)propValue == "true";
+                            }
+                    }
+
+                    if (columnInfo.TryGetValue("AutoIncrementSeed", out propValue))
+                    {
+                        if (propValue is int)
+                        {
+                            column.AutoIncrementSeed = (long)((int)propValue);
+                        }
+                        else
+                            if (propValue is long)
+                            {
+                                column.AutoIncrementSeed = (long)propValue;
+                            }
+                            else
+                                if (propValue is string)
+                                {
+                                    column.AutoIncrementSeed = long.Parse((string)propValue, JaysonConstants.InvariantCulture);
+                                }
+                    }
+
+                    if (columnInfo.TryGetValue("AutoIncrementStep", out propValue))
+                    {
+                        if (propValue is int)
+                        {
+                            column.AutoIncrementSeed = (long)((int)propValue);
+                        }
+                        else
+                            if (propValue is long)
+                            {
+                                column.AutoIncrementStep = (long)propValue;
+                            }
+                            else
+                                if (propValue is string)
+                                {
+                                    column.AutoIncrementStep = long.Parse((string)propValue, JaysonConstants.InvariantCulture);
+                                }
+                    }
+
+                    if (columnInfo.TryGetValue("MaxLength", out propValue))
+                    {
+                        if (propValue is int)
+                        {
+                            column.MaxLength = (int)propValue;
+                        }
+                        else
+                            if (propValue is long)
+                            {
+                                column.MaxLength = (int)((long)propValue);
+                            }
+                            else
+                                if (propValue is string)
+                                {
+                                    column.MaxLength = int.Parse((string)propValue, JaysonConstants.InvariantCulture);
+                                }
+                    }
+
+                    if (columnInfo.TryGetValue("Caption", out propValue))
+                    {
+                        column.Caption = (string)propValue;
+                    }
+
+                    if (columnInfo.TryGetValue("Prefix", out propValue))
+                    {
+                        column.Prefix = (string)propValue;
+                    }
+
+                    if (columnInfo.TryGetValue("ReadOnly", out propValue))
+                    {
+                        if (propValue is bool)
+                        {
+                            column.ReadOnly = (bool)propValue;
+                        }
+                        else
+                            if (propValue is string)
+                            {
+                                column.ReadOnly = (string)propValue == "true";
+                            }
+                    }
+
+                    if (columnInfo.TryGetValue("Unique", out propValue))
+                    {
+                        if (propValue is bool)
+                        {
+                            column.Unique = (bool)propValue;
+                        }
+                        else
+                            if (propValue is string)
+                            {
+                                column.Unique = (string)propValue == "true";
+                            }
+                    }
+
+                    if (columnInfo.TryGetValue("ExtendedProperties", out propValue))
+                    {
+                        SetExtendedProperties(column.ExtendedProperties, propValue, settings);
+                    }
+                }
+
+                if (unordinalColumnList.Count > 0)
+                {
+                    int columnCount = ordinalColumnList.Length;
+                    int unordColPos = unordinalColumnList.Count - 1;
+
+                    for (int i = columnCount - 1; i > -1; i--)
+                    {
+                        if (ordinalColumnList[i] == null)
+                        {
+                            ordinalColumnList[i] = unordinalColumnList[unordColPos--];
+                        }
+                    }
+                }
+
+                foreach (var dataCol in ordinalColumnList)
+                {
+                    if (dataCol != null)
+                    {
+                        dataTable.Columns.Add(dataCol);
+                    }
+                }
+            }
+        }
+
+        private static void SetDataTablePrimaryKey(IDictionary<string, object> obj, DataTable dataTable,
+            JaysonDeserializationSettings settings)
+        {
+            object primaryKey;
+            if (obj.TryGetValue("PrimaryKey", out primaryKey) && (primaryKey != null))
+            {
+                var currPrimaryKey = dataTable.PrimaryKey;
+                if (currPrimaryKey == null || currPrimaryKey.Length == 0)
+                {
+                    var primaryKeyList = (IList)primaryKey;
+                    if (primaryKeyList.Count > 0)
+                    {
+                        string columnName;
+                        var columns = dataTable.Columns;
+                        List<DataColumn> primaryKeyColumns = new List<DataColumn>();
+
+                        foreach (var column in primaryKeyList)
+                        {
+                            columnName = (string)column;
+                            if (columnName != null && columns.Contains(columnName))
+                            {
+                                primaryKeyColumns.Add(columns[columnName]);
+                            }
+                        }
+
+                        if (primaryKeyColumns.Count > 0)
+                        {
+                            dataTable.PrimaryKey = primaryKeyColumns.ToArray();
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void SetDataTableRows(IDictionary<string, object> obj, DataTable dataTable,
+            JaysonDeserializationSettings settings)
+        {
+            object rowsObj;
+            if (obj.TryGetValue("Rows", out rowsObj))
+            {
+				var rowsList = (IList)rowsObj;
+                if (rowsList.Count > 0)
+                {
+                    int columnCount = dataTable.Columns.Count;
+                    Type[] columnTypes = new Type[columnCount];
+
+                    for (int i = 0; i < columnCount; i++)
+                    {
+                        columnTypes[i] = dataTable.Columns[i].DataType;
+                    }
+
+					IList rowList;
+                    int itemCount;
+                    object[] items;
+                    Type columnType;
+                    object rowValue;
+
+                    foreach (var row in rowsList)
+                    {
+						rowList = (IList)row;
+
+                        itemCount = rowList.Count;
+                        items = new object[itemCount];
+
+                        for (int i = 0; i < itemCount; i++)
+                        {
+                            rowValue = rowList[i];
+                            columnType = columnTypes[i];
+
+                            if (rowValue == null || rowValue.GetType() != columnType)
+                            {
+                                items[i] = ConvertObject(rowValue, columnType, settings);
+                            }
+                            else
+                            {
+                                items[i] = rowValue;
+                            }
+                        }
+
+                        dataTable.Rows.Add(items);
+                    }
+                }
+            }
+        }
+
+		private static void SetDataTable (IDictionary<string, object> obj, DataTable dataTable, 
+			JaysonDeserializationSettings settings)
+		{
+			SetDataTableProperties (obj, dataTable, settings);
+            SetDataTableColumns(obj, dataTable, settings);
+            SetDataTablePrimaryKey(obj, dataTable, settings);
+			SetDataTableRows (obj, dataTable, settings);
+		}
+
+        private static void SetDataRelations(IDictionary<string, object> obj, DataSet dataSet,
+            JaysonDeserializationSettings settings)
+        {
+            object relationsObj;
+            if (obj.TryGetValue("Relations", out relationsObj))
+            {
+				var relationsList = (IList)relationsObj;
+
+                object propValue;
+                string relationName;
+                string tableName;
+                string columnName;
+                string tableNamespace;
+                Dictionary<string, object> relationInfo;
+
+                DataTable childTable;
+                DataTable parentTable;
+                DataColumnCollection columns;
+
+                List<DataColumn> childColumns = new List<DataColumn>();
+                List<DataColumn> parentColumns = new List<DataColumn>();
+
+                foreach (var relationInfoObj in relationsList)
+                {
+                    relationInfo = (Dictionary<string, object>)relationInfoObj;
+
+                    relationName = null;
+                    if (relationInfo.TryGetValue("RelationName", out propValue) && propValue != null)
+                    {
+                        relationName = (string)propValue;
+                        if (dataSet.Relations.Contains(relationName))
+                            continue;
+
+                        tableName = null;
+                        if (relationInfo.TryGetValue("ChildTable", out propValue) && propValue != null)
+                        {
+                            tableName = (string)propValue;
+
+                            tableNamespace = null;
+                            if (relationInfo.TryGetValue("ChildTableNamespace", out propValue) && propValue != null)
+                            {
+                                tableNamespace = (string)propValue;
+                            }
+
+                            childTable = String.IsNullOrEmpty(tableNamespace) ? (dataSet.Tables.Contains(tableName) ? dataSet.Tables[tableName] : null) :
+                                (dataSet.Tables.Contains(tableName, tableNamespace) ? dataSet.Tables[tableName, tableNamespace] : null);
+
+                            if (childTable != null)
+                            {
+                                childColumns.Clear();
+                                if (relationInfo.TryGetValue("ChildColumns", out propValue))
+                                {
+                                    columns = childTable.Columns;
+                                    foreach (var columnNameObj in (IList)propValue)
+                                    {
+                                        columnName = (string)columnNameObj;
+                                        if (columns.Contains(columnName))
+                                        {
+                                            childColumns.Add(columns[columnName]);
+                                        }
+                                    }
+                                }
+
+                                if (childColumns.Count > 0)
+                                {
+                                    tableName = null;
+                                    if (relationInfo.TryGetValue("ParentTable", out propValue) && propValue != null)
+                                    {
+                                        tableName = (string)propValue;
+
+                                        tableNamespace = null;
+                                        if (relationInfo.TryGetValue("ParentTableNamespace", out propValue) && propValue != null)
+                                        {
+                                            tableNamespace = (string)propValue;
+                                        }
+
+                                        parentTable = String.IsNullOrEmpty(tableNamespace) ? (dataSet.Tables.Contains(tableName) ? dataSet.Tables[tableName] : null) :
+                                            (dataSet.Tables.Contains(tableName, tableNamespace) ? dataSet.Tables[tableName, tableNamespace] : null);
+
+                                        if (parentTable != null)
+                                        {
+                                            parentColumns.Clear();
+                                            if (relationInfo.TryGetValue("ParentColumns", out propValue))
+                                            {
+                                                columns = parentTable.Columns;
+                                                foreach (var columnNameObj in (IList)propValue)
+                                                {
+                                                    columnName = (string)columnNameObj;
+                                                    if (columns.Contains(columnName))
+                                                    {
+                                                        parentColumns.Add(columns[columnName]);
+                                                    }
+                                                }
+                                            }
+
+                                            if (parentColumns.Count > 0)
+                                            {
+                                                dataSet.Relations.Add(relationName, parentColumns.ToArray(), childColumns.ToArray());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void SetDataSetProperties(IDictionary<string, object> obj, DataSet dataSet, 
+            JaysonDeserializationSettings settings)
+        {
+            object propValue;
+            if (obj.TryGetValue("CaseSensitive", out propValue))
+            {
+                if (propValue is bool)
+                {
+                    dataSet.CaseSensitive = (bool)propValue;
+                }
+                else
+                    if (propValue is string)
+                    {
+                        dataSet.CaseSensitive = (string)propValue == "true";
+                    }
+            }
+
+            if (obj.TryGetValue("DataSetName", out propValue))
+            {
+                dataSet.DataSetName = (string)propValue;
+            }
+
+            if (obj.TryGetValue("EnforceConstraints", out propValue))
+            {
+                if (propValue is bool)
+                {
+                    dataSet.EnforceConstraints = (bool)propValue;
+                }
+                else
+                    if (propValue is string)
+                    {
+                        dataSet.EnforceConstraints = (string)propValue == "true";
+                    }
+            }
+
+            if (obj.TryGetValue("Locale", out propValue))
+            {
+                dataSet.Locale = CultureInfo.GetCultureInfo((string)propValue);
+            }
+
+            if (obj.TryGetValue("Namespace", out propValue))
+            {
+                dataSet.Namespace = (string)propValue;
+            }
+
+            if (obj.TryGetValue("Prefix", out propValue))
+            {
+                dataSet.Prefix = (string)propValue;
+            }
+
+            if (obj.TryGetValue("SchemaSerializationMode", out propValue))
+            {
+                if (propValue is SchemaSerializationMode)
+                {
+                    dataSet.SchemaSerializationMode = (SchemaSerializationMode)propValue;
+                }
+                else
+                    if (propValue is string)
+                    {
+                        dataSet.SchemaSerializationMode = (SchemaSerializationMode)JaysonEnumCache.Parse((string)propValue, typeof(SchemaSerializationMode));
+                    }
+            }
+
+            if (obj.TryGetValue("ExtendedProperties", out propValue))
+            {
+                SetExtendedProperties(dataSet.ExtendedProperties, propValue, settings);
+            }
+        }
+
+        private static bool GetTableName(IDictionary<string, object> tableObj, out string tableName, out string tableNamespace)
+        {
+            tableName = null;
+            tableNamespace = null;
+
+            object propValue;
+
+            if (tableObj.TryGetValue("TableName", out propValue))
+            {
+                tableName = (string)propValue;
+                if (tableObj.TryGetValue("Namespace", out propValue))
+                {
+                    tableNamespace = (string)propValue;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private static void SetDataSet(IDictionary<string, object> obj, DataSet dataSet,
+            JaysonDeserializationSettings settings)
+        {
+            SetDataSetProperties(obj, dataSet, settings);
+
+            object tablesObj;
+            if (obj.TryGetValue("Tables", out tablesObj))
+            {
+                var tableList = (IList)tablesObj;
+                if (tableList.Count > 0)
+                {
+                    DataTable dataTable;
+                    string tableName;
+                    string tableNamespace;
+                    IDictionary<string, object> table;
+
+                    foreach (var tableObj in tableList)
+                    {
+                        dataTable = null;
+                        table = tableObj as IDictionary<string, object>;
+
+                        if (GetTableName(table, out tableName, out tableNamespace))
+                        {
+                            if (String.IsNullOrEmpty(tableNamespace))
+                            {
+                                if (dataSet.Tables.Contains(tableName))
+                                {
+                                    dataTable = dataSet.Tables[tableName];
+                                }
+                            }
+                            else if (dataSet.Tables.Contains(tableName, tableNamespace))
+                            {
+                                dataTable = dataSet.Tables[tableName, tableNamespace];
+                            }
+                        }
+
+                        if (dataTable != null)
+                        {
+                            SetDataTable(table, dataTable, settings);
+                        }
+                        else
+                        {
+                            dataTable = ConvertObject(tableObj, typeof(DataTable), settings) as DataTable;
+                            if (dataTable != null)
+                            {
+                                if (String.IsNullOrEmpty(dataTable.Namespace))
+                                {
+                                    if (!dataSet.Tables.Contains(dataTable.TableName))
+                                    {
+                                        dataSet.Tables.Add(dataTable);
+                                    }
+                                }
+                                else if (!dataSet.Tables.Contains(dataTable.TableName, dataTable.Namespace))
+                                {
+                                    dataSet.Tables.Add(dataTable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            SetDataRelations(obj, dataSet, settings);
+        }
+
+        # endregion Convert DataTable & DataSet
+
+        private static void SetDictionary(IDictionary<string, object> obj, object instance,
+            JaysonDeserializationSettings settings)
+        {
+            if (instance == null || obj == null || obj.Count == 0 || instance is DBNull)
             {
                 return;
             }
 
-			bool hasStype = obj.ContainsKey("$type");
+            bool hasStype = obj.ContainsKey("$type");
 
             if (instance is IDictionary<string, object>)
             {
@@ -164,7 +840,7 @@ namespace Sweet.Jayson
                 foreach (var entry in obj)
                 {
                     key = entry.Key;
-					if (!hasStype || key != "$type")
+                    if (!hasStype || key != "$type")
                     {
                         instanceDict[key] = ConvertObject(entry.Value, typeof(object), settings);
                     }
@@ -179,7 +855,7 @@ namespace Sweet.Jayson
 
                 if (genArgs != null)
                 {
-					bool changeValue = hasStype || (genArgs[1] != typeof(object));
+                    bool changeValue = hasStype || (genArgs[1] != typeof(object));
                     bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
 
                     Type keyType = genArgs[0];
@@ -187,20 +863,20 @@ namespace Sweet.Jayson
 
                     foreach (var entry in obj)
                     {
-						if (!hasStype || entry.Key != "$type")
+                        if (!hasStype || entry.Key != "$type")
                         {
-							key = changeKey ? ConvertObject(entry.Key, keyType, settings) : entry.Key;
-							instanceDict[key] = !changeValue ? entry.Value : ConvertObject(entry.Value, valType, settings); 
+                            key = changeKey ? ConvertObject(entry.Key, keyType, settings) : entry.Key;
+                            instanceDict[key] = !changeValue ? entry.Value : ConvertObject(entry.Value, valType, settings);
                         }
                     }
                     return;
-				}
+                }
 
                 foreach (var entry in obj)
                 {
-					if (!hasStype || entry.Key != "$type")
+                    if (!hasStype || entry.Key != "$type")
                     {
-						instanceDict[entry.Key] = ConvertObject(entry.Value, typeof(object), settings); 
+                        instanceDict[entry.Key] = ConvertObject(entry.Value, typeof(object), settings);
                     }
                 }
             }
@@ -214,7 +890,7 @@ namespace Sweet.Jayson
                 foreach (var item in obj)
                 {
                     key = item.Key;
-					if (!hasStype || key != "$type")
+                    if (!hasStype || key != "$type")
                     {
                         value = item.Value;
                         if (value == null || value is string)
@@ -224,7 +900,7 @@ namespace Sweet.Jayson
                         else
                         {
                             valueType = value.GetType();
-							if (JaysonTypeInfo.IsJPrimitive(valueType))
+                            if (JaysonTypeInfo.IsJPrimitive(valueType))
                             {
                                 nvcollection.Add(key, JaysonFormatter.ToString(value, valueType));
                             }
@@ -250,7 +926,7 @@ namespace Sweet.Jayson
                 foreach (var item in obj)
                 {
                     key = item.Key;
-					if (!hasStype || key != "$type")
+                    if (!hasStype || key != "$type")
                     {
                         value = item.Value;
                         if (value == null || value is string)
@@ -260,7 +936,7 @@ namespace Sweet.Jayson
                         else
                         {
                             valueType = value.GetType();
-							if (JaysonTypeInfo.IsJPrimitive(valueType))
+                            if (JaysonTypeInfo.IsJPrimitive(valueType))
                             {
                                 sidic.Add(key, JaysonFormatter.ToString(value, valueType));
                             }
@@ -276,6 +952,14 @@ namespace Sweet.Jayson
                     }
                 }
             }
+            else if (instance is DataTable)
+            {
+                SetDataTable(obj, (DataTable)instance, settings);
+            }
+            else if (instance is DataSet)
+            {
+                SetDataSet(obj, (DataSet)instance, settings);
+            }
             else
             {
                 Type instanceType = instance.GetType();
@@ -287,22 +971,22 @@ namespace Sweet.Jayson
                         return;
                     }
 
-					bool caseSensitive = settings.CaseSensitive;
+                    bool caseSensitive = settings.CaseSensitive;
                     bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
 
                     IJaysonFastMember member;
-					IDictionary<string, IJaysonFastMember> members = 
-						JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
+                    IDictionary<string, IJaysonFastMember> members =
+                        JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
 
-					string memberName;
-					object memberValue;
+                    string memberName;
+                    object memberValue;
 
-					foreach (var entry in obj)
+                    foreach (var entry in obj)
                     {
-						if (!hasStype || entry.Key != "$type")
+                        if (!hasStype || entry.Key != "$type")
                         {
-							memberName = "<" + (caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-							if (members.TryGetValue(memberName, out member))
+                            memberName = "<" + (caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                            if (members.TryGetValue(memberName, out member))
                             {
                                 if (member.CanWrite)
                                 {
@@ -343,9 +1027,9 @@ namespace Sweet.Jayson
 
                             foreach (var entry in obj)
                             {
-								if (!hasStype || entry.Key != "$type")
+                                if (!hasStype || entry.Key != "$type")
                                 {
-									key = changeKey ? ConvertObject(entry.Key, keyType, settings) : entry.Key;
+                                    key = changeKey ? ConvertObject(entry.Key, keyType, settings) : entry.Key;
                                     value = changeVal ? ConvertObject(entry.Value, valType, settings) : entry.Value;
 
                                     addMethod(instance, new object[] { key, value });
@@ -355,22 +1039,22 @@ namespace Sweet.Jayson
                         }
                     }
 
-					if (!JaysonTypeInfo.IsJPrimitive(instanceType))
+                    if (!JaysonTypeInfo.IsJPrimitive(instanceType))
                     {
-						bool caseSensitive = settings.CaseSensitive;
+                        bool caseSensitive = settings.CaseSensitive;
                         bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
 
                         IJaysonFastMember member;
-						IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
+                        IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
 
-						string memberName;
-						object memberValue;
+                        string memberName;
+                        object memberValue;
 
-						foreach (var entry in obj)
+                        foreach (var entry in obj)
                         {
                             memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
 
-							if (members.TryGetValue(memberName, out member))
+                            if (members.TryGetValue(memberName, out member))
                             {
                                 if (member.CanWrite)
                                 {
@@ -397,8 +1081,8 @@ namespace Sweet.Jayson
 
 		private static void SetList(IList<object> obj, object instance, JaysonDeserializationSettings settings)
 		{
-			if (instance == null || obj == null || obj.Count == 0 || instance is DataTable ||
-				instance is DataSet || instance is DBNull)
+            if (instance == null || obj == null || obj.Count == 0 || instance is DataTable || 
+                instance is DataSet || instance is DBNull)
 			{
 				return;
 			}
@@ -678,6 +1362,21 @@ namespace Sweet.Jayson
 
 					if (obj.TryGetValue ("$values", out Svalues) && (Svalues is IList<object>)) {
 						return ConvertList ((IList<object>)Svalues, toType, settings);
+					}
+				}
+			} 
+
+			if (obj.TryGetValue ("$datatype", out Stype) && Stype != null) {
+				string dataType = Stype as string;
+				if (dataType != null) {
+					if (dataType.Equals ("DataTable", StringComparison.OrdinalIgnoreCase)) {
+						if (!typeof(DataTable).IsAssignableFrom (toType)) {
+							toType = typeof(DataTable);
+						}
+					} else if (dataType.Equals ("DataSet", StringComparison.OrdinalIgnoreCase)) {
+						if (!typeof(DataSet).IsAssignableFrom (toType)) {
+							toType = typeof(DataSet);
+						}
 					}
 				}
 			}
@@ -1014,112 +1713,132 @@ namespace Sweet.Jayson
 			return ToObject(str, typeof(object), settings);
 		}
 
-		public static object ToObject(string str, Type toType, JaysonDeserializationSettings settings = null)
-		{
-			if (String.IsNullOrEmpty(str))
-			{
-				return JaysonTypeInfo.GetDefault(toType);
-			}
+        public static object ToObject(string str, Type toType, JaysonDeserializationSettings settings = null)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                return JaysonTypeInfo.GetDefault(toType);
+            }
 
-			var context = new JaysonDeserializationContext
-			{
-				Text = str,
-				Length = str.Length,
-				Position = 0,
-				Settings = settings ?? JaysonDeserializationSettings.Default
-			};
+            var context = new JaysonDeserializationContext
+            {
+                Text = str,
+                Length = str.Length,
+                Position = 0,
+                Settings = settings ?? JaysonDeserializationSettings.Default
+            };
 
-			object result = Parse(context);
-			if (result == null) {
-				return JaysonTypeInfo.GetDefault(toType);
-			}
+            object result = Parse(context);
+            if (result == null)
+            {
+                return JaysonTypeInfo.GetDefault(toType);
+            }
 
-			var instanceType = result.GetType();
+            var instanceType = result.GetType();
 
-			if (!context.HasTypeInfo) {
-				if (toType == instanceType ||
-					toType == typeof(object) ||
-					toType.IsAssignableFrom(instanceType)) {
-					return result;
-				}
-				return ConvertObject(result, toType, context.Settings);
-			}
+            if (!context.HasTypeInfo)
+            {
+                if (toType == instanceType ||
+                    toType == typeof(object) ||
+                    toType.IsAssignableFrom(instanceType))
+                {
+                    return result;
+                }
+                return ConvertObject(result, toType, context.Settings);
+            }
 
-			var toInfo = JaysonTypeInfo.GetTypeInfo(toType);
-			var instanceInfo = JaysonTypeInfo.GetTypeInfo(instanceType);
+            var toInfo = JaysonTypeInfo.GetTypeInfo(toType);
+            var instanceInfo = JaysonTypeInfo.GetTypeInfo(instanceType);
 
-			if (toInfo.JPrimitive) {
-				if (toInfo.Type == instanceInfo.Type) {
-					return result;
-				}
+            if (toInfo.JPrimitive)
+            {
+                if (toInfo.Type == instanceInfo.Type)
+                {
+                    return result;
+                }
 
-				if (context.HasTypeInfo) {
-					IDictionary<string, object> primeDict = result as IDictionary<string, object>;
-					if (primeDict != null) {
-						return ConvertDictionary (primeDict, toType, 
-							settings ?? JaysonDeserializationSettings.Default, true);
-					}
-				}
+                if (context.HasTypeInfo)
+                {
+                    IDictionary<string, object> primeDict = result as IDictionary<string, object>;
+                    if (primeDict != null)
+                    {
+                        return ConvertDictionary(primeDict, toType,
+                            settings ?? JaysonDeserializationSettings.Default, true);
+                    }
+                }
 
-				bool converted;
-				return JaysonCommon.ConvertToPrimitive(result, toType, out converted);
-			}
+                bool converted;
+                return JaysonCommon.ConvertToPrimitive(result, toType, out converted);
+            }
 
-			bool asReadOnly = false;
+            bool asReadOnly = false;
             if (result is IList<object>)
             {
                 bool asList, asArray;
                 Type listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
 
                 result = ConvertList((IList<object>)result, listType, context.Settings);
-                if (result == null) {
+                if (result == null)
+                {
                     return result;
                 }
 
                 Type resultType = result.GetType();
                 if (toType == resultType ||
-                    toType.IsAssignableFrom(resultType)) {
+                    toType.IsAssignableFrom(resultType))
+                {
                     return result;
                 }
 
-                if (asReadOnly) {
+                if (asReadOnly)
+                {
                     return GetReadOnlyCollectionActivator(toType)(new object[] { result });
                 }
                 return result;
             }
 
-			if (result is IDictionary<string, object>) {
-				bool asDictionary;
+            if (result is IDictionary<string, object>)
+            {
+                bool asDictionary;
                 var dictionaryType = GetEvaluatedDictionaryType(toType, out asDictionary, out asReadOnly);
-				result = ConvertDictionary((IDictionary<string, object>)result, dictionaryType, context.Settings, true);
-			} else if (result is IDictionary) {
-				bool asDictionary;
+                result = ConvertDictionary((IDictionary<string, object>)result, dictionaryType, context.Settings, true);
+            }
+            else if (result is IDictionary)
+            {
+                bool asDictionary;
                 var dictionaryType = GetEvaluatedDictionaryType(toType, out asDictionary, out asReadOnly);
-				result = ConvertDictionary((IDictionary<string, object>)result, dictionaryType, context.Settings);
-			} else if (result is IList) {
-				result = ConvertList((IList<object>)result, toType, context.Settings);
-			} else {
-				result = ConvertObject(result, toType, context.Settings);
-			}
+                result = ConvertDictionary((IDictionary<string, object>)result, dictionaryType, context.Settings);
+            }
+            else if (result is IList)
+            {
+                result = ConvertList((IList<object>)result, toType, context.Settings);
+            }
+            else
+            {
+                result = ConvertObject(result, toType, context.Settings);
+            }
 
-            if (result == null) {
+            if (result == null)
+            {
                 return result;
             }
 
             Type resultTypeD = result.GetType();
             if (toType == resultTypeD ||
-                toType.IsAssignableFrom(resultTypeD)) {
+                toType.IsAssignableFrom(resultTypeD))
+            {
                 return result;
             }
 
-			#if !(NET4000 || NET3500 || NET3000 || NET2000)
-			if (asReadOnly) {
+            #if !(NET4000 || NET3500 || NET3000 || NET2000)
+            if (asReadOnly)
+            {
                 return GetReadOnlyDictionaryActivator(toType)(new object[] { result });
             }
-			#endif
+            #endif
 
-			throw new JaysonException("Unable to cast result to expected type.");
-		}
+            throw new JaysonException("Unable to cast result to expected type.");
+        }
 
 		#if !(NET3500 || NET3000 || NET2000)
 		public static dynamic ToDynamic(string str)
