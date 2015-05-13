@@ -142,6 +142,43 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
+        public static void TestTypeOverride()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+            jaysonSerializationSettings.AddTypeOverride(new JaysonTypeOverride<TextElementDto>()
+                .IgnoreMember("ElementType")
+                .SetMemberAlias("ElementId", "id"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+            jaysonDeserializationSettings.
+                AddTypeOverride(new JaysonTypeOverride<TextElementDto, TextElementDto2>()).
+                AddTypeOverride(new JaysonTypeOverride<TextElementDto2>().
+                    SetMemberAlias("ElementId", "id").
+					IgnoreMember("ElementType")).
+				AddTypeOverride (new JaysonTypeOverride<TypedContainerDto, TypedContainerNoDto>()); 
+
+			string json = null;
+            TypedContainerDto dto2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dto2);
+        }
+
+        [Test]
         public static void TestInterfaceDeserializationUsingSType()
         {
             var dto = TestClasses.GetTypedContainerNoDto();

@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
@@ -32,6 +33,9 @@ namespace Sweet.Jayson
 	{
 		public static readonly JaysonSerializationSettings Default = new JaysonSerializationSettings();
 		private static readonly JaysonSerializationSettings Initial = new JaysonSerializationSettings ();
+
+        private object m_TypeOverrideLock = new object();
+        private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
 		public string DateTimeFormat;
 		public string DateTimeOffsetFormat;
@@ -63,6 +67,25 @@ namespace Sweet.Jayson
 		public JaysonTypeNameSerialization TypeNames = JaysonTypeNameSerialization.None;
         public JaysonTypeNameInfo TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly;
 
+        public JaysonSerializationSettings()
+            : this(null)
+        { }
+
+        public JaysonSerializationSettings(JaysonTypeOverride[] typeOverrides)
+        {
+            if (typeOverrides != null && typeOverrides.Length > 0)
+            {
+                m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(typeOverrides.Length);
+                foreach (var typeOverride in typeOverrides)
+                {
+                    if (typeOverride != null)
+                    {
+                        m_TypeOverrides[typeOverride.Type] = typeOverride;
+                    }
+                }
+            }
+        }
+
 		internal void AssignTo(JaysonSerializationSettings destination)
 		{
 			destination.CaseSensitive = CaseSensitive;
@@ -91,6 +114,8 @@ namespace Sweet.Jayson
 			destination.UseEnumNames = UseEnumNames;
             destination.TypeNameInfo = TypeNameInfo;
 			destination.TypeNames = TypeNames;
+
+            AssignTypeOverridesTo(destination);
 		}
 
 		public object Clone()
@@ -110,7 +135,146 @@ namespace Sweet.Jayson
 		{
 			return (JaysonSerializationSettings)Default.Clone ();
 		}
-	}
+
+        private void AssignTypeOverridesTo(JaysonSerializationSettings destination)
+        {
+            lock (m_TypeOverrideLock)
+            {
+                lock (destination.m_TypeOverrideLock)
+                {
+                    if (m_TypeOverrides == null || m_TypeOverrides.Count == 0)
+                    {
+                        destination.m_TypeOverrides = null;
+                    }
+                    else
+                    {
+                        if (destination.m_TypeOverrides == null)
+                        {
+                            destination.m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(m_TypeOverrides.Count);
+                        }
+                        else
+                        {
+                            destination.m_TypeOverrides.Clear();
+                        }
+
+                        foreach (var toKvp in m_TypeOverrides)
+                        {
+                            destination.m_TypeOverrides.Add(toKvp.Key, (JaysonTypeOverride)toKvp.Value.Clone());
+                        }
+                    }
+                }
+            }
+        }
+
+        public JaysonTypeOverride GetTypeOverride(Type type)
+        {
+            if (m_TypeOverrides != null)
+            {
+                JaysonTypeOverride result = null;
+                m_TypeOverrides.TryGetValue(type, out result);
+                return result;
+            }
+            return null;
+        }
+
+        public JaysonSerializationSettings AddTypeOverride(JaysonTypeOverride typeOverride)
+        {
+            if (typeOverride != null)
+            {
+                if (m_TypeOverrides == null)
+                {
+                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+                }
+                m_TypeOverrides[typeOverride.Type] = typeOverride;
+            }
+            return this;
+        }
+
+        public JaysonTypeOverride AddTypeOverride<T>()
+        {
+            return AddTypeOverride(typeof(T));
+        }
+
+        public JaysonTypeOverride AddTypeOverride(Type type)
+        {
+            if (type != null)
+            {
+                JaysonTypeOverride typeOverride = null;
+                if (m_TypeOverrides == null)
+                {
+                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+                }
+                else
+                {
+                    m_TypeOverrides.TryGetValue(type, out typeOverride);
+                }
+
+                if (typeOverride == null)
+                {
+                    typeOverride = new JaysonTypeOverride(type);
+                    m_TypeOverrides[type] = typeOverride;
+                }
+
+                return typeOverride;
+            }
+            return null;
+        }
+
+        public JaysonTypeOverride AddTypeOverride<T>(Type bindToType)
+        {
+            JaysonTypeOverride typeOverride = AddTypeOverride(typeof(T));
+            if (typeOverride != null)
+            {
+                typeOverride.BindToType = bindToType;
+            }
+            return typeOverride;
+        }
+
+        public JaysonTypeOverride AddTypeOverride(Type type, Type bindToType)
+        {
+            JaysonTypeOverride typeOverride = AddTypeOverride(type);
+            if (typeOverride != null)
+            {
+                typeOverride.BindToType = bindToType;
+            }
+            return typeOverride;
+        }
+
+        public JaysonSerializationSettings AddTypeOverrides(JaysonTypeOverride[] typeOverrides)
+        {
+            if (typeOverrides != null && typeOverrides.Length > 0)
+            {
+                if (m_TypeOverrides == null)
+                {
+                    m_TypeOverrides = new Dictionary<Type,JaysonTypeOverride>();
+                }
+
+                foreach (var typeOverride in typeOverrides)
+                {
+                    if (typeOverride != null)
+                    {
+                        m_TypeOverrides[typeOverride.Type] = typeOverride;
+                    }
+                }
+            }
+            return this;
+        }
+
+        public JaysonSerializationSettings RemoveTypeOverride(Type type)
+        {
+            if (type != null && m_TypeOverrides != null)
+            {
+                lock (m_TypeOverrideLock)
+                {
+                    if (m_TypeOverrides.ContainsKey(type))
+                    {
+                        m_TypeOverrides.Remove(type);
+                    }
+                }
+            }
+            return this;
+        }
+    }
 
 	# endregion JaysonSerializationSettings
 }

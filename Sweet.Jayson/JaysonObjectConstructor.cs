@@ -62,19 +62,16 @@ namespace Sweet.Jayson
             if (!s_DefaultCache.TryGetValue(objType, out function))
             {
                 var info = JaysonTypeInfo.GetTypeInfo(objType);
-                // lock (GetLock(objType))
                 lock (info.SyncRoot)
                 {
                     if (!s_DefaultCache.TryGetValue(objType, out function))
                     {
-                        // if (objType == typeof(string))
                         if (info.JTypeCode == JaysonTypeCode.String)
                         {
                             function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
                         }
                         else
                         {
-                            // var info = JaysonTypeInfo.GetTypeInfo(objType);
                             if (info.Enum)
                             {
                                 return Enum.ToObject(objType, 0L);

@@ -28,12 +28,9 @@ namespace Sweet.Jayson
 {
 	# region JsonMemberIgnoreAttribute
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public class JaysonIgnoreMemberAttribute : Attribute
 	{
-		public JaysonIgnoreMemberAttribute()
-			: base()
-		{ }
 	}
 
 	# endregion JsonMemberIgnoreAttribute

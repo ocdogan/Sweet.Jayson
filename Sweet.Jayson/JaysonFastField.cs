@@ -32,6 +32,9 @@ namespace Sweet.Jayson
 
 	internal sealed class JaysonFastField : IJaysonFastMember
 	{
+		private string m_Name;
+		private string m_Alias;
+
 		private bool m_Get;
 		private bool m_Set;
 
@@ -45,6 +48,16 @@ namespace Sweet.Jayson
 
 		private Func<object, object> m_GetDelegate;
 		private Action<object, object> m_SetDelegate;
+
+		public string Alias
+		{
+			get { return m_Alias; }
+		}
+
+		public string Name
+		{
+			get { return m_Name; }
+		}
 
 		public JaysonFastMemberType Type
 		{
@@ -66,8 +79,11 @@ namespace Sweet.Jayson
 			get { return m_CanWrite || m_InvokeOnSet; }
 		}
 
-		public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true)
+		public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true, 
+			string alias = null)
 		{
+			m_Alias = alias;
+			m_Name = fi.Name;
 			m_FieldInfo = fi;
 			m_MemberType = m_FieldInfo.FieldType;
 

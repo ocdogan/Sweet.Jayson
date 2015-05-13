@@ -1442,19 +1442,49 @@ namespace Sweet.Jayson
 
 					Type currentType = context.CurrentType;
 					try {
-						string fKey;
+                        JaysonTypeOverride typeOverride = context.Settings.GetTypeOverride(objType);
+                        
+                        string fKey;
+                        string aliasKey;
 						foreach (var memberKvp in members)
 						{
 							fKey = memberKvp.Key;
-							value = memberKvp.Value.Get(obj);
 
-							if ((value != null) && canFilter)
-							{
-								value = filter(fKey, value);
-							}
+                            if ((typeOverride == null || !typeOverride.IsMemberIgnored(fKey)) &&
+								(memberKvp.Key != memberKvp.Value.Alias))
+                            {
+                                value = memberKvp.Value.Get(obj);
 
-							context.CurrentType = memberKvp.Value.MemberType;
-							isFirst = WriteKeyValueEntry(memberKvp.Key, value, context, isFirst, true);
+                                if ((value != null) && canFilter)
+                                {
+                                    value = filter(fKey, value);
+                                }
+
+                                context.CurrentType = memberKvp.Value.MemberType;
+
+                                if (typeOverride == null)
+                                {
+									aliasKey = memberKvp.Value.Alias;
+									if (!String.IsNullOrEmpty(aliasKey))
+									{
+										fKey = aliasKey;
+									} 
+								}
+								else
+								{
+                                    aliasKey = typeOverride.GetMemberAlias(fKey);
+									if (String.IsNullOrEmpty (aliasKey))
+									{
+										aliasKey = memberKvp.Value.Alias;
+									}
+                                    if (!String.IsNullOrEmpty(aliasKey))
+                                    {
+                                        fKey = aliasKey;
+									} 
+                                }
+
+                                isFirst = WriteKeyValueEntry(fKey, value, context, isFirst, true);
+                            }
 						}
 					} finally {
 						context.CurrentType = currentType;
@@ -1512,6 +1542,7 @@ namespace Sweet.Jayson
 				if (fastDict.Count > 0) {
 					string key;
 					object value;
+                    string aliasKey;
 
 					Func<string, object, object> filter = context.Filter;
 					bool canFilter = (filter != null);
@@ -1523,16 +1554,47 @@ namespace Sweet.Jayson
 
 					Type currentType = context.CurrentType;
 					try {
+                        JaysonTypeOverride typeOverride = context.Settings.GetTypeOverride(objType);
+
 						foreach (var memberKvp in members) {
 							key = memberKvp.Key;
-							value = memberKvp.Value.Get (obj);
 
-							if ((value != null) && canFilter) {
-								value = filter (key, value);
-							}
+							if ((typeOverride == null || !typeOverride.IsMemberIgnored(key)) &&
+								(memberKvp.Key != memberKvp.Value.Alias))
+                            {
+                                value = memberKvp.Value.Get(obj);
 
-							context.CurrentType = memberKvp.Value.MemberType;
-							isFirst = WriteKeyValueEntry (memberKvp.Key, value, context, isFirst, true);
+                                if ((value != null) && canFilter)
+                                {
+                                    value = filter(key, value);
+                                }
+
+                                context.CurrentType = memberKvp.Value.MemberType;
+
+								if (typeOverride == null)
+								{
+									aliasKey = memberKvp.Value.Alias;
+									if (!String.IsNullOrEmpty(aliasKey))
+									{
+										key = aliasKey;
+									} 
+								}
+								else
+								{
+									aliasKey = typeOverride.GetMemberAlias(key);
+									if (String.IsNullOrEmpty (aliasKey))
+									{
+										aliasKey = memberKvp.Value.Alias;
+									}
+                                    aliasKey = typeOverride.GetMemberAlias(key);
+                                    if (!String.IsNullOrEmpty(aliasKey))
+                                    {
+                                        key = aliasKey;
+                                    }
+                                }
+
+                                isFirst = WriteKeyValueEntry(key, value, context, isFirst, true);
+                            }
 						}
 					} finally {
 						context.CurrentType = currentType;
@@ -1600,41 +1662,44 @@ namespace Sweet.Jayson
 			}
 		}
 
-		private static void WriteByteArray (byte[] obj, JaysonSerializationContext context)
-		{
-			context.ObjectDepth++;
-			bool typeWritten = WriteByteArrayType (context);
+        private static void WriteByteArray(byte[] obj, JaysonSerializationContext context)
+        {
+            context.ObjectDepth++;
+            bool typeWritten = WriteByteArrayType(context);
 
-			StringBuilder builder = context.Builder;
-			bool formatting = context.Settings.Formatting;
-			try {
-				if (typeWritten) {
-					context.ObjectDepth++;
-					if (formatting) {
-						builder.Append (JaysonConstants.Indentation[context.ObjectDepth]);
-					}
-				}
+            StringBuilder builder = context.Builder;
+            bool formatting = context.Settings.Formatting;
+            try
+            {
+                if (typeWritten)
+                {
+                    context.ObjectDepth++;
+                }
 
-				if (!ValidObjectDepth(context)) {
-					builder.Append("\"\"");
-					return;
-				}
+                if (!ValidObjectDepth(context))
+                {
+                    builder.Append("\"\"");
+                    return;
+                }
 
-				builder.Append ('"');
-				builder.Append (Convert.ToBase64String (obj, 0, obj.Length, Base64FormattingOptions.None));
-				builder.Append ('"');
-			}
-			finally {
-				context.ObjectDepth--;
-				if (typeWritten) {
-					context.ObjectDepth--;
-					if (formatting) {
-						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-					}
-					builder.Append ('}');
-				}
-			}
-		}
+                builder.Append('"');
+                builder.Append(Convert.ToBase64String(obj, 0, obj.Length, Base64FormattingOptions.None));
+                builder.Append('"');
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (typeWritten)
+                {
+                    context.ObjectDepth--;
+                    if (formatting)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
+                    builder.Append('}');
+                }
+            }
+        }
 
 		static void WriteDBNullArray (JaysonSerializationContext context, int length)
 		{

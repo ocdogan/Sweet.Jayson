@@ -26,23 +26,31 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region IJaysonFastMember
-
-	internal interface IJaysonFastMember
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple=false)]
+	public class JaysonMemberAttribute : Attribute
 	{
-		string Name { get; }
-		string Alias { get; }
+		public string Alias { get; set; }
+		public bool Ignored { get; set; }
 
-		JaysonFastMemberType Type { get; }
-		Type MemberType { get; }
+		public JaysonMemberAttribute()
+		{
+		}
 
-		bool CanRead { get; }
-		bool CanWrite { get; }
+		public JaysonMemberAttribute (string alias)
+		{
+			Alias = alias;
+		}
 
-		object Get(object instance);
-		void Set(object instance, object value);
+		public JaysonMemberAttribute (bool ignored)
+		{
+			Ignored = ignored;
+		}
+
+		public JaysonMemberAttribute (string alias, bool ignored)
+		{
+			Alias = alias;
+			Ignored = ignored;
+		}
 	}
-
-	# endregion IJaysonFastMember
 }
 

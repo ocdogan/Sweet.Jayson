@@ -285,7 +285,7 @@ namespace Sweet.Jayson
                     {
                         if (columnInfo.TryGetValue("DataType", out propValue) && propValue != null)
                         {
-                            dataType = JaysonCommon.GetType((string)propValue);
+							dataType = GetTypeOverride(JaysonCommon.GetType((string)propValue, settings.Binder), settings);
                         }
                         else
                         {
@@ -987,6 +987,7 @@ namespace Sweet.Jayson
             else
             {
                 Type instanceType = instance.GetType();
+                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
 
                 if (JaysonTypeInfo.IsAnonymous(instanceType))
                 {
@@ -1002,6 +1003,7 @@ namespace Sweet.Jayson
                     IDictionary<string, IJaysonFastMember> members =
                         JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
 
+                    string key;
                     string memberName;
                     object memberValue;
 
@@ -1009,25 +1011,42 @@ namespace Sweet.Jayson
                     {
                         if (!hasStype || entry.Key != "$type")
                         {
-                            memberName = "<" + (caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                            if (members.TryGetValue(memberName, out member))
+                            key = entry.Key;
+                            if (!hasStype || key != "$type")
                             {
-                                if (member.CanWrite)
+                                memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                                if (!members.TryGetValue(memberName, out member) && typeOverride != null)
                                 {
-                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, settings));
-                                }
-                                else if (entry.Value != null)
-                                {
-                                    memberValue = member.Get(instance);
-                                    if (instance != null)
+                                    key = typeOverride.GetAliasMember(key);
+                                    if (!String.IsNullOrEmpty(key))
                                     {
-                                        SetObject(memberValue, entry.Value, settings);
+                                        memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                                        members.TryGetValue(memberName, out member);
                                     }
                                 }
-                            }
-                            else if (raiseErrorOnMissingMember)
-                            {
-                                throw new JaysonException("Missing member: " + entry.Key);
+
+                                if (member != null)
+                                {
+                                    if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                                    {
+                                        if (member.CanWrite)
+                                        {
+                                            member.Set(instance, ConvertObject(entry.Value, member.MemberType, settings));
+                                        }
+                                        else if (entry.Value != null)
+                                        {
+                                            memberValue = member.Get(instance);
+                                            if (instance != null)
+                                            {
+                                                SetObject(memberValue, entry.Value, settings);
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (raiseErrorOnMissingMember)
+                                {
+                                    throw new JaysonException("Missing member: " + entry.Key);
+                                }
                             }
                         }
                     }
@@ -1069,7 +1088,8 @@ namespace Sweet.Jayson
                         bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
 
                         IJaysonFastMember member;
-                        IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
+                        IDictionary<string, IJaysonFastMember> members = 
+                            JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
 
                         string memberName;
                         object memberValue;
@@ -1077,25 +1097,43 @@ namespace Sweet.Jayson
                         foreach (var entry in obj)
                         {
                             memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
-
-                            if (members.TryGetValue(memberName, out member))
+                            if (!hasStype || memberName != "$type")
                             {
-                                if (member.CanWrite)
+                                if (!members.TryGetValue(memberName, out member) && typeOverride != null)
                                 {
-                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, settings));
-                                }
-                                else if (entry.Value != null)
-                                {
-                                    memberValue = member.Get(instance);
-                                    if (instance != null)
+                                    memberName = typeOverride.GetAliasMember(memberName);
+                                    if (!String.IsNullOrEmpty(memberName))
                                     {
-                                        SetObject(memberValue, entry.Value, settings);
+                                        if (!caseSensitive)
+                                        {
+                                            memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
+                                        }
+                                        members.TryGetValue(memberName, out member);
                                     }
                                 }
-                            }
-                            else if (raiseErrorOnMissingMember)
-                            {
-                                throw new JaysonException("Missing member: " + entry.Key);
+
+                                if (member != null)
+                                {
+                                    if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                                    {
+                                        if (member.CanWrite)
+                                        {
+                                            member.Set(instance, ConvertObject(entry.Value, member.MemberType, settings));
+                                        }
+                                        else if (entry.Value != null)
+                                        {
+                                            memberValue = member.Get(instance);
+                                            if (instance != null)
+                                            {
+                                                SetObject(memberValue, entry.Value, settings);
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (raiseErrorOnMissingMember)
+                                {
+                                    throw new JaysonException("Missing member: " + entry.Key);
+                                }
                             }
                         }
                     }
@@ -1367,11 +1405,15 @@ namespace Sweet.Jayson
 					if (typeName != String.Empty) {
 						if (!forceType || toType == typeof(object) || info.Interface) {
 							binded = true;
-							Type instanceType = JaysonCommon.GetType (typeName, settings.Binder);
-							if (instanceType != null && instanceType != toType) {
-								toType = instanceType;
-								info = JaysonTypeInfo.GetTypeInfo (toType);
-							}
+							Type instanceType = GetTypeOverride(JaysonCommon.GetType (typeName, settings.Binder), settings);
+                            if (instanceType != null)
+                            {
+                                if (instanceType != null && instanceType != toType)
+                                {
+                                    toType = instanceType;
+                                    info = JaysonTypeInfo.GetTypeInfo(toType);
+                                }
+                            }
 						}
 					}
 
@@ -1409,7 +1451,7 @@ namespace Sweet.Jayson
             toType = GetEvaluatedDictionaryType(toType, out asDictionary, out asReadOnly);
 
 			if (!binded) {
-				Type instanceType = BindToType(settings, toType);
+				Type instanceType = BindToType(settings, toType, forceType);
 				if (instanceType != null && instanceType != toType) {
 					toType = instanceType;
 
@@ -1460,10 +1502,23 @@ namespace Sweet.Jayson
 			return result;
 		}
 
-		private static Type BindToType (JaysonDeserializationSettings settings, Type type)
+		private static Type GetTypeOverride (Type type, JaysonDeserializationSettings settings)
+		{
+			if (type != null) 
+			{
+				var typeOverride = settings.GetTypeOverride (type);
+				if (typeOverride != null) 
+				{
+					return typeOverride.BindToType ?? type;
+				}
+			}
+			return type;
+		}
+
+		private static Type BindToType (JaysonDeserializationSettings settings, Type type, bool dontOverride = false)
 		{
 			#if !(NET3500 || NET3000 || NET2000)
-			if (settings.Binder != null) 
+			if (settings.Binder != null)
 			{
 				string typeName;
 				string assemblyName;			
@@ -1481,6 +1536,11 @@ namespace Sweet.Jayson
 				{
 					return instanceType;
 				}
+			}
+
+			if (!dontOverride)
+			{
+				return GetTypeOverride (type, settings);
 			}
 			#endif
 			return type;

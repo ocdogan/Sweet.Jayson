@@ -23,8 +23,9 @@
 # endregion License
 
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 namespace Sweet.Jayson
 {
@@ -37,7 +38,7 @@ namespace Sweet.Jayson
 		public readonly JaysonFormatter Formatter;
 		public readonly JaysonSerializationSettings Settings;
 		public readonly JaysonStackList Stack;
-
+        
 		public int ObjectDepth;
 		public Type CurrentType;
 		public JaysonObjectType ObjectType;

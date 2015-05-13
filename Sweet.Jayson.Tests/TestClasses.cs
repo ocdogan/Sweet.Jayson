@@ -397,6 +397,7 @@ namespace Sweet.Jayson.Tests
 		public DateTime Date1;
 		public DateTime Date2;
 		public DateTime Date3;
+		[JaysonMember(Alias = "Prop1")]
 		public ReadOnlyCollection<object> P1 { get; set; }
 		public ReadOnlyCollection<int?> P2 { get; set; }
 		public byte[] ByteArray { get; set; }
@@ -442,7 +443,10 @@ namespace Sweet.Jayson.Tests
 		public ElementActionDto Action { get; set; }
 	}
 
-	public class ImageElementDto
+    public class TextElementDto2 : TextElementDto
+    { }
+    
+    public class ImageElementDto
 	{
 		public string ElementType { get; set; }
 		public string ElementId { get; set; }

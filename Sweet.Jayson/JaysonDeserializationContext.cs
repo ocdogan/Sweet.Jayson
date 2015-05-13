@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
@@ -36,7 +37,7 @@ namespace Sweet.Jayson
 		public int ObjectDepth = 0;
 		public bool HasTypeInfo = false;
 		public JaysonDeserializationSettings Settings;
-	}
+    }
 
 	# endregion DeserializationContext
 }
