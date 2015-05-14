@@ -49,8 +49,8 @@ Open sourced under [MIT license][2].
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-    "state"": "open",
-    "base"": {
+    "state": "open",
+    "base": {
         "label": "technoweenie:master",
         "ref": "master",
         "sha": "53397635da83a2f4b5e862b5e59cc66f6c39f9c6"
@@ -62,8 +62,8 @@ or
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-    "State"": "open",
-    "Base"": {
+    "State": "open",
+    "Base": {
         "Label": "technoweenie:master",
         "Ref": "master",
         "SHA": "53397635da83a2f4b5e862b5e59cc66f6c39f9c6"
@@ -81,8 +81,8 @@ or
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-    "state"": "open",
-    "base"": {
+    "state": "open",
+    "base": {
         "label": "technoweenie:master",
         "ref": "master",
         "sha": "53397635da83a2f4b5e862b5e59cc66f6c39f9c6"
