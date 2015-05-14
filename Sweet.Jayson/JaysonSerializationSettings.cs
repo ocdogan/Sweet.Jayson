@@ -53,6 +53,7 @@ namespace Sweet.Jayson
 		public bool EscapeUnicodeChars = false;
 		public bool Formatting = false;
 		public bool IgnorePrimitiveTypeNames = true;
+        public bool IgnoreReadOnlyMembers = false;
 		public bool IgnoreNullValues = true;
         public bool IgnoreNullListItems = false;
 		public bool OrderNames = false;
@@ -106,6 +107,7 @@ namespace Sweet.Jayson
 			destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
             destination.IgnoreNullListItems = IgnoreNullListItems;
 			destination.IgnoreNullValues = IgnoreNullValues;
+			destination.IgnoreReadOnlyMembers = IgnoreReadOnlyMembers;
 			destination.MaxObjectDepth = MaxObjectDepth;
 			destination.NumberFormat = NumberFormat;
 			destination.OrderNames = OrderNames;

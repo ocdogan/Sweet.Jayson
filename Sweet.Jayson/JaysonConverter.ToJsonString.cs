@@ -1442,49 +1442,39 @@ namespace Sweet.Jayson
 
 					Type currentType = context.CurrentType;
 					try {
+						bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
                         JaysonTypeOverride typeOverride = context.Settings.GetTypeOverride(objType);
                         
                         string fKey;
                         string aliasKey;
 						foreach (var memberKvp in members)
 						{
-							fKey = memberKvp.Key;
+							if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+							{
+								fKey = memberKvp.Key;
+	                            if (typeOverride == null || !typeOverride.IsMemberIgnored(fKey))
+	                            {
+	                                value = memberKvp.Value.Get(obj);
 
-                            if ((typeOverride == null || !typeOverride.IsMemberIgnored(fKey)) &&
-								(memberKvp.Key != memberKvp.Value.Alias))
-                            {
-                                value = memberKvp.Value.Get(obj);
+	                                if ((value != null) && canFilter)
+	                                {
+	                                    value = filter(fKey, value);
+	                                }
 
-                                if ((value != null) && canFilter)
-                                {
-                                    value = filter(fKey, value);
-                                }
+	                                context.CurrentType = memberKvp.Value.MemberType;
 
-                                context.CurrentType = memberKvp.Value.MemberType;
+	                                if (typeOverride != null)
+	                                {
+	                                    aliasKey = typeOverride.GetMemberAlias(fKey);
+	                                    if (!String.IsNullOrEmpty(aliasKey))
+	                                    {
+	                                        fKey = aliasKey;
+	                                    }
+	                                }
 
-                                if (typeOverride == null)
-                                {
-									aliasKey = memberKvp.Value.Alias;
-									if (!String.IsNullOrEmpty(aliasKey))
-									{
-										fKey = aliasKey;
-									} 
-								}
-								else
-								{
-                                    aliasKey = typeOverride.GetMemberAlias(fKey);
-									if (String.IsNullOrEmpty (aliasKey))
-									{
-										aliasKey = memberKvp.Value.Alias;
-									}
-                                    if (!String.IsNullOrEmpty(aliasKey))
-                                    {
-                                        fKey = aliasKey;
-									} 
-                                }
-
-                                isFirst = WriteKeyValueEntry(fKey, value, context, isFirst, true);
-                            }
+	                                isFirst = WriteKeyValueEntry(fKey, value, context, isFirst, true);
+	                            }
+							}
 						}
 					} finally {
 						context.CurrentType = currentType;
@@ -1554,47 +1544,36 @@ namespace Sweet.Jayson
 
 					Type currentType = context.CurrentType;
 					try {
+						bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
                         JaysonTypeOverride typeOverride = context.Settings.GetTypeOverride(objType);
 
 						foreach (var memberKvp in members) {
-							key = memberKvp.Key;
+							if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+							{
+								key = memberKvp.Key;
+	                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+	                            {
+	                                value = memberKvp.Value.Get(obj);
 
-							if ((typeOverride == null || !typeOverride.IsMemberIgnored(key)) &&
-								(memberKvp.Key != memberKvp.Value.Alias))
-                            {
-                                value = memberKvp.Value.Get(obj);
+	                                if ((value != null) && canFilter)
+	                                {
+	                                    value = filter(key, value);
+	                                }
 
-                                if ((value != null) && canFilter)
-                                {
-                                    value = filter(key, value);
-                                }
+	                                context.CurrentType = memberKvp.Value.MemberType;
 
-                                context.CurrentType = memberKvp.Value.MemberType;
+	                                if (typeOverride != null)
+	                                {
+	                                    aliasKey = typeOverride.GetMemberAlias(key);
+	                                    if (!String.IsNullOrEmpty(aliasKey))
+	                                    {
+	                                        key = aliasKey;
+	                                    }
+	                                }
 
-								if (typeOverride == null)
-								{
-									aliasKey = memberKvp.Value.Alias;
-									if (!String.IsNullOrEmpty(aliasKey))
-									{
-										key = aliasKey;
-									} 
-								}
-								else
-								{
-									aliasKey = typeOverride.GetMemberAlias(key);
-									if (String.IsNullOrEmpty (aliasKey))
-									{
-										aliasKey = memberKvp.Value.Alias;
-									}
-                                    aliasKey = typeOverride.GetMemberAlias(key);
-                                    if (!String.IsNullOrEmpty(aliasKey))
-                                    {
-                                        key = aliasKey;
-                                    }
-                                }
-
-                                isFirst = WriteKeyValueEntry(key, value, context, isFirst, true);
-                            }
+	                                isFirst = WriteKeyValueEntry(key, value, context, isFirst, true);
+	                            }
+							}
 						}
 					} finally {
 						context.CurrentType = currentType;

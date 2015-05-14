@@ -285,7 +285,17 @@ namespace Sweet.Jayson
                     {
                         if (columnInfo.TryGetValue("DataType", out propValue) && propValue != null)
                         {
-							dataType = GetTypeOverride(JaysonCommon.GetType((string)propValue, settings.Binder), settings);
+                            dataType = JaysonCommon.GetType((string)propValue, settings.Binder);
+
+                            JaysonTypeOverride typeOverride = settings.GetTypeOverride(dataType);
+                            if (typeOverride != null)
+                            {
+                                Type bindToType = typeOverride.BindToType;
+                                if (bindToType != null)
+                                {
+                                    dataType = bindToType;
+                                }
+                            }
                         }
                         else
                         {
@@ -1088,8 +1098,7 @@ namespace Sweet.Jayson
                         bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
 
                         IJaysonFastMember member;
-                        IDictionary<string, IJaysonFastMember> members = 
-                            JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
+                        IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
 
                         string memberName;
                         object memberValue;
@@ -1405,9 +1414,19 @@ namespace Sweet.Jayson
 					if (typeName != String.Empty) {
 						if (!forceType || toType == typeof(object) || info.Interface) {
 							binded = true;
-							Type instanceType = GetTypeOverride(JaysonCommon.GetType (typeName, settings.Binder), settings);
+							Type instanceType = JaysonCommon.GetType (typeName, settings.Binder);
                             if (instanceType != null)
                             {
+                                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
+                                if (typeOverride != null)
+                                {
+                                    Type bindToType = typeOverride.BindToType;
+                                    if (bindToType != null)
+                                    {
+                                        instanceType = bindToType;
+                                    }
+                                }
+
                                 if (instanceType != null && instanceType != toType)
                                 {
                                     toType = instanceType;
@@ -1451,7 +1470,7 @@ namespace Sweet.Jayson
             toType = GetEvaluatedDictionaryType(toType, out asDictionary, out asReadOnly);
 
 			if (!binded) {
-				Type instanceType = BindToType(settings, toType, forceType);
+				Type instanceType = BindToType(settings, toType);
 				if (instanceType != null && instanceType != toType) {
 					toType = instanceType;
 
@@ -1502,23 +1521,10 @@ namespace Sweet.Jayson
 			return result;
 		}
 
-		private static Type GetTypeOverride (Type type, JaysonDeserializationSettings settings)
-		{
-			if (type != null) 
-			{
-				var typeOverride = settings.GetTypeOverride (type);
-				if (typeOverride != null) 
-				{
-					return typeOverride.BindToType ?? type;
-				}
-			}
-			return type;
-		}
-
-		private static Type BindToType (JaysonDeserializationSettings settings, Type type, bool dontOverride = false)
+		private static Type BindToType (JaysonDeserializationSettings settings, Type type)
 		{
 			#if !(NET3500 || NET3000 || NET2000)
-			if (settings.Binder != null)
+			if (settings.Binder != null) 
 			{
 				string typeName;
 				string assemblyName;			
@@ -1538,10 +1544,16 @@ namespace Sweet.Jayson
 				}
 			}
 
-			if (!dontOverride)
-			{
-				return GetTypeOverride (type, settings);
-			}
+            JaysonTypeOverride typeOverride = settings.GetTypeOverride(type);
+            if (typeOverride != null)
+            {
+                Type bindToType = typeOverride.BindToType;
+                if (bindToType != null)
+                {
+                    return bindToType;
+                }
+            }
+
 			#endif
 			return type;
 		}

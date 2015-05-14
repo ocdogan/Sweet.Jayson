@@ -164,14 +164,12 @@ namespace Sweet.Jayson.Tests
                 AddTypeOverride(new JaysonTypeOverride<TextElementDto, TextElementDto2>()).
                 AddTypeOverride(new JaysonTypeOverride<TextElementDto2>().
                     SetMemberAlias("ElementId", "id").
-					IgnoreMember("ElementType")).
-				AddTypeOverride (new JaysonTypeOverride<TypedContainerDto, TypedContainerNoDto>()); 
+                    IgnoreMember("ElementType")); 
 
-			string json = null;
             TypedContainerDto dto2 = null;
             Assert.DoesNotThrow(() =>
             {
-                json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+                string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
                 JaysonConverter.Parse(json, jaysonDeserializationSettings);
                 dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
             });

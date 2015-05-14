@@ -183,28 +183,37 @@ namespace Sweet.Jayson
 			Func<string, object, object> filter = context.Filter;
 			bool canFilter = (filter != null);
 
-			string fKey;
-			foreach (var memberKvp in JaysonFastMemberCache.GetMembers(obj.GetType()))
+			var members = JaysonFastMemberCache.GetMembers(obj.GetType());
+			if (members.Count > 0) 
 			{
-				fKey = memberKvp.Key;
-				value = memberKvp.Value.Get(obj);
+				bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
 
-				if (value != null)
+				string fKey;
+				foreach (var memberKvp in members) 
 				{
-					if (canFilter)
+					if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite) 
 					{
-						value = filter(fKey, value);
-					}
+						fKey = memberKvp.Key;
+						value = memberKvp.Value.Get (obj);
 
-					if (value != null)
-					{
-						value = ToJsonObject(value, context);
-					}
-				}
+						if (value != null) 
+						{
+							if (canFilter) 
+							{
+								value = filter (fKey, value);
+							}
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(fKey, value);
+							if (value != null) 
+							{
+								value = ToJsonObject (value, context);
+							}
+						}
+
+						if ((value != null) || !ignoreNullValues) 
+						{
+							result.Add (fKey, value);
+						}
+					}
 				}
 			}
 
@@ -239,36 +248,44 @@ namespace Sweet.Jayson
 
 		private static Dictionary<string, object> AsObject(object obj, Type objType, JaysonSerializationContext context)
 		{
-			string key;
-			object value;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
+			Dictionary<string, object> result = new Dictionary<string, object> (JaysonConstants.DictionaryCapacity);
 
-			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
-
-			Func<string, object, object> filter = context.Filter;
-			bool canFilter = (filter != null);
-
-			foreach (var memberKvp in JaysonFastMemberCache.GetMembers(objType))
+			var members = JaysonFastMemberCache.GetMembers (objType);
+			if (members.Count > 0) 
 			{
-				key = memberKvp.Key;
-				value = memberKvp.Value.Get(obj);
+				string key;
+				object value;
+				bool ignoreNullValues = context.Settings.IgnoreNullValues;
+				bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
 
-				if (value != null)
+				Func<string, object, object> filter = context.Filter;
+				bool canFilter = (filter != null);
+
+				foreach (var memberKvp in members) 
 				{
-					if (canFilter)
+					if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite) 
 					{
-						value = filter(key, value);
-					}
+						key = memberKvp.Key;
+						value = memberKvp.Value.Get (obj);
 
-					if (value != null)
-					{
-						value = ToJsonObject(value, context);
-					}
-				}
+						if (value != null) 
+						{
+							if (canFilter) 
+							{
+								value = filter (key, value);
+							}
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(key, value);
+							if (value != null) 
+							{
+								value = ToJsonObject (value, context);
+							}
+						}
+
+						if ((value != null) || !ignoreNullValues) 
+						{
+							result.Add (key, value);
+						}
+					}
 				}
 			}
 

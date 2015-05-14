@@ -32,9 +32,6 @@ namespace Sweet.Jayson
 
     internal sealed class JaysonFastProperty : IJaysonFastMember
 	{
-		private string m_Name;
-		private string m_Alias;
-
 		private bool m_Get;
 		private bool m_Set;
 
@@ -46,16 +43,6 @@ namespace Sweet.Jayson
 
 		private Func<object, object> m_GetDelegate;
 		private Action<object, object> m_SetDelegate;
-
-		public string Alias
-		{
-			get { return m_Alias; }
-		}
-
-		public string Name
-		{
-			get { return m_Name; }
-		}
 
 		public JaysonFastMemberType Type
 		{
@@ -77,11 +64,8 @@ namespace Sweet.Jayson
 			get { return m_CanWrite; }
 		}
 
-		public JaysonFastProperty(PropertyInfo pi, bool initGet = true, bool initSet = true,
-			string alias = null)
+		public JaysonFastProperty(PropertyInfo pi, bool initGet = true, bool initSet = true)
 		{
-			m_Name = pi.Name;
-			m_Alias = alias;
 			m_PropInfo = pi;
 			m_MemberType = m_PropInfo.PropertyType;
 

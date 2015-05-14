@@ -73,39 +73,25 @@ namespace Sweet.Jayson
 			membersInvariant = new Dictionary<string, IJaysonFastMember>(5);
 
 			IJaysonFastMember member;
-			JaysonMemberAttribute memberAttr;
 
 			PropertyInfo[] pis = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public |
 				BindingFlags.GetProperty | BindingFlags.SetProperty);
 
 			PropertyInfo pi;
-			ParameterInfo[] iParams;
-
 			for (int i = pis.Length - 1; i > -1; i--)
 			{
 				pi = pis[i];
 				if (pi.CanRead)
 				{
-					iParams = pi.GetIndexParameters();
+					var iParams = pi.GetIndexParameters();
 
 					if ((iParams == null || iParams.Length == 0) &&
 						pi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
 					{
-						memberAttr = (JaysonMemberAttribute)(pi.GetCustomAttributes (typeof(JaysonMemberAttribute), true).FirstOrDefault ());
-						if (memberAttr == null || !memberAttr.Ignored) 
-						{
-							member = new JaysonFastProperty (pi, true, true,
-								memberAttr != null ? memberAttr.Alias : null);
+						member = new JaysonFastProperty(pi, true, true);
 
-							members.Add (member.Name, member);
-							membersInvariant.Add (member.Name.ToLower (JaysonConstants.InvariantCulture), member);
-
-							if (!String.IsNullOrEmpty (member.Alias)) 
-							{
-								members.Add (member.Alias, member);
-								membersInvariant.Add (member.Alias.ToLower (JaysonConstants.InvariantCulture), member);
-							}
-						}
+						members.Add(pi.Name, member);
+						membersInvariant.Add(pi.Name.ToLower(JaysonConstants.InvariantCulture), member);
 					}
 				}
 			}
@@ -118,21 +104,10 @@ namespace Sweet.Jayson
 				fi = fis[i];
 				if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
 				{
-					memberAttr = (JaysonMemberAttribute)(fi.GetCustomAttributes (typeof(JaysonMemberAttribute), true).FirstOrDefault ());
-					if (memberAttr == null || !memberAttr.Ignored) 
-					{
-						member = new JaysonFastField (fi, true, true,
-							memberAttr != null ? memberAttr.Alias : null);
+					member = new JaysonFastField(fi, true, true);
 
-						members.Add (member.Name, member);
-						membersInvariant.Add (member.Name.ToLower (JaysonConstants.InvariantCulture), member);
-
-						if (!String.IsNullOrEmpty (member.Alias)) 
-						{
-							members.Add (member.Alias, member);
-							membersInvariant.Add (member.Alias.ToLower (JaysonConstants.InvariantCulture), member);
-						}
-					}
+					members.Add(fi.Name, member);
+                    membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), member);
 				}
 			}
 		}
@@ -191,27 +166,16 @@ namespace Sweet.Jayson
 				BindingFlags.NonPublic);
 
 			FieldInfo fi;
-			JaysonFastField member;
+			JaysonFastField fastField;
 			for (int i = fis.Length - 1; i > -1; i--)
 			{
 				fi = fis[i];
 				if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
 				{
-					var memberAttr = (JaysonMemberAttribute)(fi.GetCustomAttributes (typeof(JaysonMemberAttribute), true).FirstOrDefault ());
-					if (memberAttr == null || !memberAttr.Ignored) 
-					{
-						member = new JaysonFastField (fi, true, true, 
-							memberAttr != null ? memberAttr.Alias : null);
+					fastField = new JaysonFastField(fi, true, true);
 
-						members.Add (member.Name, member);
-						membersInvariant.Add (member.Name.ToLower (JaysonConstants.InvariantCulture), member);
-
-						if (!String.IsNullOrEmpty (member.Alias)) 
-						{
-							members.Add (member.Alias, member);
-							membersInvariant.Add (member.Alias.ToLower (JaysonConstants.InvariantCulture), member);
-						}
-					}
+					members.Add(fi.Name, fastField);
+                    membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), fastField);
 				}
 			}
 		}

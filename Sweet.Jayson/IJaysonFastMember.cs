@@ -30,9 +30,6 @@ namespace Sweet.Jayson
 
 	internal interface IJaysonFastMember
 	{
-		string Name { get; }
-		string Alias { get; }
-
 		JaysonFastMemberType Type { get; }
 		Type MemberType { get; }
 
