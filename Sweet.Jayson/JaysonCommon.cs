@@ -1337,6 +1337,30 @@ namespace Sweet.Jayson
 					}
 					return Convert.ToByte (value);
 				}
+			case JaysonTypeCode.Guid:
+				{
+					converted = true;
+					if (value is Guid) {
+						return value;
+					}
+					if (value == null) {
+						return default(Guid);
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return default(Guid);
+						}
+						if (s [0] == '!') {
+							return new Guid(Convert.FromBase64String (s.Substring (1)));
+						}
+						return Guid.Parse(s);
+					}
+					if (value is byte[]) {
+						return new Guid ((byte[])value);
+					}
+					return Guid.Parse(value.ToString ());
+				}
 			case JaysonTypeCode.Char:
 				{
 					converted = true;
@@ -1425,6 +1449,30 @@ namespace Sweet.Jayson
 						return (byte?)byte.Parse (s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
 					}
 					return (byte?)Convert.ToByte (value);
+				}
+			case JaysonTypeCode.GuidNullable:
+				{
+					converted = true;
+					if (value is Guid) {
+						return (Guid?)((Guid)value);
+					}
+					if (value == null) {
+						return (Guid?)value;
+					}
+					if (value is string) {
+						string s = (string)value;
+						if (s.Length == 0) {
+							return default(Guid?);
+						}
+						if (s [0] == '!') {
+							return (Guid?)(new Guid(Convert.FromBase64String (s.Substring (1))));
+						}
+						return (Guid?)Guid.Parse(s);
+					}
+					if (value is byte[]) {
+						return (Guid?)(new Guid ((byte[])value));
+					}
+					return (Guid?)Guid.Parse(value.ToString ());
 				}
 			case JaysonTypeCode.CharNullable:
 				{

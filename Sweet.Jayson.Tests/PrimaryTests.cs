@@ -44,7 +44,60 @@ namespace Sweet.Jayson.Tests
     [TestFixture]
     public class PrimaryTests
     {
-        [Test]
+		[Test]
+		public static void TestGuid1()
+		{
+			var guid1 = new Guid ("199B7309-8E94-4DB0-BDD9-DA311E8C47AC");
+			string json = JaysonConverter.ToJsonString(guid1);
+			var guid2 = JaysonConverter.ToObject<Guid>(json);
+			Assert.True(guid1 == guid2);
+		}
+
+		[Test]
+		public static void TestGuid2()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = new Guid ("199B7309-8E94-4DB0-BDD9-DA311E8C47AC")
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.True((Guid)simpleObj1.Value == (Guid)simpleObj2.Value);
+		}
+
+		[Test]
+		public static void TestGuid3()
+		{
+			var guid1 = new Guid ("199B7309-8E94-4DB0-BDD9-DA311E8C47AC");
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.GuidAsByteArray = true;
+
+			string json = JaysonConverter.ToJsonString(guid1, jaysonSerializationSettings);
+			var guid2 = JaysonConverter.ToObject<Guid>(json);
+			Assert.True(guid1 == guid2);
+		}
+
+		[Test]
+		public static void TestGuid4()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = new Guid ("199B7309-8E94-4DB0-BDD9-DA311E8C47AC")
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.GuidAsByteArray = true;
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.True((Guid)simpleObj1.Value == (Guid)simpleObj2.Value);
+		}
+
+		[Test]
         public static void TestParseIso8601Date1()
         {
             var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
@@ -117,6 +170,346 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
+        public static void TestToJsonObject()
+        {
+            var dto = TestClasses.GetTypedContainerDto();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+
+            object jsonObj = null;
+            Assert.DoesNotThrow(() =>
+            {
+                jsonObj = JaysonConverter.ToJsonObject(dto, jaysonSerializationSettings);
+            });
+            Assert.IsTrue(jsonObj is Dictionary<string, object>);
+        }
+
+		[Test]
+		public static void TestListT1()
+		{
+			List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int> list2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(list, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					list2 = JaysonConverter.ToObject<List<int>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (list2);
+		}
+
+		[Test]
+		public static void TestListT2()
+		{
+			List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int> list2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(list, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					list2 = JaysonConverter.ToObject<List<int>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (list2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalArray1()
+		{
+			int[,] intArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalArray2()
+		{
+			int[,] intArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalArray3()
+		{
+			int[,] intArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalEmptyArray1()
+		{
+			int[,] intArray2D = new int[,] { { }, { }, { }, { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalEmptyArray2()
+		{
+			int[,] intArray2D = new int[,] { { }, { }, { }, { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestMultiDimentionalEmptyArray3()
+		{
+			int[,] intArray2D = new int[,] { { }, { }, { }, { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			int[,] intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestListAndMultiDimentionalArray1()
+		{
+			List<int[,]> intArray2D = new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int[,]> intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestListAndMultiDimentionalArray2()
+		{
+			List<int[,]> intArray2D = new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int[,]> intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestListAndMultiDimentionalArray3()
+		{
+			List<int[,]> intArray2D = new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int[,]> intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestListAndMultiDimentionalArray4()
+		{
+			List<int[,]> intArray2D = new List<int[,]> { new int[,] { { }, { }, { }, { } } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int[,]> intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
+		public static void TestListAndMultiDimentionalArray5()
+		{
+			List<int[,]> intArray2D = new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
+			jaysonSerializationSettings.Formatting = false;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			List<int[,]> intArray2D2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (intArray2D2);
+		}
+
+		[Test]
         public static void TestComplexObject()
         {
             var dto = TestClasses.GetTypedContainerDto();
@@ -133,12 +526,15 @@ namespace Sweet.Jayson.Tests
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = false;
 
+			string json = null;
+			TypedContainerDto dto2 = null;
             Assert.DoesNotThrow(() =>
             {
-                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+                json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
                 JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+				dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
             });
+			Assert.IsNotNull (dto2);
         }
 
         [Test]
@@ -828,185 +1224,6 @@ namespace Sweet.Jayson.Tests
             Assert.True(json.Contains("\"Value1\": \"Hello\"") &&
                 json.Contains("\"Value2\": \"World\""));
         }
-
-        [Test]
-        public static void TestToJsonStringSimpleObjectPerformance()
-        {
-            var dto1 = new SimpleObj
-            {
-                Value1 = "Hello",
-                Value2 = "World"
-            };
-
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeName,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Restart();
-            for (int i = 0; i < 10000; i++)
-            {
-                JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            }
-            sw.Stop();
-#if (DEBUG)
-            Debug.WriteLine(String.Format("TestPerformanceSimpleObject: {0} msec", sw.ElapsedMilliseconds));
-#else
-			Console.WriteLine(String.Format ("TestPerformanceSimpleObject: {0} msec", sw.ElapsedMilliseconds));
-#endif
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 200);
-        }
-
-        [Test]
-        public static void TestToJsonStringComplexObjectPerformance()
-        {
-            var dto1 = TestClasses.GetTypedContainerDto();
-
-            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.CaseSensitive = false;
-            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
-            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
-
-            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.CaseSensitive = false;
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Restart();
-            for (int i = 0; i < 10000; i++)
-            {
-                JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            }
-            sw.Stop();
-#if (DEBUG)
-            Debug.WriteLine(String.Format("TestPerformanceComplexObject ToJsonString: {0} msec", sw.ElapsedMilliseconds));
-#else
-			Console.WriteLine(String.Format ("TestPerformanceComplexObject ToJsonString: {0} msec", sw.ElapsedMilliseconds));
-#endif
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 2000);
-        }
-
-        [Test]
-        public static void TestParseComplexObjectPerformance()
-        {
-            var dto1 = TestClasses.GetTypedContainerDto();
-
-            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.CaseSensitive = false;
-            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
-            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
-
-            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.CaseSensitive = false;
-
-            string json1 = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Restart();
-            for (int i = 0; i < 10000; i++)
-            {
-                JaysonConverter.Parse(json1, jaysonDeserializationSettings);
-            }
-            sw.Stop();
-#if (DEBUG)
-            Debug.WriteLine(String.Format("TestPerformanceComplexObject Parse: {0} msec", sw.ElapsedMilliseconds));
-#else
-			Console.WriteLine(String.Format ("TestPerformanceComplexObject Parse: {0} msec", sw.ElapsedMilliseconds));
-#endif
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 2000);
-        }
-
-        [Test]
-        public static void TestToObjectComplexObjectPerformance()
-        {
-            var dto1 = TestClasses.GetTypedContainerDto();
-
-            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.CaseSensitive = false;
-            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
-            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
-
-            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.CaseSensitive = false;
-
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
-            });
-
-            string json1 = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Restart();
-            for (int i = 0; i < 10000; i++)
-            {
-                JaysonConverter.ToObject<TypedContainerDto>(json1, jaysonDeserializationSettings);
-            }
-            sw.Stop();
-#if (DEBUG)
-            Debug.WriteLine(String.Format("TestPerformanceComplexObject ToObject: {0} msec", sw.ElapsedMilliseconds));
-#else
-			Console.WriteLine(String.Format ("TestPerformanceComplexObject ToObject: {0} msec", sw.ElapsedMilliseconds));
-#endif
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 2000);
-        }
-
-#if !(NET3500 || NET3000 || NET2000)
-        [Test]
-        public static void TestMultiThreaded()
-        {
-            var dto1 = TestClasses.GetTypedContainerDto();
-
-			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.CaseSensitive = false;
-            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
-            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
-
-            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.CaseSensitive = false;
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Restart();
-            var pResult = Parallel.For(0, 10000, i =>
-            {
-                JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            });
-            while (!pResult.IsCompleted)
-                Thread.Yield();
-            sw.Stop();
-#if (DEBUG)
-            Debug.WriteLine(String.Format("TestPerformanceComplexObject ToJsonString: {0} msec", sw.ElapsedMilliseconds));
-#else
-			Console.WriteLine(String.Format ("TestPerformanceComplexObject ToJsonString: {0} msec", sw.ElapsedMilliseconds));
-#endif
-            Assert.LessOrEqual(sw.ElapsedMilliseconds, 2000);
-        }
-#endif
 
         [Test]
         public static void TestIncludeTypeInfoAuto()

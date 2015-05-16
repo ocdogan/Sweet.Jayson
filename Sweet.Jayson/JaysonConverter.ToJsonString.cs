@@ -1827,32 +1827,145 @@ namespace Sweet.Jayson
 			}
 		}
 
+		private static void WriteMultiDimensionalArray(Array obj, Type objType, bool isEmpty, bool isRoot,
+			int[] rankLengths, int[] rankIndices, int currRank, JaysonSerializationContext context, bool isFirst)
+		{
+			StringBuilder builder = context.Builder;
+
+			int length = rankLengths[currRank];
+			bool formatting = context.Settings.Formatting;
+
+			context.ObjectDepth++;
+			try {
+				if (currRank > 0) {
+					builder.Append ('[');
+				}
+
+				if (!ValidObjectDepth (context)) {
+					return;
+				}
+
+				bool isFirstInner = true;
+				for (int i = 0; i < length; i++) {
+					rankIndices [currRank] = i;
+
+					if (currRank == rankIndices.Length - 1) {
+						isFirstInner = WriteEnumerableValue (obj.GetValue (rankIndices), context, isFirstInner);
+					} else {
+						if (!isFirstInner) {
+							builder.Append (',');
+						} 
+
+						if (formatting) {
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						}
+
+						WriteMultiDimensionalArray (obj, objType, isEmpty, isRoot, rankLengths, rankIndices, 
+							currRank + 1, context, isFirstInner);
+						isFirstInner = false;
+					}
+				}
+			} finally {
+				context.ObjectDepth--;
+				if (currRank > 0) {
+					if (formatting && length > 0) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+					builder.Append (']');
+				}
+			}
+		}
+
+		private static void WriteMultiDimensionalArray(Array obj, Type objType, JaysonSerializationContext context)
+		{
+			bool isRoot = context.ObjectDepth == 0;
+
+			context.ObjectDepth++;
+			bool typeWritten = WriteListType (objType, context);
+
+			bool isEmpty = false;
+			StringBuilder builder = context.Builder;
+			try {
+				if (!typeWritten) {
+					context.ObjectDepth--;
+					builder.Append ('[');
+				}
+
+				if (!ValidObjectDepth (context)) {
+					return;
+				}
+
+				int rank = obj.Rank;
+				int[] rankLengths = new int[rank];
+
+				for (int i = 0; i < rank; i++) {
+					rankLengths[i] = obj.GetLength (i);
+					if (!isEmpty) {
+						isEmpty = rankLengths[i] == 0;
+					}
+				}
+
+				WriteMultiDimensionalArray (obj, objType, isEmpty, isRoot, 
+					rankLengths, new int[rank], 0, context, true);
+			} finally {
+				if (!typeWritten) {
+					if (context.Settings.Formatting) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+					builder.Append (']');
+				} else {
+					if (!context.Settings.Formatting) {
+						builder.Append (']');
+						context.ObjectDepth--;
+					} else {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						builder.Append (']');
+
+						context.ObjectDepth--;
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+					builder.Append ('}');
+				}
+			}
+		}
+
 		private static void WriteArray(Array obj, Type objType, JaysonSerializationContext context)
 		{
+			if (obj.Rank > 1) 
+			{
+				WriteMultiDimensionalArray (obj, objType, context);
+				return;
+			}
+
 			int length = obj.Length;
-			if (length == 0) {
-				if (!WriteListType (obj, context)) {
+			if (length == 0) 
+			{
+				if (!WriteListType (obj, context)) 
+				{
 					context.Builder.Append ('[');
 				}
 				context.Builder.Append (']');
 				return;
 			}
 
-            Type arrayType = JaysonTypeInfo.GetElementType(objType);
+			Type arrayType = JaysonTypeInfo.GetElementType (objType);
 
-			if (arrayType == typeof(byte) && length > 1) {
+			if (arrayType == typeof(byte) && length > 1) 
+			{
 				WriteByteArray ((byte[])obj, context);
 				return;
 			}
 
-			var info = JaysonTypeInfo.GetTypeInfo(arrayType);
+			var info = JaysonTypeInfo.GetTypeInfo (arrayType);
 
-			if (info.JPrimitive || info.Enum) {
+			if (info.JPrimitive || info.Enum) 
+			{
 				WritePrimitiveArray (obj, arrayType, context);
 				return;
 			}
 
-			if (arrayType == typeof(DBNull)) {
+			if (arrayType == typeof(DBNull)) 
+			{
 				WriteDBNullArray (context, length);
 				return;
 			}
@@ -2223,21 +2336,13 @@ namespace Sweet.Jayson
 					return;
 				}
 
-				if (obj is IDictionary)
-				{
-					WriteDictionary((IDictionary)obj, context);
-				}
-				else if (obj is StringDictionary)
-				{
-					WriteStringDictionary((StringDictionary)obj, context);
-				}
-				else if (obj is NameValueCollection)
-				{
-					WriteNameValueCollection((NameValueCollection)obj, context);
-				}
-				else if (obj is IDictionary<string, object>)
+				if (obj is IDictionary<string, object>)
 				{
 					WriteGenericStringDictionary((IDictionary<string, object>)obj, context);
+				}
+				else if (obj is IDictionary)
+				{
+					WriteDictionary((IDictionary)obj, context);
 				}
 				#if !(NET3500 || NET3000 || NET2000)
 				else if (obj is DynamicObject)
@@ -2259,6 +2364,14 @@ namespace Sweet.Jayson
 				else if (obj is DataSet)
 				{
 					WriteDataSet((DataSet)obj, context);
+				}
+				else if (obj is StringDictionary)
+				{
+					WriteStringDictionary((StringDictionary)obj, context);
+				}
+				else if (obj is NameValueCollection)
+				{
+					WriteNameValueCollection((NameValueCollection)obj, context);
 				}
 				else if (obj is IEnumerable)
 				{
@@ -2298,7 +2411,8 @@ namespace Sweet.Jayson
 				useEnumNames: settings.UseEnumNames,
 				escapeChars: settings.EscapeChars,
 				escapeUnicodeChars: settings.EscapeUnicodeChars,
-				convertDecimalToDouble: settings.ConvertDecimalToDouble
+				convertDecimalToDouble: settings.ConvertDecimalToDouble,
+				guidAsByteArray: settings.GuidAsByteArray
 			);
 
 			Type objType = obj.GetType();

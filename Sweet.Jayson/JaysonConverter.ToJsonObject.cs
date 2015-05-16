@@ -1006,20 +1006,10 @@ namespace Sweet.Jayson
 						return AsDictionary((IDictionary)obj, context);
 					}
 
-					if (obj is StringDictionary)
+					if (obj is DataSet)
 					{
-						return AsStringDictionary((StringDictionary)obj, context);
+						return AsDataSet((DataSet)obj, context);
 					}
-
-					if (obj is NameValueCollection)
-					{
-						return AsNameValueCollection((NameValueCollection)obj, context);
-					}
-
-                    if (obj is DataSet)
-                    {
-                        return AsDataSet((DataSet)obj, context);
-                    }
 
 					if (obj is DataTable)
 					{
@@ -1036,6 +1026,16 @@ namespace Sweet.Jayson
 						return null;
 					}
 					#endif
+
+					if (obj is StringDictionary)
+					{
+						return AsStringDictionary((StringDictionary)obj, context);
+					}
+
+					if (obj is NameValueCollection)
+					{
+						return AsNameValueCollection((NameValueCollection)obj, context);
+					}
 
 					if (obj is IEnumerable)
 					{

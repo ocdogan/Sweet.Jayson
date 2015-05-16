@@ -50,6 +50,7 @@ namespace Sweet.Jayson
 		public readonly string DateTimeOffsetFormat;
 		public readonly string TimeSpanFormat;
 		public readonly bool ConvertDecimalToDouble;
+		public readonly bool GuidAsByteArray;
 		public readonly bool UseEnumNames;
 		public readonly bool EscapeChars;
 		public readonly bool EscapeUnicodeChars;
@@ -61,12 +62,13 @@ namespace Sweet.Jayson
 
 		public JaysonFormatter()
 			: this(null, null, JaysonDateFormatType.Iso8601, null, JaysonDateTimeZoneType.KeepAsIs,
-				null, false, true, false, false)
+				null, false, true, false, false, false)
 		{ }
 
 		public JaysonFormatter(string numberFormat, string timeSpanFormat, JaysonDateFormatType dateFormatType, 
 			string dateTimeFormat, JaysonDateTimeZoneType dateTimeZoneType, string dateTimeOffsetFormat,
-			bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, bool convertDecimalToDouble)
+			bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, bool convertDecimalToDouble,
+			bool guidAsByteArray)
 		{
 			UseEnumNames = useEnumNames;
 			EscapeChars = escapeChars;
@@ -75,6 +77,7 @@ namespace Sweet.Jayson
 			DateFormatType = dateFormatType;
 			DateTimeZoneType = dateTimeZoneType;
 			DateTimeOffsetFormat = dateTimeOffsetFormat;
+			GuidAsByteArray = guidAsByteArray;
 
 			NumberFormat = ((numberFormat != null && numberFormat.Length > 0) ? numberFormat : "G");
 			TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat : 
@@ -556,6 +559,18 @@ namespace Sweet.Jayson
 					}
 					break;
 				}
+			case JaysonTypeCode.Guid:
+				{
+					builder.Append ('"');
+					if (GuidAsByteArray) {
+						builder.Append ('!');
+						builder.Append (Convert.ToBase64String (((Guid)obj).ToByteArray()));
+					} else {
+						builder.Append (((Guid)obj).ToString ("D").ToUpper ());
+					}
+					builder.Append ('"');
+					break;
+				}
 			case JaysonTypeCode.Char:
 			case JaysonTypeCode.CharNullable:
 				{
@@ -613,20 +628,24 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.TimeSpan:
 				{
+					builder.Append ('"');
 					#if !(NET3500 || NET3000 || NET2000)
 					builder.Append(((TimeSpan)obj).ToString(TimeSpanFormat, FormatingCulture));
 					#else
 					builder.Append(((TimeSpan)obj).ToString());
 					#endif
+					builder.Append ('"');
 					break;
 				}
 			case JaysonTypeCode.TimeSpanNullable:
 				{
+					builder.Append ('"');
 					#if !(NET3500 || NET3000 || NET2000)
 					builder.Append(((TimeSpan?)obj).Value.ToString(TimeSpanFormat, FormatingCulture));
 					#else
 					builder.Append(((TimeSpan?)obj).Value.ToString());
 					#endif
+					builder.Append ('"');
 					break;
 				}
 			case JaysonTypeCode.UIntNullable:
@@ -649,14 +668,16 @@ namespace Sweet.Jayson
 					builder.Append(((sbyte?)obj).Value.ToString(FormatingCulture));
 					break;
 				}
-			case JaysonTypeCode.Guid:
-				{
-					builder.Append(((Guid)obj).ToString("D").ToUpper());
-					break;
-				}
 			case JaysonTypeCode.GuidNullable:
 				{
-					builder.Append(((Guid?)obj).Value.ToString("D").ToUpper());
+					builder.Append ('"');
+					if (GuidAsByteArray) {
+						builder.Append ('!');
+						builder.Append (Convert.ToBase64String (((Guid?)obj).Value.ToByteArray()));
+					} else {
+						builder.Append(((Guid?)obj).Value.ToString("D").ToUpper());
+					}
+					builder.Append ('"');
 					break;
 				}
 			case JaysonTypeCode.DateTimeOffset:
@@ -717,6 +738,11 @@ namespace Sweet.Jayson
 				return ((double)obj).ToString (NumberFormat, FormatingCulture);
 			case JaysonTypeCode.Short:
 				return ((short)obj).ToString (FormatingCulture);
+			case JaysonTypeCode.Guid:
+				if (GuidAsByteArray) {
+					return "\"!" + Convert.ToBase64String (((Guid)obj).ToByteArray()) + "\"";
+				} 
+				return "\"" + ((Guid)obj).ToString ("D").ToUpper () + "\"";
 			case JaysonTypeCode.IntNullable:
 				return Format (((int?)obj).Value);
 			case JaysonTypeCode.BoolNullable:
@@ -790,15 +816,15 @@ namespace Sweet.Jayson
 				return ((sbyte)obj).ToString (FormatingCulture);
 			case JaysonTypeCode.TimeSpan:
 				#if !(NET3500 || NET3000 || NET2000)
-				return ((TimeSpan)obj).ToString (TimeSpanFormat, FormatingCulture);
+				return "\"" + ((TimeSpan)obj).ToString (TimeSpanFormat, FormatingCulture) + "\"";
 				#else
-				return ((TimeSpan)obj).ToString ();
+				return "\"" + ((TimeSpan)obj).ToString () + "\"";
 				#endif
 			case JaysonTypeCode.TimeSpanNullable:
 				#if !(NET3500 || NET3000 || NET2000)
-				return ((TimeSpan?)obj).Value.ToString (TimeSpanFormat, FormatingCulture);
+				return "\"" + ((TimeSpan?)obj).Value.ToString (TimeSpanFormat, FormatingCulture) + "\"";
 				#else
-				return ((TimeSpan?)obj).Value.ToString ();
+				return "\"" + ((TimeSpan?)obj).Value.ToString () + "\"";
 				#endif
 			case JaysonTypeCode.UIntNullable:
 				return ((uint?)obj).Value.ToString (FormatingCulture);
@@ -808,14 +834,15 @@ namespace Sweet.Jayson
 				return ((ushort?)obj).Value.ToString (FormatingCulture);
 			case JaysonTypeCode.SByteNullable:
 				return ((sbyte?)obj).Value.ToString (FormatingCulture);
-			case JaysonTypeCode.Guid:
-				return ((Guid)obj).ToString ("D").ToUpper ();
 			case JaysonTypeCode.GuidNullable:
-				return ((Guid?)obj).Value.ToString ("D").ToUpper ();
+				if (GuidAsByteArray) {
+					return "\"!" + Convert.ToBase64String (((Guid?)obj).Value.ToByteArray()) + "\"";
+				} 
+				return "\"" + ((Guid?)obj).Value.ToString ("D").ToUpper () + "\"";
 			case JaysonTypeCode.DateTimeOffset:
-				return ((DateTimeOffset)obj).ToString (FormatingCulture);
+				return "\"" + ((DateTimeOffset)obj).ToString (FormatingCulture) + "\"";
 			case JaysonTypeCode.DateTimeOffsetNullable:
-				return ((DateTimeOffset?)obj).Value.ToString (FormatingCulture);
+				return "\"" + ((DateTimeOffset?)obj).Value.ToString (FormatingCulture) + "\"";
 			default:
 				{
 					// format everything else normally
@@ -826,560 +853,6 @@ namespace Sweet.Jayson
 				}
 			}
 		}
-
-		/*
-		public string Format(object obj, Type objType)
-		{
-			if (obj == null)
-			{
-				return "null";
-			}
-
-			// Do not change the check order
-			if (objType == typeof(string))
-			{
-				string str = (string)obj;
-				if (str.Length == 0)
-				{
-					return "\"\"";
-				}
-
-				if (!(EscapeChars || EscapeUnicodeChars))
-				{
-					return "\"" + str + "\"";
-				}
-
-				return "\"" + EncodeUnicodeString(str, EscapeUnicodeChars) + "\"";
-			}
-
-			// Do not change the check order
-			if (objType == typeof(int))
-			{
-				return Format((int)obj);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(bool))
-			{
-				return (bool)obj ? "true" : "false";
-			}
-
-			// Do not change the check order
-			if (objType == typeof(long))
-			{
-				return ((long)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTime))
-			{
-				StringBuilder builder = new StringBuilder(32, int.MaxValue);
-				Format((DateTime)obj, builder);
-				return builder.ToString();
-			}
-
-			// Do not change the check order
-			if (objType == typeof(double))
-			{
-				// if user supplied own format use it
-				return ((double)obj).ToString(NumberFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(short))
-			{
-				return ((short)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(int?))
-			{
-				return Format(((int?)obj).Value);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(bool?))
-			{
-				return ((bool?)obj).Value ? "true" : "false";
-			}
-
-			// Do not change the check order
-			if (objType == typeof(long?))
-			{
-				return ((long?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(byte))
-			{
-				return ((byte)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(float))
-			{
-				// if user supplied own format use it
-				return ((float)obj).ToString(NumberFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(decimal))
-			{
-				// if user supplied own format use it
-				return ((decimal)obj).ToString(NumberFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTime?))
-			{
-				StringBuilder builder = new StringBuilder(32, int.MaxValue);
-				Format(((DateTime?)obj).Value, builder);
-				return builder.ToString();
-			}
-
-			// Do not change the check order
-			if (objType == typeof(double?))
-			{
-				// if user supplied own format use it
-				return ((double?)obj).Value.ToString(NumberFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(short?))
-			{
-				return ((short?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(byte?))
-			{
-				return ((byte?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(float?))
-			{
-				// if user supplied own format use it
-				return ((float?)obj).Value.ToString(NumberFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(decimal?))
-			{
-				// if user supplied own format use it
-				return ((decimal?)obj).Value.ToString(NumberFormat, FormatingCulture);
-			}
-
-			if (objType == typeof(char?))
-			{
-				obj = ((char?)obj).Value;
-				objType = typeof(char);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(char))
-			{
-				char ch = (char)obj;
-
-				if (!(EscapeChars || EscapeUnicodeChars))
-				{
-					return "\"" + ch + "\"";
-				}
-				else
-				{
-					string chStr = ToJsonChar(ch, EscapeUnicodeChars);
-					if (chStr == null)
-					{
-						return "\"" + ch + "\"";
-					}
-
-					if (chStr.Length == 4)
-					{
-						return "\"\\u" + chStr + "\"";
-					}
-
-					return "\"" + chStr + "\"";
-				}
-			}
-
-			// Do not change the check order
-			if (objType == typeof(uint))
-			{
-				return ((uint)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ulong))
-			{
-				return ((ulong)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ushort))
-			{
-				return ((ushort)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(sbyte))
-			{
-				return ((sbyte)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(TimeSpan))
-			{
-				return ((TimeSpan)obj).ToString(TimeSpanFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(TimeSpan?))
-			{
-				return ((TimeSpan?)obj).Value.ToString(TimeSpanFormat, FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(uint?))
-			{
-				return ((uint?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ulong?))
-			{
-				return ((ulong?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ushort?))
-			{
-				return ((ushort?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(sbyte?))
-			{
-				return ((sbyte?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(Guid))
-			{
-				return ((Guid)obj).ToString("D").ToUpper();
-			}
-
-			// Do not change the check order
-			if (objType == typeof(Guid?))
-			{
-				return ((Guid?)obj).Value.ToString("D").ToUpper();
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTimeOffset))
-			{
-				return ((DateTimeOffset)obj).ToString(FormatingCulture);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTimeOffset?))
-			{
-				return ((DateTimeOffset?)obj).Value.ToString(FormatingCulture);
-			}
-
-			// format everything else normally
-			StringBuilder remainingBuilder = new StringBuilder(48, int.MaxValue);
-			FormatString(obj is IFormattable ? ((IFormattable)obj).ToString(null, FormatingCulture) : obj.ToString(),
-				remainingBuilder, EscapeChars, EscapeUnicodeChars);
-			return remainingBuilder.ToString();
-		}
-
-		public void Format(object obj, Type objType, StringBuilder builder)
-		{
-			if (obj == null)
-			{
-				builder.Append("null");
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(string))
-			{
-				FormatString((string)obj, builder, EscapeChars, EscapeUnicodeChars);
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(int))
-			{
-				Format((int)obj, builder);
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(bool))
-			{
-				builder.Append((bool)obj ? "true" : "false");
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(long))
-			{
-				builder.Append(((long)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTime))
-			{
-				Format((DateTime)obj, builder);
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(double))
-			{
-				// if user supplied own format use it
-				builder.Append(((double)obj).ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(short))
-			{
-				builder.Append(((short)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(int?))
-			{
-				Format(((int?)obj).Value, builder);
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(bool?))
-			{
-				builder.Append(((bool?)obj).Value ? "true" : "false");
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(long?))
-			{
-				builder.Append(((long?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(byte))
-			{
-				builder.Append(((byte)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(float))
-			{
-				// if user supplied own format use it
-				builder.Append(((float)obj).ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(decimal))
-			{
-				// if user supplied own format use it
-				builder.Append(((decimal)obj).ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTime?))
-			{
-				Format(((DateTime?)obj).Value, builder);
-				return;
-			}
-				
-			// Do not change the check order
-			if (objType == typeof(double?))
-			{
-				// if user supplied own format use it
-				builder.Append(((double?)obj).Value.ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(short?))
-			{
-				builder.Append(((short?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(byte?))
-			{
-				builder.Append(((byte?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(float?))
-			{
-				// if user supplied own format use it
-				builder.Append(((float?)obj).Value.ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(decimal?))
-			{
-				// if user supplied own format use it
-				builder.Append(((decimal?)obj).Value.ToString(NumberFormat, FormatingCulture));
-				return;
-			}
-
-			if (objType == typeof(char?))
-			{
-				obj = ((char?)obj).Value;
-				objType = typeof(char);
-			}
-
-			// Do not change the check order
-			if (objType == typeof(char))
-			{
-				char ch = (char)obj;
-				builder.Append('"');
-
-				if (!(EscapeChars || EscapeUnicodeChars))
-				{
-					builder.Append(ch);
-				}
-				else
-				{
-					string chStr = ToJsonChar(ch, EscapeUnicodeChars);
-					if (chStr == null)
-					{
-						builder.Append(ch);
-					}
-					else
-					{
-						if (chStr.Length == 4)
-						{
-							builder.Append('\\');
-							builder.Append('u');
-						}
-						builder.Append(chStr);
-					}
-				}
-				builder.Append('"');
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(uint))
-			{
-				builder.Append(((uint)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ulong))
-			{
-				builder.Append(((ulong)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ushort))
-			{
-				builder.Append(((ushort)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(sbyte))
-			{
-				builder.Append(((sbyte)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(TimeSpan))
-			{
-				builder.Append(((TimeSpan)obj).ToString(TimeSpanFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(TimeSpan?))
-			{
-				builder.Append(((TimeSpan?)obj).Value.ToString(TimeSpanFormat, FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(uint?))
-			{
-				builder.Append(((uint?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ulong?))
-			{
-				builder.Append(((ulong?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(ushort?))
-			{
-				builder.Append(((ushort?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(sbyte?))
-			{
-				builder.Append(((sbyte?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(Guid))
-			{
-				builder.Append(((Guid)obj).ToString("D").ToUpper());
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(Guid?))
-			{
-				builder.Append(((Guid?)obj).Value.ToString("D").ToUpper());
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTimeOffset))
-			{
-				builder.Append(((DateTimeOffset)obj).ToString(FormatingCulture));
-				return;
-			}
-
-			// Do not change the check order
-			if (objType == typeof(DateTimeOffset?))
-			{
-				builder.Append(((DateTimeOffset?)obj).Value.ToString(FormatingCulture));
-				return;
-			}
-
-			// format everything else normally
-			FormatString(obj is IFormattable ? ((IFormattable)obj).ToString(null, FormatingCulture) : obj.ToString(),
-				builder, EscapeChars, EscapeUnicodeChars);
-		}
-		*/
 
 		public void Format(object obj, StringBuilder builder)
 		{

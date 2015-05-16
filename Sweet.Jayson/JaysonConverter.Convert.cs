@@ -542,44 +542,49 @@ namespace Sweet.Jayson
 				var rowsList = (IList)rowsObj;
                 if (rowsList.Count > 0)
                 {
-                    int columnCount = dataTable.Columns.Count;
-                    Type[] columnTypes = new Type[columnCount];
+					dataTable.BeginLoadData ();
+					try {
+	                    int columnCount = dataTable.Columns.Count;
+	                    Type[] columnTypes = new Type[columnCount];
 
-                    for (int i = 0; i < columnCount; i++)
-                    {
-                        columnTypes[i] = dataTable.Columns[i].DataType;
-                    }
+	                    for (int i = 0; i < columnCount; i++)
+	                    {
+	                        columnTypes[i] = dataTable.Columns[i].DataType;
+	                    }
 
-					IList rowList;
-                    int itemCount;
-                    object[] items;
-                    Type columnType;
-                    object rowValue;
+						IList rowList;
+	                    int itemCount;
+	                    object[] items;
+	                    Type columnType;
+	                    object rowValue;
 
-                    foreach (var row in rowsList)
-                    {
-						rowList = (IList)row;
+	                    foreach (var row in rowsList)
+	                    {
+							rowList = (IList)row;
 
-                        itemCount = rowList.Count;
-                        items = new object[itemCount];
+	                        itemCount = rowList.Count;
+	                        items = new object[itemCount];
 
-                        for (int i = 0; i < itemCount; i++)
-                        {
-                            rowValue = rowList[i];
-                            columnType = columnTypes[i];
+	                        for (int i = 0; i < itemCount; i++)
+	                        {
+	                            rowValue = rowList[i];
+	                            columnType = columnTypes[i];
 
-                            if (rowValue == null || rowValue.GetType() != columnType)
-                            {
-                                items[i] = ConvertObject(rowValue, columnType, settings);
-                            }
-                            else
-                            {
-                                items[i] = rowValue;
-                            }
-                        }
+	                            if (rowValue == null || rowValue.GetType() != columnType)
+	                            {
+	                                items[i] = ConvertObject(rowValue, columnType, settings);
+	                            }
+	                            else
+	                            {
+	                                items[i] = rowValue;
+	                            }
+	                        }
 
-                        dataTable.Rows.Add(items);
-                    }
+	                        dataTable.Rows.Add(items);
+	                    }
+					} finally {
+						dataTable.EndLoadData ();
+					}
                 }
             }
         }
@@ -587,10 +592,15 @@ namespace Sweet.Jayson
 		private static void SetDataTable (IDictionary<string, object> obj, DataTable dataTable, 
 			JaysonDeserializationSettings settings)
 		{
-			SetDataTableProperties (obj, dataTable, settings);
-            SetDataTableColumns(obj, dataTable, settings);
-            SetDataTablePrimaryKey(obj, dataTable, settings);
-			SetDataTableRows (obj, dataTable, settings);
+			dataTable.BeginInit ();
+			try {
+				SetDataTableProperties (obj, dataTable, settings);
+	            SetDataTableColumns(obj, dataTable, settings);
+	            SetDataTablePrimaryKey(obj, dataTable, settings);
+				SetDataTableRows (obj, dataTable, settings);
+			} finally {
+				dataTable.EndInit ();
+			}
 		}
 
         private static void SetDataRelations(IDictionary<string, object> obj, DataSet dataSet,
@@ -793,65 +803,70 @@ namespace Sweet.Jayson
         private static void SetDataSet(IDictionary<string, object> obj, DataSet dataSet,
             JaysonDeserializationSettings settings)
         {
-            SetDataSetProperties(obj, dataSet, settings);
+			dataSet.BeginInit ();
+			try {
+	            SetDataSetProperties(obj, dataSet, settings);
 
-            object tablesObj;
-            if (obj.TryGetValue("Tables", out tablesObj))
-            {
-                var tableList = (IList)tablesObj;
-                if (tableList.Count > 0)
-                {
-                    DataTable dataTable;
-                    string tableName;
-                    string tableNamespace;
-                    IDictionary<string, object> table;
+	            object tablesObj;
+	            if (obj.TryGetValue("Tables", out tablesObj))
+	            {
+	                var tableList = (IList)tablesObj;
+	                if (tableList.Count > 0)
+	                {
+	                    DataTable dataTable;
+	                    string tableName;
+	                    string tableNamespace;
+	                    IDictionary<string, object> table;
 
-                    foreach (var tableObj in tableList)
-                    {
-                        dataTable = null;
-                        table = tableObj as IDictionary<string, object>;
+	                    foreach (var tableObj in tableList)
+	                    {
+	                        dataTable = null;
+	                        table = tableObj as IDictionary<string, object>;
 
-                        if (GetTableName(table, out tableName, out tableNamespace))
-                        {
-                            if (String.IsNullOrEmpty(tableNamespace))
-                            {
-                                if (dataSet.Tables.Contains(tableName))
-                                {
-                                    dataTable = dataSet.Tables[tableName];
-                                }
-                            }
-                            else if (dataSet.Tables.Contains(tableName, tableNamespace))
-                            {
-                                dataTable = dataSet.Tables[tableName, tableNamespace];
-                            }
-                        }
+	                        if (GetTableName(table, out tableName, out tableNamespace))
+	                        {
+	                            if (String.IsNullOrEmpty(tableNamespace))
+	                            {
+	                                if (dataSet.Tables.Contains(tableName))
+	                                {
+	                                    dataTable = dataSet.Tables[tableName];
+	                                }
+	                            }
+	                            else if (dataSet.Tables.Contains(tableName, tableNamespace))
+	                            {
+	                                dataTable = dataSet.Tables[tableName, tableNamespace];
+	                            }
+	                        }
 
-                        if (dataTable != null)
-                        {
-                            SetDataTable(table, dataTable, settings);
-                        }
-                        else
-                        {
-                            dataTable = ConvertObject(tableObj, typeof(DataTable), settings) as DataTable;
-                            if (dataTable != null)
-                            {
-                                if (String.IsNullOrEmpty(dataTable.Namespace))
-                                {
-                                    if (!dataSet.Tables.Contains(dataTable.TableName))
-                                    {
-                                        dataSet.Tables.Add(dataTable);
-                                    }
-                                }
-                                else if (!dataSet.Tables.Contains(dataTable.TableName, dataTable.Namespace))
-                                {
-                                    dataSet.Tables.Add(dataTable);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            SetDataRelations(obj, dataSet, settings);
+	                        if (dataTable != null)
+	                        {
+	                            SetDataTable(table, dataTable, settings);
+	                        }
+	                        else
+	                        {
+	                            dataTable = ConvertObject(tableObj, typeof(DataTable), settings) as DataTable;
+	                            if (dataTable != null)
+	                            {
+	                                if (String.IsNullOrEmpty(dataTable.Namespace))
+	                                {
+	                                    if (!dataSet.Tables.Contains(dataTable.TableName))
+	                                    {
+	                                        dataSet.Tables.Add(dataTable);
+	                                    }
+	                                }
+	                                else if (!dataSet.Tables.Contains(dataTable.TableName, dataTable.Namespace))
+	                                {
+	                                    dataSet.Tables.Add(dataTable);
+	                                }
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	            SetDataRelations(obj, dataSet, settings);
+			} finally {
+				dataSet.EndInit ();
+			}
         }
 
         # endregion Convert DataTable & DataSet
@@ -914,6 +929,14 @@ namespace Sweet.Jayson
                     }
                 }
             }
+			else if (instance is DataTable)
+			{
+				SetDataTable(obj, (DataTable)instance, settings);
+			}
+			else if (instance is DataSet)
+			{
+				SetDataSet(obj, (DataSet)instance, settings);
+			}
             else if (instance is NameValueCollection)
             {
                 NameValueCollection nvcollection = (NameValueCollection)instance;
@@ -985,14 +1008,6 @@ namespace Sweet.Jayson
                         }
                     }
                 }
-            }
-            else if (instance is DataTable)
-            {
-                SetDataTable(obj, (DataTable)instance, settings);
-            }
-            else if (instance is DataSet)
-            {
-                SetDataSet(obj, (DataSet)instance, settings);
             }
             else
             {
@@ -1150,25 +1165,55 @@ namespace Sweet.Jayson
             }
         }
 
+		private static void SetMultiDimensionalArray(IList<object> obj, Array instance, Type arrayType,
+			int rank, int currRank, int[] rankIndices, JaysonDeserializationSettings settings)
+		{
+			int length = Math.Min(obj.Count, instance.GetLength (currRank));
+			if (length > 0) {
+				if (currRank == rank - 1) {
+					for (int i = 0; i < length; i++) {
+						rankIndices [currRank] = i;
+						instance.SetValue (ConvertObject(obj[i], arrayType, settings), rankIndices);
+					}
+				} else {
+					IList<object> child;
+					for (int i = 0; i < length; i++) {
+						rankIndices [currRank] = i;
+						child = obj [i] as IList<object>;
+
+						if (child != null) {
+							SetMultiDimensionalArray (child, instance, arrayType, rank, currRank + 1, 
+								rankIndices, settings);
+						}
+					}
+				}
+			}
+		}
+
 		private static void SetList(IList<object> obj, object instance, JaysonDeserializationSettings settings)
 		{
-            if (instance == null || obj == null || obj.Count == 0 || instance is DataTable || 
-                instance is DataSet || instance is DBNull)
+            if (instance == null || obj == null || obj.Count == 0 || instance is DBNull)
 			{
 				return;
 			}
 
-            Type instanceType = instance.GetType();
-            if (instanceType.IsArray)
+			var info = JaysonTypeInfo.GetTypeInfo (instance.GetType ());
+            if (info.Array)
             {
                 Array aResult = (Array)instance;
-                Type arrayType = JaysonTypeInfo.GetElementType(instanceType);
+				Type arrayType = info.ElementType;
 
-                int count = obj.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    aResult.SetValue(ConvertObject(obj[i], arrayType, settings), i);
-                }
+				int rank = info.ArrayRank;
+				if (rank == 1) {
+					int count = obj.Count;
+					for (int i = 0; i < count; i++) 
+					{
+						aResult.SetValue (ConvertObject (obj [i], arrayType, settings), i);
+					}
+				} else 
+					if (aResult.GetLength (rank-1) > 0) {
+						SetMultiDimensionalArray (obj, aResult, arrayType, rank, 0, new int[rank], settings);
+					}
 
                 return;
             }
@@ -1178,7 +1223,7 @@ namespace Sweet.Jayson
 				int count = obj.Count;
                 IList lResult = (IList)instance;
 
-                Type argType = JaysonCommon.GetGenericListArgs(instanceType);
+                Type argType = JaysonCommon.GetGenericListArgs(info.Type);
                 if (argType != null)
                 {
                     for (int i = 0; i < count; i++)
@@ -1206,10 +1251,10 @@ namespace Sweet.Jayson
             }
             else
             {
-                Type argType = JaysonCommon.GetGenericCollectionArgs(instanceType);
+                Type argType = JaysonCommon.GetGenericCollectionArgs(info.Type);
                 if (argType != null)
                 {
-                    Action<object, object[]> methodInfo = JaysonCommon.GetICollectionAddMethod(instanceType);
+                    Action<object, object[]> methodInfo = JaysonCommon.GetICollectionAddMethod(info.Type);
                     if (methodInfo != null)
                     {
                         int count = obj.Count;
@@ -1558,6 +1603,25 @@ namespace Sweet.Jayson
 			return type;
 		}
 
+		private static int[] GetArrayRankIndices(IList<object> obj, int rank)
+		{
+			int[] result = new int[rank];
+			if (obj != null) {
+				int count;
+				int index = 0;
+				do {
+					count = obj.Count;
+					result [index++] = count;
+
+					if (count == 0) {
+						break;
+					}
+					obj = obj [0] as IList<object>;
+				} while (obj != null);
+			}
+			return result;
+		}
+
 		private static object ConvertList(IList<object> obj, Type toType, JaysonDeserializationSettings settings)
 		{
 			if (toType == typeof(byte[]) && obj.Count == 1) 
@@ -1593,9 +1657,15 @@ namespace Sweet.Jayson
             Type listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
 
 			object result;
-			if (JaysonTypeInfo.IsArray(listType)) 
+			var info = JaysonTypeInfo.GetTypeInfo (listType);
+			if (info.Array) 
 			{
-				result = Array.CreateInstance (listType, obj.Count);
+				var rank = info.ArrayRank;
+				if (rank == 1) {
+					result = Array.CreateInstance (info.ElementType, obj.Count);
+				} else {
+					result = Array.CreateInstance (info.ElementType, GetArrayRankIndices (obj, rank));
+				}
 			} 
 			else if (settings.ObjectActivator == null) {
 				result = JaysonObjectConstructor.New(listType);

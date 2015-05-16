@@ -52,6 +52,7 @@ namespace Sweet.Jayson
 		public bool EscapeChars = true;
 		public bool EscapeUnicodeChars = false;
 		public bool Formatting = false;
+		public bool GuidAsByteArray = false;
 		public bool IgnorePrimitiveTypeNames = true;
         public bool IgnoreReadOnlyMembers = false;
 		public bool IgnoreNullValues = true;
@@ -104,6 +105,7 @@ namespace Sweet.Jayson
 			destination.EscapeChars = EscapeChars;
 			destination.EscapeUnicodeChars = EscapeUnicodeChars;
 			destination.Formatting = Formatting;
+			destination.GuidAsByteArray = GuidAsByteArray;
 			destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
             destination.IgnoreNullListItems = IgnoreNullListItems;
 			destination.IgnoreNullValues = IgnoreNullValues;
