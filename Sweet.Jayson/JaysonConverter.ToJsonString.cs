@@ -53,7 +53,7 @@ namespace Sweet.Jayson
 
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("\"$type\": ");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 				} else {
 					builder.Append ("\"$type\": \"");
 					builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
@@ -63,7 +63,7 @@ namespace Sweet.Jayson
 			else {
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("{\"$type\":");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 				} else {
 					builder.Append ("{\"$type\":\"");
 					builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
@@ -81,7 +81,7 @@ namespace Sweet.Jayson
 
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("\"$type\": ");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 				} else {
 					builder.Append ("\"$type\": \"");
 					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
@@ -95,7 +95,7 @@ namespace Sweet.Jayson
 			else {
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("{\"$type\":");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 					builder.Append (",\"$values\":[");
 				} else {
 					builder.Append ("{\"$type\": \"");
@@ -114,7 +114,7 @@ namespace Sweet.Jayson
 
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("\"$type\": ");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 				} else {
 					builder.Append ("\"$type\": \"");
 					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
@@ -128,7 +128,7 @@ namespace Sweet.Jayson
 			else {
 				if (context.Settings.UseGlobalTypeNames) {
 					builder.Append ("{\"$type\":");
-					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (context.GlobalTypes.Register (objType));
 					builder.Append (",\"$value\":");
 				} else {
 					builder.Append ("{\"$type\": \"");
@@ -2490,16 +2490,20 @@ namespace Sweet.Jayson
 						}
 					}
 
-					Dictionary<int, Type> obj = context.GlobalTypes.GetIdList ();
-					if (obj.Count > 0) {
+					var globalTypes = context.GlobalTypes.GetList();
+					if (globalTypes.Count > 0)
+					{
 						context.ObjectDepth++;
 						try {
-							bool isFirstType = true;
+							JaysonKeyValue<string, Type> kvp;
 							JaysonTypeNameInfo typeNameInfo = context.Settings.TypeNameInfo;
 
-							foreach (var kvp in obj.OrderBy(kv => kv.Key)) {
+							int count = globalTypes.Count;
+							for (int i = 0; i < count; i++) {
+								kvp = globalTypes[i];
+
 								if (formatting) {
-									if (!isFirstType) {
+									if (i > 0) {
 										builder.Append (',');
 									}
 									builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
@@ -2507,7 +2511,7 @@ namespace Sweet.Jayson
 									builder.Append (kvp.Key.ToString (JaysonConstants.InvariantCulture));
 									builder.Append ("\": ");
 								} else {
-									if (isFirstType) {
+									if (i == 0) {
 										builder.Append ('"');
 									} else {
 										builder.Append (",\"");
@@ -2519,8 +2523,6 @@ namespace Sweet.Jayson
 								builder.Append ('"');
 								builder.Append (JaysonTypeInfo.GetTypeName (kvp.Value, typeNameInfo));
 								builder.Append ('"');
-
-								isFirstType = false;
 							}
 						} finally {
 							context.ObjectDepth--;
@@ -2576,7 +2578,7 @@ namespace Sweet.Jayson
 						filter: filter,
 						builder: builder,
 						formatter: formatter,
-						globalTypes: settings.UseGlobalTypeNames ? new JaysonGlobalTypeList () : null,
+						globalTypes: settings.UseGlobalTypeNames ? new JaysonSerializationTypeList () : null,
 						settings: settings,
 						stack: primeStack
 					);
@@ -2631,7 +2633,7 @@ namespace Sweet.Jayson
 					filter: filter,
 					builder: builder,
 					formatter: formatter,
-					globalTypes: settings.UseGlobalTypeNames ? new JaysonGlobalTypeList () : null,
+					globalTypes: settings.UseGlobalTypeNames ? new JaysonSerializationTypeList () : null,
 					settings: settings,
 					stack: stack
 				);

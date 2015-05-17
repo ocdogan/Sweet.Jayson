@@ -27,46 +27,26 @@ using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
-	public class JaysonGlobalTypeList
+	public class JaysonDeserializationTypeList
 	{
 		# region Field Members
 
-		private int m_IdRef = 1;
-		private Dictionary<int, Type> m_IdAndTypes = new Dictionary<int, Type>();
-		private Dictionary<Type, int> m_TypeAndIds = new Dictionary<Type, int>();
+		private Dictionary<int, Type> m_Ids = new Dictionary<int, Type>();
 
 		# endregion Field Members
 
-		public JaysonGlobalTypeList(IDictionary<string, object> types = null)
+		public JaysonDeserializationTypeList(IDictionary<string, object> types = null)
 		{
 			if (types != null) {
 				Initialize (types);
 			}
 		}
 
-		public int Register(Type type)
-		{
-			int id;
-			if (!m_TypeAndIds.TryGetValue (type, out id)) {
-				id = m_IdRef++;
-				m_IdAndTypes.Add (id, type);
-				m_TypeAndIds.Add (type, id);
-			}
-			return id;
-		}
-
 		public Type GetType(int id)
 		{
 			Type type;
-			if (m_IdAndTypes.TryGetValue (id, out type)) {
-				return type;
-			}
-			return null;
-		}
-
-		public Dictionary<int, Type> GetIdList()
-		{
-			return m_IdAndTypes;
+			m_Ids.TryGetValue (id, out type);
+			return type;
 		}
 
 		private static int ParseId(string sid)
@@ -122,17 +102,11 @@ namespace Sweet.Jayson
 					}
 
 					id = ParseId(tKvp.Key);
-					type = Type.GetType (typeName);
+					type = JaysonCommon.GetType (typeName);
 
-					m_IdAndTypes.Add (id, type);
-					m_TypeAndIds.Add (type, id);
-
-					if (id > m_IdRef) {
-						m_IdRef = id + 1;
-					}
+					m_Ids.Add (id, type);
 				}
 			}
 		}
 	}
 }
-

@@ -1929,7 +1929,7 @@ namespace Sweet.Jayson
 			if (dResult != null) {
 				object typesObj;
 				if (dResult.TryGetValue ("$types", out typesObj)) {
-					context.GlobalTypes = new JaysonGlobalTypeList (typesObj as IDictionary<string, object>);
+					context.GlobalTypes = new JaysonDeserializationTypeList (typesObj as IDictionary<string, object>);
 					dResult.TryGetValue ("$value", out result);
 				}
 			}
