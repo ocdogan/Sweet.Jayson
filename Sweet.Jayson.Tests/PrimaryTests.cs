@@ -98,6 +98,106 @@ namespace Sweet.Jayson.Tests
 		}
 
 		[Test]
+		public static void TestLong1()
+		{
+			var long1 = 1998730980944080L;
+			string json = JaysonConverter.ToJsonString(long1);
+			var long2 = JaysonConverter.ToObject<long>(json);
+			Assert.True(long1 == long2);
+		}
+
+		[Test]
+		public static void TestLong2()
+		{
+			long? long1 = 1998730980944080L;
+			string json = JaysonConverter.ToJsonString(long1);
+			var long2 = JaysonConverter.ToObject<long?>(json);
+			Assert.True(long1 == long2);
+		}
+
+		[Test]
+		public static void TestLong3()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = 1998730980944080L
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.IsInstanceOf<long> (simpleObj2.Value);
+			Assert.True((long)simpleObj1.Value == (long)simpleObj2.Value);
+		}
+
+		[Test]
+		public static void TestLong4()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = (long?)1998730980944080L
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.IsInstanceOf<long?> (simpleObj2.Value);
+			Assert.True((long?)simpleObj1.Value == (long?)simpleObj2.Value);
+		}
+
+		[Test]
+		public static void TestInt1()
+		{
+			var int1 = 1998730980;
+			string json = JaysonConverter.ToJsonString(int1);
+			var int2 = JaysonConverter.ToObject<int?>(json);
+			Assert.True(int1 == int2);
+		}
+
+		[Test]
+		public static void TestInt2()
+		{
+			int? int1 = 1998730980;
+			string json = JaysonConverter.ToJsonString(int1);
+			var int2 = JaysonConverter.ToObject<int?>(json);
+			Assert.True(int1 == int2);
+		}
+
+		[Test]
+		public static void TestInt3()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = 1998730980
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.IsInstanceOf<int> (simpleObj2.Value);
+			Assert.True((int)simpleObj1.Value == (int)simpleObj2.Value);
+		}
+
+		[Test]
+		public static void TestInt4()
+		{
+			var simpleObj1 = new VerySimpleJsonValue {
+				Value = (int?)1998730980
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			string json = JaysonConverter.ToJsonString(simpleObj1, jaysonSerializationSettings);
+			var simpleObj2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
+			Assert.IsInstanceOf<int?> (simpleObj2.Value);
+			Assert.True((int?)simpleObj1.Value == (int?)simpleObj2.Value);
+		}
+
+		[Test]
         public static void TestParseIso8601Date1()
         {
             var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);

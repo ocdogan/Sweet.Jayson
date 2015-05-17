@@ -373,6 +373,82 @@ namespace Sweet.Jayson.Tests
             Console.WriteLine("Sweet.JaysonConverter DataSet deserialization {0} msec", sw.ElapsedMilliseconds);
             Assert.True(sw.ElapsedMilliseconds < 10000);
         }
-    }
+
+		[Test]
+		public static void TestPerformanceUseGlobalTypeNames()
+		{
+			var dto = TestClasses.GetTypedContainerDto();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.UseGlobalTypeNames = true;
+			jaysonSerializationSettings.TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly;
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.Auto;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			Stopwatch sw = new Stopwatch();
+
+			string json = null;
+
+			sw.Restart();
+			for (int i = 0; i < 10000; i++)
+			{
+				json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			}
+			sw.Stop();
+			Console.WriteLine("Sweet.JaysonConverter UseGlobalTypeNames serialization {0} msec", sw.ElapsedMilliseconds);
+			Assert.True(sw.ElapsedMilliseconds < 10000);
+
+			json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+
+			sw.Restart();
+			for (int i = 0; i < 10000; i++)
+			{
+				JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+			}
+			sw.Stop();
+			Console.WriteLine("Sweet.JaysonConverter UseGlobalTypeNames deserialization {0} msec", sw.ElapsedMilliseconds);
+			Assert.True(sw.ElapsedMilliseconds < 10000);
+		}
+
+		[Test]
+		public static void TestPerformanceDontUseGlobalTypeNames()
+		{
+			var dto = TestClasses.GetTypedContainerDto();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.UseGlobalTypeNames = false;
+			jaysonSerializationSettings.TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly;
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.Auto;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			Stopwatch sw = new Stopwatch();
+
+			string json = null;
+
+			sw.Restart();
+			for (int i = 0; i < 10000; i++)
+			{
+				json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			}
+			sw.Stop();
+			Console.WriteLine("Sweet.JaysonConverter don't UseGlobalTypeNames serialization {0} msec", sw.ElapsedMilliseconds);
+			Assert.True(sw.ElapsedMilliseconds < 10000);
+
+			json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+
+			sw.Restart();
+			for (int i = 0; i < 10000; i++)
+			{
+				JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+			}
+			sw.Stop();
+			Console.WriteLine("Sweet.JaysonConverter don't UseGlobalTypeNames deserialization {0} msec", sw.ElapsedMilliseconds);
+			Assert.True(sw.ElapsedMilliseconds < 10000);
+		}
+	}
 }
 
