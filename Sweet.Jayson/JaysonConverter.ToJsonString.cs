@@ -50,13 +50,26 @@ namespace Sweet.Jayson
 			if (context.Settings.Formatting) {
 				builder.Append ('{');
 				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-				builder.Append ("\"$type\": \"");
+
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("\"$type\": ");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+				} else {
+					builder.Append ("\"$type\": \"");
+					builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+					builder.Append ('"');
+				}
 			}
 			else {
-				builder.Append ("{\"$type\":\"");
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("{\"$type\":");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+				} else {
+					builder.Append ("{\"$type\":\"");
+					builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+					builder.Append ('"');
+				}
 			}
-            builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
-			builder.Append ('"');
 		}
 
 		private static void WriteListTypeName (Type objType, JaysonSerializationContext context)
@@ -65,17 +78,30 @@ namespace Sweet.Jayson
 			if (context.Settings.Formatting) {
 				builder.Append ('{');
 				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-				builder.Append ("\"$type\": \"");
-                builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
-				builder.Append ('"');
+
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("\"$type\": ");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+				} else {
+					builder.Append ("\"$type\": \"");
+					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
+					builder.Append ('"');
+				}
+
 				builder.Append (',');
 				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
 				builder.Append ("\"$values\": [");
 			}
 			else {
-				builder.Append ("{\"$type\": \"");
-                builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
-				builder.Append ("\",\"$values\":[");
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("{\"$type\":");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (",\"$values\":[");
+				} else {
+					builder.Append ("{\"$type\": \"");
+					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
+					builder.Append ("\",\"$values\":[");
+				}
 			}
 		}
 
@@ -85,17 +111,30 @@ namespace Sweet.Jayson
 			if (context.Settings.Formatting) {
 				builder.Append ('{');
 				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-				builder.Append ("\"$type\": \"");
-				builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
-				builder.Append ('"');
+
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("\"$type\": ");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+				} else {
+					builder.Append ("\"$type\": \"");
+					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
+					builder.Append ('"');
+				}
+
 				builder.Append (',');
 				builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
 				builder.Append ("\"$value\": ");
 			}
 			else {
-				builder.Append ("{\"$type\": \"");
-				builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
-				builder.Append ("\",\"$value\":");
+				if (context.Settings.UseGlobalTypeNames) {
+					builder.Append ("{\"$type\":");
+					builder.Append (context.GlobalTypes.Register (objType).ToString (JaysonConstants.InvariantCulture));
+					builder.Append (",\"$value\":");
+				} else {
+					builder.Append ("{\"$type\": \"");
+					builder.Append (JaysonTypeInfo.GetTypeName (objType, context.Settings.TypeNameInfo));
+					builder.Append ("\",\"$value\":");
+				}
 			}
 		}
 
@@ -1102,7 +1141,7 @@ namespace Sweet.Jayson
 		}
 
 		private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
-        {
+		{
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
             bool formatting = context.Settings.Formatting;
@@ -1211,7 +1250,7 @@ namespace Sweet.Jayson
 			}
 		}
 
-        private static void WriteDictionary(IDictionary obj, JaysonSerializationContext context)
+		private static void WriteDictionary(IDictionary obj, JaysonSerializationContext context)
 		{
 			context.ObjectDepth++;
 			StringBuilder builder = context.Builder;
@@ -1244,7 +1283,7 @@ namespace Sweet.Jayson
 								value = filter (key, value);
 							}
 
-							isFirst = WriteKeyValueEntry (kvp.Key, kvp.Value, context, isFirst);
+							isFirst = WriteKeyValueEntry (key, value, context, isFirst);
 						}
 					} else {
 						foreach (DictionaryEntry dEntry in obj) {
@@ -1414,8 +1453,9 @@ namespace Sweet.Jayson
 			context.ObjectDepth++;
 			StringBuilder builder = context.Builder;
 			try {
-				bool isFirst = true;
 				Type objType = obj.GetType ();
+
+				bool isFirst = true;
 				if (WriteObjectType (objType, context)) {
 					isFirst = false;
 				} else {
@@ -1641,7 +1681,7 @@ namespace Sweet.Jayson
 			}
 		}
 
-        private static void WriteByteArray(byte[] obj, JaysonSerializationContext context)
+		private static void WriteByteArray(byte[] obj, JaysonSerializationContext context)
         {
             context.ObjectDepth++;
             bool typeWritten = WriteByteArrayType(context);
@@ -1978,15 +2018,6 @@ namespace Sweet.Jayson
 			context.ObjectDepth++;
 			bool typeWritten = WriteListType (obj, context);
 
-			int count = obj.Count;
-			if (count == 0) {
-				if (!typeWritten) {
-					context.Builder.Append ('[');
-				}
-				context.Builder.Append (']');
-				return;
-			}
-
 			StringBuilder builder = context.Builder;
 			try {
 				if (!typeWritten) {
@@ -1999,9 +2030,12 @@ namespace Sweet.Jayson
 					return;
 				}
 
-				bool isFirst = true;
-				for (int i = 0; i < count; i++) {
-					isFirst = WriteEnumerableValue (obj [i], context, isFirst);
+				int count = obj.Count;
+				if (count > 0) {
+					bool isFirst = true;
+					for (int i = 0; i < count; i++) {
+						isFirst = WriteEnumerableValue (obj [i], context, isFirst);
+					}
 				}
 			} finally {
 				context.ObjectDepth--;
@@ -2059,18 +2093,21 @@ namespace Sweet.Jayson
 		private static void WriteCountedEnumerable(IEnumerable obj, JaysonSerializationContext context, bool isEmpty)
 		{
 			context.ObjectDepth++;
-			StringBuilder builder = context.Builder;
 			bool typeWritten = WriteListType (obj, context);
-			if (!typeWritten) {
-				builder.Append ('[');
-			}
 
-			if (!isEmpty) {
-				try {
-					if (!ValidObjectDepth(context)) {
-						return;
-					}
+			StringBuilder builder = context.Builder;
+			try {
+				if (!typeWritten) {
+					builder.Append ('[');
+				} else {
+					context.ObjectDepth++;
+				}
 
+				if (!ValidObjectDepth(context)) {
+					return;
+				}
+
+				if (!isEmpty) {
 					bool isFirst = true;
 
 					Type entryType;
@@ -2161,17 +2198,26 @@ namespace Sweet.Jayson
 							((IDisposable)enumerator).Dispose ();
 						}
 					}
-				} finally {
-					if (context.Settings.Formatting) {
-						builder.Append (JaysonConstants.Indentation[context.ObjectDepth]);
-					} 
+				}
+			} finally {
+				context.ObjectDepth--;
+
+				if (!context.Settings.Formatting) {
 					builder.Append (']');
 
-					context.ObjectDepth--;
-					if (context.Settings.Formatting) {
+					if (typeWritten) {
+						context.ObjectDepth--;
+						builder.Append ('}');
+					}			
+				} else {
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					builder.Append (']');
+
+					if (typeWritten) {
+						context.ObjectDepth--;
 						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-					} 
-					builder.Append ('}');
+						builder.Append ('}');
+					}
 				}
 			}
 		}
@@ -2391,6 +2437,75 @@ namespace Sweet.Jayson
 			}
 		}
 
+		private static void WriteGlobalTypes(JaysonSerializationContext context, bool isFirst)
+		{
+			if (context.GlobalTypes != null) 
+			{
+				bool formatting = context.Settings.Formatting;
+
+				context.ObjectDepth++;
+				StringBuilder builder = context.Builder;
+				try {
+					if (formatting) {
+						if (!isFirst) {
+							builder.Append (',');
+						}
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						builder.Append ("\"$types\": {");
+					} else {
+						if (isFirst) {
+							builder.Append ("\"$types\":{");
+						} else {
+							builder.Append (",\"$types\":{");
+						}
+					}
+
+					Dictionary<int, Type> obj = context.GlobalTypes.GetIdList ();
+					if (obj.Count > 0) {
+						context.ObjectDepth++;
+						try {
+							bool isFirstType = true;
+							JaysonTypeNameInfo typeNameInfo = context.Settings.TypeNameInfo;
+
+							foreach (var kvp in obj.OrderBy(kv => kv.Key)) {
+								if (formatting) {
+									if (!isFirstType) {
+										builder.Append (',');
+									}
+									builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+									builder.Append ('"');
+									builder.Append (kvp.Key.ToString (JaysonConstants.InvariantCulture));
+									builder.Append ("\": ");
+								} else {
+									if (isFirstType) {
+										builder.Append ('"');
+									} else {
+										builder.Append (",\"");
+									}
+									builder.Append (kvp.Key.ToString (JaysonConstants.InvariantCulture));
+									builder.Append ("\":");
+								}
+
+								builder.Append ('"');
+								builder.Append (JaysonTypeInfo.GetTypeName (kvp.Value, typeNameInfo));
+								builder.Append ('"');
+
+								isFirstType = false;
+							}
+						} finally {
+							context.ObjectDepth--;
+						}
+					}
+				} finally {
+					if (formatting) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					} 
+					builder.Append ('}');
+					context.ObjectDepth--;
+				}
+			}
+		}
+
 		public static string ToJsonString(object obj, JaysonSerializationSettings settings = null,
 			Func<string, object, object> filter = null)
 		{
@@ -2422,17 +2537,31 @@ namespace Sweet.Jayson
 					return formatter.Format(obj, objType);
 				}
 
-				JaysonStackList primmeStack = JaysonStackList.Get();
+				JaysonStackList primeStack = JaysonStackList.Get();
 				try 
 				{
 					StringBuilder builder = new StringBuilder(100, int.MaxValue);
 
-					var context = new JaysonSerializationContext (filter: filter,
-						settings: settings,
-						stack: primmeStack,
+					var context = new JaysonSerializationContext (
+						filter: filter,
 						builder: builder,
-						formatter: formatter
+						formatter: formatter,
+						globalTypes: settings.UseGlobalTypeNames ? new JaysonGlobalTypeList () : null,
+						settings: settings,
+						stack: primeStack
 					);
+
+					if (settings.UseGlobalTypeNames) {
+						context.ObjectDepth++;
+
+						if (settings.Formatting) {
+							builder.Append ('{');
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+							builder.Append ("\"$value\": ");
+						} else {
+							builder.Append ("{\"$value\":");
+						}
+					}
 
 					context.ObjectDepth++;
 					WritePrimitiveTypeName (objType, context);
@@ -2444,11 +2573,22 @@ namespace Sweet.Jayson
 					}
 					builder.Append ('}');
 
+					if (settings.UseGlobalTypeNames) {
+						context.ObjectDepth--;
+
+						WriteGlobalTypes (context, false);
+
+						if (settings.Formatting) {
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						}
+						builder.Append ('}');
+					}
+
 					return builder.ToString();
 				}
 				finally
 				{
-					JaysonStackList.Release(primmeStack);
+					JaysonStackList.Release(primeStack);
 				}
 			}
 
@@ -2457,14 +2597,40 @@ namespace Sweet.Jayson
 			{
 				StringBuilder builder = new StringBuilder(2048, int.MaxValue);
 
-				WriteJsonObject(obj, objType,
-					new JaysonSerializationContext(filter: filter,
-						settings: settings,
-						stack: stack,
-						builder: builder,
-						formatter: formatter
-					)
+				var context = new JaysonSerializationContext(
+					filter: filter,
+					builder: builder,
+					formatter: formatter,
+					globalTypes: settings.UseGlobalTypeNames ? new JaysonGlobalTypeList () : null,
+					settings: settings,
+					stack: stack
 				);
+
+				if (settings.UseGlobalTypeNames) {
+					context.ObjectDepth++;
+
+					if (settings.Formatting) {
+						builder.Append ('{');
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						builder.Append ("\"$value\": ");
+					} else {
+						builder.Append ("{\"$value\":");
+					}
+				}
+
+				WriteJsonObject(obj, objType, context);
+
+				if (settings.UseGlobalTypeNames) {
+					context.ObjectDepth--;
+
+					WriteGlobalTypes (context, false);
+
+					if (settings.Formatting) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+					builder.Append ('}');
+				}
+
 				return builder.ToString();
 			}
 			finally

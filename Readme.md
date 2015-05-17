@@ -44,8 +44,11 @@ Open sourced under [MIT license][2].
 
 -   `dynamic` Types,
 
--   Embedding type information with *"\$type"* notation for exact type
+-   Embedding type information with *"*`$type`*"* notation for exact type
     deserialization,
+
+-   Embedding global type information with *"*`$types`*"* notation for exact
+    type deserialization and compact output,
 
 -   Including or excluding “`null`*"* values into/from output (both in
     *properties* or in *lists* separately),

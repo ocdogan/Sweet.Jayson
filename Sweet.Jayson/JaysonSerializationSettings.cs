@@ -61,6 +61,7 @@ namespace Sweet.Jayson
 		public bool RaiseErrorOnCircularRef = false;
 		public bool RaiseErrorOnMaxObjectDepth = true;
 		public bool UseEnumNames = true;
+		public bool UseGlobalTypeNames = false;
 
 		public int MaxObjectDepth;
 

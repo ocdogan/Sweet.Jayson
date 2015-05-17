@@ -78,6 +78,7 @@
     <Compile Include="JaysonTypeNameInfo.cs" />
     <Compile Include="JaysonTypeNameSerialization.cs" />
     <Compile Include="JaysonObjectActivator.cs" />
+    <Compile Include="JaysonGlobalTypeList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

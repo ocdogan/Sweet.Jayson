@@ -37,6 +37,7 @@ namespace Sweet.Jayson
 		public int ObjectDepth = 0;
 		public bool HasTypeInfo = false;
 		public JaysonDeserializationSettings Settings;
+		public JaysonGlobalTypeList GlobalTypes;
     }
 
 	# endregion DeserializationContext

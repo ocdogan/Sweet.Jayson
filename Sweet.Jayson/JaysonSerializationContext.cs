@@ -36,6 +36,7 @@ namespace Sweet.Jayson
 		public readonly StringBuilder Builder;
 		public readonly Func<string, object, object> Filter;
 		public readonly JaysonFormatter Formatter;
+		public readonly JaysonGlobalTypeList GlobalTypes;
 		public readonly JaysonSerializationSettings Settings;
 		public readonly JaysonStackList Stack;
         
@@ -46,11 +47,13 @@ namespace Sweet.Jayson
 		public JaysonSerializationContext(JaysonSerializationSettings settings, JaysonStackList stack,
 			Func<string, object, object> filter, JaysonFormatter formatter = null, 
 			StringBuilder builder = null, Type currentType = null,
-			JaysonObjectType objectType = JaysonObjectType.Object)
+			JaysonObjectType objectType = JaysonObjectType.Object,
+			JaysonGlobalTypeList globalTypes = null)
 		{
 			Builder = builder;
 			Filter = filter;
 			Formatter = formatter;
+			GlobalTypes = globalTypes;
 			Settings = settings;
 			Stack = stack;
 

@@ -169,19 +169,50 @@ namespace Sweet.Jayson.Tests
             Assert.True(date1 == date2);
         }
 
+		[Test]
+		public static void TestToJsonObject()
+		{
+			var dto = TestClasses.GetTypedContainerDto();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+
+			object jsonObj = null;
+			Assert.DoesNotThrow(() =>
+				{
+					jsonObj = JaysonConverter.ToJsonObject(dto, jaysonSerializationSettings);
+				});
+			Assert.IsTrue(jsonObj is Dictionary<string, object>);
+		}
+
         [Test]
-        public static void TestToJsonObject()
+        public static void TestUseGlobalTypeNames()
         {
             var dto = TestClasses.GetTypedContainerDto();
 
-            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.UseGlobalTypeNames = true;
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = true;
+			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+			jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
 
-            object jsonObj = null;
-            Assert.DoesNotThrow(() =>
-            {
-                jsonObj = JaysonConverter.ToJsonObject(dto, jaysonSerializationSettings);
-            });
-            Assert.IsTrue(jsonObj is Dictionary<string, object>);
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			object jsonObj = null;
+			TypedContainerDto dto2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+					jsonObj = JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull (jsonObj);
+			Assert.IsNotNull (dto2);
         }
 
 		[Test]

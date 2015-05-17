@@ -465,8 +465,6 @@ namespace Sweet.Jayson
 			int end = start + length;
 			int sign = 1;
 
-			// ch = str[start];
-			// if (ch == '-')
 			if ((numberStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
 			{
 				pos++;
