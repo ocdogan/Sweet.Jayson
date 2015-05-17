@@ -1969,6 +1969,45 @@ namespace Sweet.Jayson
 			}
 		}
 
+		private static void WriteEmptyArray(Array obj, Type objType, JaysonSerializationContext context)
+		{
+			context.ObjectDepth++;
+			bool typeWritten = WriteListType (objType, context);
+
+			StringBuilder builder = context.Builder;
+			try {
+				if (!typeWritten) {
+					builder.Append ('[');
+				} else {
+					context.ObjectDepth++;
+				}
+
+				if (!ValidObjectDepth(context)) {
+					return;
+				}
+			} finally {
+				context.ObjectDepth--;
+
+				if (!context.Settings.Formatting) {
+					builder.Append (']');
+
+					if (typeWritten) {
+						context.ObjectDepth--;
+						builder.Append ('}');
+					}			
+				} else {
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					builder.Append (']');
+
+					if (typeWritten) {
+						context.ObjectDepth--;
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						builder.Append ('}');
+					}
+				}
+			}
+		}
+
 		private static void WriteArray(Array obj, Type objType, JaysonSerializationContext context)
 		{
 			if (obj.Rank > 1) 
@@ -1980,11 +2019,7 @@ namespace Sweet.Jayson
 			int length = obj.Length;
 			if (length == 0) 
 			{
-				if (!WriteListType (obj, context)) 
-				{
-					context.Builder.Append ('[');
-				}
-				context.Builder.Append (']');
+				WriteEmptyArray(obj, objType, context);
 				return;
 			}
 
@@ -2010,13 +2045,13 @@ namespace Sweet.Jayson
 				return;
 			}
 
-			WriteIList (obj, context);
+			WriteIList (obj, objType, context);
 		}
 
-		private static void WriteIList(IList obj, JaysonSerializationContext context)
+		private static void WriteIList(IList obj, Type objType, JaysonSerializationContext context)
 		{
 			context.ObjectDepth++;
-			bool typeWritten = WriteListType (obj, context);
+			bool typeWritten = WriteListType (objType, context);
 
 			StringBuilder builder = context.Builder;
 			try {
@@ -2090,10 +2125,10 @@ namespace Sweet.Jayson
 			}
 		}
 
-		private static void WriteCountedEnumerable(IEnumerable obj, JaysonSerializationContext context, bool isEmpty)
+		private static void WriteCountedEnumerable(IEnumerable obj, Type objType, JaysonSerializationContext context, bool isEmpty)
 		{
 			context.ObjectDepth++;
-			bool typeWritten = WriteListType (obj, context);
+			bool typeWritten = WriteListType (objType, context);
 
 			StringBuilder builder = context.Builder;
 			try {
@@ -2222,11 +2257,6 @@ namespace Sweet.Jayson
 			}
 		}
 
-		private static void WriteICollection(ICollection obj, JaysonSerializationContext context)
-		{
-			WriteCountedEnumerable(obj, context, obj.Count > 0);
-		}
-
 		private static void WriteEnumerable(IEnumerable obj, Type objType, JaysonSerializationContext context)
 		{
 			if (obj is Array)
@@ -2235,15 +2265,15 @@ namespace Sweet.Jayson
 			}
 			else if (obj is IList)
 			{
-				WriteIList((IList)obj, context);
+				WriteIList((IList)obj, objType, context);
 			}
 			else if (obj is ICollection)
 			{
-				WriteICollection((ICollection)obj, context);
+				WriteCountedEnumerable(obj, objType, context, ((ICollection)obj).Count > 0);
 			}
 			else
 			{
-				WriteCountedEnumerable(obj, context, false);
+				WriteCountedEnumerable(obj, objType, context, false);
 			}
 		}
 
