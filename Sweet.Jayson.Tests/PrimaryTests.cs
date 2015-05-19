@@ -318,7 +318,7 @@ namespace Sweet.Jayson.Tests
 		[Test]
 		public static void TestListT1()
 		{
-			List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+			List<int> list1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
 
 			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -333,17 +333,18 @@ namespace Sweet.Jayson.Tests
 			List<int> list2 = null;
 			Assert.DoesNotThrow(() =>
 				{
-					json = JaysonConverter.ToJsonString(list, jaysonSerializationSettings);
+					json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 					JaysonConverter.Parse(json, jaysonDeserializationSettings);
 					list2 = JaysonConverter.ToObject<List<int>>(json, jaysonDeserializationSettings);
 				});
 			Assert.IsNotNull (list2);
-		}
+            Assert.AreEqual(list1.Count, list2.Count);
+        }
 
 		[Test]
 		public static void TestListT2()
 		{
-			List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+			List<int> list1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
 
 			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
@@ -358,14 +359,409 @@ namespace Sweet.Jayson.Tests
 			List<int> list2 = null;
 			Assert.DoesNotThrow(() =>
 				{
-					json = JaysonConverter.ToJsonString(list, jaysonSerializationSettings);
+					json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 					JaysonConverter.Parse(json, jaysonDeserializationSettings);
 					list2 = JaysonConverter.ToObject<List<int>>(json, jaysonDeserializationSettings);
 				});
 			Assert.IsNotNull (list2);
+            Assert.AreEqual(list1.Count, list2.Count);
 		}
 
-		[Test]
+        [Test]
+        public static void TestListT3()
+        {
+            List<int[]> list1 = new List<int[]> { 
+                new int[] {1, 2, 3}, 
+                new int[] {4, 5, 6, 7, 8} 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            List<int[]> list2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                list2 = JaysonConverter.ToObject<List<int[]>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(list2);
+            Assert.AreEqual(list1.Count, list2.Count);
+        }
+
+        [Test]
+        public static void TestListT4()
+        {
+            List<int[,]> list1 = new List<int[,]> { 
+                new int[,] { 
+                    { 1, 2 }, 
+                    { 3, 4 } 
+                }, 
+                new int[,] { 
+                    { 5, 6 }, 
+                    { 7, 8 } 
+                } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            List<int[,]> list2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                list2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(list2);
+            Assert.AreEqual(list1.Count, list2.Count);
+        }
+
+        [Test]
+        public static void TestListT5()
+        {
+            List<Dictionary<string, int[,]>> list1 = new List<Dictionary<string, int[,]>> { 
+                new Dictionary<string, int[,]> { 
+                    { "A", new int[,] { { 1, 2 }, { 3, 4 } } }, 
+                    { "B", new int[,] { { 5, 6 }, { 7, 8 } } } 
+                }
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            dynamic list2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(list2);
+            Assert.AreEqual(list1.Count, list2.Count);
+        }
+
+        [Test]
+        public static void TestListT6()
+        {
+            List<Dictionary<string, List<int[,]>>> list1 = new List<Dictionary<string, List<int[,]>>> { 
+                new Dictionary<string, List<int[,]>> { 
+                    { "A", new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 } } } }, 
+                    { "B", new List<int[,]> { new int[,] { { 5, 6 }, { 7, 8 } } } }
+                }
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            dynamic list2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(list2);
+            Assert.AreEqual(list1.Count, list2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK1()
+        {
+            Dictionary<string, int> dictionary1 = new Dictionary<string, int> { 
+                { "1", 2 }, 
+                { "3", 4 }, 
+                { "5", 6 }, 
+                { "7", 8 } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, int> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, int>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK2()
+        {
+            Dictionary<string, int> dictionary1 = new Dictionary<string, int> { 
+                { "1", 2 }, 
+                { "3", 4 }, 
+                { "5", 6 }, 
+                { "7", 8 } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, int> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, int>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK3()
+        {
+            Dictionary<string, int[]> dictionary1 = new Dictionary<string, int[]> { 
+                { "A", new int[] { 1, 2, 3 } }, 
+                { "B", new int[] { 4, 5, 6, 7, 8 } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, int[]> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, int[]>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK4()
+        {
+            Dictionary<string, int[,]> dictionary1 = new Dictionary<string, int[,]> { 
+                { "A", new int[,] { { 1, 2 }, { 3, 4 } } }, 
+                { "B", new int[,] { { 5, 6 }, { 7, 8 } } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, int[,]> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, int[,]>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+        [Test]
+        public static void TestDictionaryTK5()
+        {
+            Dictionary<string, List<int>> dictionary1 = new Dictionary<string, List<int>> { 
+                { "1", new List<int> { 2 } }, 
+                { "3", new List<int> { 4 } }, 
+                { "5", new List<int> { 6 } }, 
+                { "7", new List<int> { 8 } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, List<int>> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, List<int>>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK6()
+        {
+            Dictionary<string, List<int>> dictionary1 = new Dictionary<string, List<int>> { 
+                { "1", new List<int> { 2 } }, 
+                { "3", new List<int> { 4 } }, 
+                { "5", new List<int> { 6 } }, 
+                { "7", new List<int> { 8 } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, List<int>> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, List<int>>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK7()
+        {
+            Dictionary<string, List<int[]>> dictionary1 = new Dictionary<string, List<int[]>> { 
+                { "A", new List<int[]> { new int[] { 1, 2, 3 } } }, 
+                { "B", new List<int[]> { new int[] { 4, 5, 6, 7, 8 } } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, List<int[]>> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, List<int[]>>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK8()
+        {
+            Dictionary<string, List<int[,]>> dictionary1 = new Dictionary<string, List<int[,]>> { 
+                { "A", new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 } } } }, 
+                { "B", new List<int[,]> { new int[,] { { 5, 6 }, { 7, 8 } } } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, List<int[,]>> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, List<int[,]>>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
+        public static void TestDictionaryTK9()
+        {
+            Dictionary<string, IList<int[,]>> dictionary1 = new Dictionary<string, IList<int[,]>> { 
+                { "A", new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 } } } }, 
+                { "B", new List<int[,]> { new int[,] { { 5, 6 }, { 7, 8 } } } } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            string json = null;
+            Dictionary<string, IList<int[,]>> dictionary2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                dictionary2 = JaysonConverter.ToObject<Dictionary<string, IList<int[,]>>>(json, jaysonDeserializationSettings);
+            });
+            Assert.IsNotNull(dictionary2);
+            Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+        }
+
+        [Test]
 		public static void TestMultiDimentionalArray1()
 		{
 			int[,] intArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
@@ -1179,7 +1575,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestArray1()
+        public static void TestArrayList1()
         {
             var list1 = new ArrayList { null, true, false, 1, 1.4, 123456.6d, 1234.56789m, "Hello", "World", 
 				new VerySimpleJsonValue { 
@@ -1206,7 +1602,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestArray2()
+        public static void TestArrayList2()
         {
             var list1 = new ArrayList { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
 
@@ -1226,7 +1622,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestArray3()
+        public static void TestArrayList3()
         {
             var list1 = new ArrayList { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, null };
 
@@ -1243,6 +1639,594 @@ namespace Sweet.Jayson.Tests
             Assert.NotNull(list2);
             Assert.True(list2.GetType().IsArray);
             Assert.True(list1.Count == ((IList)list2).Count);
+        }
+
+        [Test]
+        public static void TestArray1a()
+        {
+            var list1 = new int[] { };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(((IList)list2).Count, 0);
+        }
+
+		[Test]
+		public static void TestArray1b()
+		{
+			var list1 = new int[] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Length, 0);
+		}
+
+		[Test]
+        public static void TestArray2a()
+        {
+            var list1 = new int[][] { };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(((IList)list2).Count, 0);
+        }
+
+		[Test]
+		public static void TestArray2b()
+		{
+			var list1 = new int[][] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[][]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Length, 0);
+		}
+
+		[Test]
+		public static void TestArray3a()
+		{
+			var list1 = new int[][] { new int[] { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(((IList)list2).Count, 1);
+			Assert.True(((IList)list2)[0].GetType ().IsArray);
+			Assert.AreEqual(((IList)((IList)list2)[0]).Count, 0);
+		}
+
+		[Test]
+		public static void TestArray3b()
+		{
+			var list1 = new int[][] { new int[] { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[][]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Length, 1);
+			Assert.AreEqual(list2[0].Length, 0);
+		}
+
+		[Test]
+		public static void TestArray4a()
+		{
+			var list1 = new int[,] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+		}
+
+		[Test]
+		public static void TestArray4b()
+		{
+			var list1 = new int[,] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Rank, 2);
+			Assert.AreEqual(list2.GetLength (0), 0);
+			Assert.AreEqual(list2.GetLength (1), 0);
+		}
+
+        [Test]
+        public static void TestArray5a()
+        {
+            var list1 = new int[,,] { };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+        }
+
+		[Test]
+		public static void TestArray5b()
+		{
+			var list1 = new int[,,] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[,,]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Rank, 3);
+			Assert.AreEqual(list2.GetLength (0), 0);
+			Assert.AreEqual(list2.GetLength (1), 0);
+			Assert.AreEqual(list2.GetLength (2), 0);
+		}
+
+		[Test]
+		public static void TestArray6a()
+		{
+			var list1 = new int[,,,] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+		}
+
+		[Test]
+		public static void TestArray6b()
+		{
+			var list1 = new int[,,,] { };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[,,,]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+			Assert.AreEqual(list2.Rank, 4);
+			Assert.AreEqual(list2.GetLength (0), 0);
+			Assert.AreEqual(list2.GetLength (1), 0);
+			Assert.AreEqual(list2.GetLength (2), 0);
+			Assert.AreEqual(list2.GetLength (3), 0);
+		}
+
+        [Test]
+        public static void TestArray7a()
+        {
+            var list1 = new int[][][] { 
+                new int[][] { 
+                    new int[] { }, 
+                    new int[] { } 
+                }, 
+                new int[][] { }, 
+                new int[][] {
+                    new int[] { }
+                } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+
+			Assert.AreEqual(((IList)list2).Count, 3);
+
+			Assert.AreEqual(((IList)((IList)list2)[0]).Count, 2);
+			Assert.AreEqual(((IList)((IList)list2)[1]).Count, 0);
+			Assert.AreEqual(((IList)((IList)list2)[2]).Count, 1);
+        }
+
+        [Test]
+        public static void TestArray7b()
+        {
+            var list1 = new int[][][] { 
+                new int[][] { 
+                    new int[] { }, 
+                    new int[] { } 
+                }, 
+                new int[][] { }, 
+                new int[][] {
+                    new int[] { }
+                } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject<int[][][]>(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list2.Length, 3);
+
+			Assert.AreEqual(list2[0].Length, 2);
+			Assert.AreEqual(list2[1].Length, 0);
+			Assert.AreEqual(list2[2].Length, 1);
+
+			Assert.AreEqual(list2[0][0].Length, 0);
+			Assert.AreEqual(list2[0][1].Length, 0);
+			Assert.AreEqual(list2[2][0].Length, 0);
+        }
+
+        [Test]
+        public static void TestArray8a()
+        {
+            var list1 = new int[,,] { { }, { }, { } };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, ((Array)list2).Length);
+
+			Assert.AreEqual(((Array)list2).Rank, 3);
+
+			Assert.AreEqual(((Array)list2).GetLength (0), 3);
+			Assert.AreEqual(((Array)list2).GetLength (1), 0);
+			Assert.AreEqual(((Array)list2).GetLength (2), 0);
+        }
+
+		[Test]
+		public static void TestArray8b()
+		{
+			var list1 = new int[,,] { { }, { }, { } };
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[,,]>(json, jaysonDeserializationSettings);
+
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list2.Rank, 3);
+
+			Assert.AreEqual(list2.GetLength (0), 3);
+			Assert.AreEqual(list2.GetLength (1), 0);
+			Assert.AreEqual(list2.GetLength (2), 0);
+		}
+
+        [Test]
+        public static void TestArray9a()
+        {
+            var list1 = new int[][,] { 
+				new int[,] { }, 
+                new int[,] { { 1, 2 } }, 
+				new int[,] { { 3, 4 }, { 5, 6 } }, 
+				new int[,] { { 7, 8, 9 }, { 10, 11, 12 }, { 13, 14, 15 } }
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject<int[][,]>(json, jaysonDeserializationSettings);
+            
+			Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list2.Length, 4);
+			Assert.AreEqual(list2[0].Rank, 2);
+			Assert.AreEqual(list2[1].Rank, 2);
+			Assert.AreEqual(list2[2].Rank, 2);
+			Assert.AreEqual(list2[3].Rank, 2);
+
+			Assert.AreEqual(list2[0].GetLength (0), 0);
+			Assert.AreEqual(list2[1].GetLength (0), 1);
+			Assert.AreEqual(list2[1].GetLength (1), 2);
+			Assert.AreEqual(list2[2].GetLength (0), 2);
+			Assert.AreEqual(list2[2].GetLength (1), 2);
+			Assert.AreEqual(list2[3].GetLength (0), 3);
+			Assert.AreEqual(list2[3].GetLength (1), 3);
+
+			Assert.AreEqual(list2[1][0,0], 1);
+			Assert.AreEqual(list2[1][0,1], 2);
+
+			Assert.AreEqual(list2[2][0,0], 3);
+			Assert.AreEqual(list2[2][0,1], 4);
+			Assert.AreEqual(list2[2][1,0], 5);
+			Assert.AreEqual(list2[2][1,1], 6);
+
+			Assert.AreEqual(list2[3][0,0], 7);
+			Assert.AreEqual(list2[3][0,1], 8);
+			Assert.AreEqual(list2[3][0,2], 9);
+			Assert.AreEqual(list2[3][1,0], 10);
+			Assert.AreEqual(list2[3][1,1], 11);
+			Assert.AreEqual(list2[3][1,2], 12);
+			Assert.AreEqual(list2[3][2,0], 13);
+			Assert.AreEqual(list2[3][2,1], 14);
+			Assert.AreEqual(list2[3][2,2], 15);
+        }
+
+		[Test]
+		public static void TestArray10a()
+		{
+			var list1 = new int[,][] { 
+				{ 
+					new int[] { 1, 2 }, 
+					new int[] { 3, 4 } 
+				}, 
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[,][]>(json, jaysonDeserializationSettings);
+
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list2[0,0][0], 1);
+			Assert.AreEqual(list2[0,0][1], 2);
+			Assert.AreEqual(list2[0,1][0], 3);
+			Assert.AreEqual(list2[0,1][1], 4);
+		}
+
+		[Test]
+		public static void TestArray10b()
+		{
+			var list1 = new int[][,] { 
+				new int[,] {
+					{ 1, 2 }, 
+					{ 3, 4 },
+					{ 5, 6 }
+				}, 
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+			var list2 = JaysonConverter.ToObject<int[][,]>(json, jaysonDeserializationSettings);
+			Assert.NotNull(list2);
+			Assert.True(list2.GetType().IsArray);
+
+			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list2[0][0,0], 1);
+			Assert.AreEqual(list2[0][0,1], 2);
+			Assert.AreEqual(list2[0][1,0], 3);
+			Assert.AreEqual(list2[0][1,1], 4);
+			Assert.AreEqual(list2[0][2,0], 5);
+			Assert.AreEqual(list2[0][2,1], 6);
+		}
+
+        [Test]
+        public static void TestArray11()
+        {
+            var list1 = new int[,][] { 
+                { 
+					new int[] { 1 }, 
+					new int[] { 2, 3 }
+				}, 
+                { 
+					new int[] { 4, 5, 6 }, 
+					new int[] { 7, 8, 9, 10 }
+				}, 
+                { 
+					new int[] { 11, 12, 13, 14, 15 } ,
+					new int[] { 16, 17, 18, 19, 20, 21 } 
+				}
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject<int[,][]>(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+
+			Assert.AreEqual(list2.Rank, 2);
+
+			Assert.AreEqual(list2[0,0].Length, 1);
+			Assert.AreEqual(list2[0,1].Length, 2);
+			Assert.AreEqual(list2[1,0].Length, 3);
+			Assert.AreEqual(list2[1,1].Length, 4);
+			Assert.AreEqual(list2[2,0].Length, 5);
+			Assert.AreEqual(list2[2,1].Length, 6);
+
+			Assert.AreEqual(list2[0,0][0], 1);
+			Assert.AreEqual(list2[0,1][0], 2);
+			Assert.AreEqual(list2[0,1][1], 3);
+
+			Assert.AreEqual(list2[1,0][0], 4);
+			Assert.AreEqual(list2[1,0][1], 5);
+			Assert.AreEqual(list2[1,0][2], 6);
+			Assert.AreEqual(list2[1,1][0], 7);
+			Assert.AreEqual(list2[1,1][1], 8);
+			Assert.AreEqual(list2[1,1][2], 9);
+			Assert.AreEqual(list2[1,1][3], 10);
+
+			Assert.AreEqual(list2[2,0][0], 11);
+			Assert.AreEqual(list2[2,0][1], 12);
+			Assert.AreEqual(list2[2,0][2], 13);
+			Assert.AreEqual(list2[2,0][3], 14);
+			Assert.AreEqual(list2[2,0][4], 15);
+
+			Assert.AreEqual(list2[2,1][0], 16);
+			Assert.AreEqual(list2[2,1][1], 17);
+			Assert.AreEqual(list2[2,1][2], 18);
+			Assert.AreEqual(list2[2,1][3], 19);
+			Assert.AreEqual(list2[2,1][4], 20);
+			Assert.AreEqual(list2[2,1][5], 21);
+        }
+
+        [Test]
+        public static void TestArray12()
+        {
+            var list1 = new int[][][,] { 
+                new int[][,] { 
+                    new int[,] { { 1, 2 }, { 3, 4 } }, 
+                    new int[,] { { 5, 6 }, { 7, 8 } } 
+                }, 
+				new int[][,] { }, 
+				new int[][,] { 
+					new int[,] { { 9, 10 } }
+				}, 
+                new int[][,] {
+                    new int[,] { { 11, 12 }, { 13, 14 } }
+                } 
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
+
+            string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
+            var list2 = JaysonConverter.ToObject<int[][][,]>(json, jaysonDeserializationSettings);
+            Assert.NotNull(list2);
+            Assert.True(list2.GetType().IsArray);
+			Assert.True(list1.Length == list2.Length);
         }
 
         [Test]
@@ -1269,7 +2253,7 @@ namespace Sweet.Jayson.Tests
             Assert.True(list1.Count == ((IList<object>)list2).Count);
         }
 
-#if !(NET4000 || NET3500 || NET3000 || NET2000)
+        #if !(NET4000 || NET3500 || NET3000 || NET2000)
         [Test]
         public static void TestReadOnlyDictionary1()
         {
@@ -1300,7 +2284,7 @@ namespace Sweet.Jayson.Tests
             Assert.IsAssignableFrom<ReadOnlyDictionary<object, object>>(dict2);
             Assert.True(dict1.Count == ((ReadOnlyDictionary<object, object>)dict2).Count);
         }
-#endif
+        #endif
 
         [Test]
         public static void TestParse()

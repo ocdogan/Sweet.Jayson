@@ -99,7 +99,8 @@ namespace Sweet.Jayson
 
 		# region Field Members
 
-		private int? m_ArrayRank;
+        private int? m_ArrayDepth;
+        private int? m_ArrayRank;
 		private bool? m_IsArray;
 		private bool? m_IsClass;
 		private bool? m_IsEnum;
@@ -120,6 +121,7 @@ namespace Sweet.Jayson
 		private JaysonTypeCode? m_JTypeCode;
 		private InfoItem<object> m_Default = new InfoItem<object>();
 		private InfoItem<Type> m_ElementType = new InfoItem<Type>();
+        private InfoItem<Type> m_ElementRootType = new InfoItem<Type>();
 		private InfoItem<Type> m_GenericTypeDefinition = new InfoItem<Type>();
 
 		private object m_SyncRoot;
@@ -170,13 +172,25 @@ namespace Sweet.Jayson
 			}
 		}
 
+        public int ArrayDepth
+        {
+            get
+            {
+                if (!m_ArrayDepth.HasValue)
+                {
+                    m_ArrayDepth = !Array ? 0 : GetTypeInfo(ElementType).ArrayDepth + 1;
+                }
+                return m_ArrayDepth.Value;
+            }
+        }
+
 		public int ArrayRank
 		{
 			get
 			{
 				if (!m_ArrayRank.HasValue)
 				{
-					m_ArrayRank = Array ? Type.GetArrayRank () : 1;
+					m_ArrayRank = Array ? Type.GetArrayRank () : 0;
 				}
 				return m_ArrayRank.Value;
 			}
@@ -225,6 +239,27 @@ namespace Sweet.Jayson
 				return m_DefaultJConstructor.Value;
 			}
 		}
+
+        public Type ElementRootType
+        {
+            get
+            {
+                if (!m_ElementRootType.HasValue)
+                {
+                    if (!Array)
+                    {
+                        m_ElementRootType.Value = Type;
+                    }
+                    else
+                    {
+                        var info = GetTypeInfo(ElementType);
+                        m_ElementRootType.Value = info.ElementRootType;
+                    }
+                    m_ElementRootType.HasValue = true;
+                }
+                return m_ElementRootType.Value;
+            }
+        }
 
 		public Type ElementType
 		{
@@ -459,7 +494,18 @@ namespace Sweet.Jayson
 			return default(T);
 		}
 
-		public static Type GetElementType(Type type)
+        public static Type GetElementRootType(Type type)
+        {
+            JaysonTypeInfo info;
+            if (!s_InfoCache.TryGetValue(type, out info))
+            {
+                info = new JaysonTypeInfo(type);
+                s_InfoCache[type] = info;
+            }
+            return info.ElementRootType;
+        }
+
+        public static Type GetElementType(Type type)
 		{
 			JaysonTypeInfo info;
 			if (!s_InfoCache.TryGetValue(type, out info))

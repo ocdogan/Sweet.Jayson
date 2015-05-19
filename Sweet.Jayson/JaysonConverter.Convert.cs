@@ -1165,6 +1165,35 @@ namespace Sweet.Jayson
             }
         }
 
+		private static void SetMultiDimensionalArray(IList obj, Array instance, Type arrayType,
+			int rank, int currRank, int[] rankIndices, JaysonDeserializationContext context)
+		{
+			int length = Math.Min(obj.Count, instance.GetLength (currRank));
+			if (length > 0) {
+				if (currRank == rank - 1) {
+					for (int i = 0; i < length; i++) {
+						rankIndices [currRank] = i;
+						instance.SetValue (ConvertObject(obj[i], arrayType, context), rankIndices);
+					}
+				} else {
+					object child;
+					for (int i = 0; i < length; i++) {
+						rankIndices [currRank] = i;
+						child = obj [i];
+
+						if (child is IList) {
+							SetMultiDimensionalArray ((IList)child, instance, arrayType, rank, currRank + 1, 
+								rankIndices, context);
+						}
+						else if (child is IList<object>) {
+							SetMultiDimensionalArray ((IList<object>)child, instance, arrayType, rank, currRank + 1, 
+								rankIndices, context);
+						}
+					}
+				}
+			}
+		}
+
 		private static void SetMultiDimensionalArray(IList<object> obj, Array instance, Type arrayType,
 			int rank, int currRank, int[] rankIndices, JaysonDeserializationContext context)
 		{
@@ -1176,13 +1205,17 @@ namespace Sweet.Jayson
 						instance.SetValue (ConvertObject(obj[i], arrayType, context), rankIndices);
 					}
 				} else {
-					IList<object> child;
+					object child;
 					for (int i = 0; i < length; i++) {
 						rankIndices [currRank] = i;
-						child = obj [i] as IList<object>;
+						child = obj [i];
 
-						if (child != null) {
-							SetMultiDimensionalArray (child, instance, arrayType, rank, currRank + 1, 
+						if (child is IList) {
+							SetMultiDimensionalArray ((IList)child, instance, arrayType, rank, currRank + 1, 
+								rankIndices, context);
+						}
+						else if (child is IList<object>) {
+							SetMultiDimensionalArray ((IList<object>)child, instance, arrayType, rank, currRank + 1, 
 								rankIndices, context);
 						}
 					}
@@ -1617,21 +1650,44 @@ namespace Sweet.Jayson
 			return type;
 		}
 
-		private static int[] GetArrayRankIndices(IList<object> obj, int rank)
+		private static int[] GetArrayRankIndices(object obj, int rank)
 		{
 			int[] result = new int[rank];
 			if (obj != null) {
 				int count;
 				int index = 0;
-				do {
-					count = obj.Count;
-					result [index++] = count;
 
-					if (count == 0) {
-						break;
+				IList list;
+				IList<object> oList;
+				ICollection collection;
+
+				do {
+					list = obj as IList;
+					if (list != null) {
+						count = list.Count;
+						if (count > 0) {
+							obj = list[0];
+						}
+					} else {
+						oList = obj as IList<object>;
+						if (oList != null) {
+							count = oList.Count;
+							if (count > 0) {
+								obj = oList[0];
+							}
+						} else {
+							collection = obj as ICollection;
+							if (collection != null) {
+								count = collection.Count;
+								obj = null;
+							} else {
+								break;
+							}
+						}
 					}
-					obj = obj [0] as IList<object>;
-				} while (obj != null);
+
+					result [index++] = count;
+				} while (index < rank && count > 0 && obj != null);
 			}
 			return result;
 		}

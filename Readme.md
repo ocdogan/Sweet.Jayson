@@ -40,18 +40,22 @@ Open sourced under [MIT license][2].
 
 -   Byte arrays (`byte[]`) as *Base64String,*
 
--   Multidimensional arrays (`int[,]`) and jugged arrays (`int[][]`),
+-   Multidimensional arrays (`int[,]`),
+
+-   Jagged arrays (`int[][]`),
+
+-   Mixed arrays (`int[][,]` and `int[,][]`),
 
 -   `dynamic` Types,
 
--   Embedding type information with *"*`$type`*"* notation for exact type
+-   Embedding type information with “`$type`*"* notation for exact type
     deserialization,
 
--   Embedding global type information with *"*`$types`*"* notation for exact
-    type deserialization and compact output,
+-   Embedding global type information with “`$types`*"* notation for exact type
+    deserialization and compact output,
 
 -   Including or excluding “`null`*"* values into/from output (both in
-    *properties* or in *lists* separately),
+    `Properties` or in `Lists` separately),
 
 -   Serializing `Guid` as byte array (`byte[]`),
 
@@ -103,8 +107,8 @@ or
 -   Changing types in deserialization using
     `System.Runtime.Serialization.SerializationBinder`,
 
--   Changing *Property* and *Field names into any value* without using custom
-    Attribute classes by `JaysonTypeOverride`,
+-   Changing `Property` and `Field`* names into any value* without using custom
+    `Attribute` classes by `JaysonTypeOverride`,
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var dto1 = TestClasses.GetTypedContainerDto();
@@ -196,9 +200,9 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
     \u0357
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   *Sorting Field* and *Property names* descending,
+-   *Sorting *`Field` and `Property`* names* descending,
 
--   Ignoring *Circular References* or raise exception on Circular Reference,
+-   Ignoring `Circular References` or raise exception on Circular Reference,
 
 -   Use `Enum` Type names or numeric `Enum` values,
 
