@@ -45,6 +45,24 @@ namespace Sweet.Jayson.Tests
     public class PrimaryTests
     {
 		[Test]
+		public static void TestTimeSpan1()
+		{
+			var ts1 = new TimeSpan (2, 33, 44);
+			string json = JaysonConverter.ToJsonString(ts1);
+			var ts2 = JaysonConverter.ToObject<TimeSpan>(json);
+			Assert.AreEqual(ts1.Ticks, ts2.Ticks);
+		}
+
+		[Test]
+		public static void TestTimeSpan2()
+		{
+			var ts1 = new TimeSpan (1, 2, 33, 44, 555);
+			string json = JaysonConverter.ToJsonString(ts1);
+			var ts2 = JaysonConverter.ToObject<TimeSpan>(json);
+			Assert.AreEqual(ts1.Ticks, ts2.Ticks);
+		}
+
+		[Test]
 		public static void TestGuid1()
 		{
 			var guid1 = new Guid ("199B7309-8E94-4DB0-BDD9-DA311E8C47AC");
@@ -761,7 +779,66 @@ namespace Sweet.Jayson.Tests
             Assert.AreEqual(dictionary1.Count, dictionary2.Count);
         }
 
-        [Test]
+		[Test]
+		public static void TestDictionaryTK10()
+		{
+			Dictionary<char, IList<int[,]>> dictionary1 = new Dictionary<char, IList<int[,]>> { 
+				{ 'A', new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 } } } }, 
+				{ 'B', new List<int[,]> { new int[,] { { 5, 6 }, { 7, 8 } } } } 
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			Dictionary<char, IList<int[,]>> dictionary2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					dictionary2 = JaysonConverter.ToObject<Dictionary<char, IList<int[,]>>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull(dictionary2);
+			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+		}
+
+
+		[Test]
+		public static void TestDictionaryTK11()
+		{
+			Dictionary<IList, IList<int[,]>> dictionary1 = new Dictionary<IList, IList<int[,]>> { 
+				{ new ArrayList { 'A' }, new List<int[,]> { new int[,] { { 1, 2 }, { 3, 4 } } } }, 
+				{ new ArrayList { 'B' }, new List<int[,]> { new int[,] { { 5, 6 }, { 7, 8 } } } } 
+			};
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			string json = null;
+			Dictionary<IList, IList<int[,]>> dictionary2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					json = JaysonConverter.ToJsonString(dictionary1, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					dictionary2 = JaysonConverter.ToObject<Dictionary<IList, IList<int[,]>>>(json, jaysonDeserializationSettings);
+				});
+			Assert.IsNotNull(dictionary2);
+			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+		}
+
+		[Test]
 		public static void TestMultiDimentionalArray1()
 		{
 			int[,] intArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
@@ -1125,6 +1202,41 @@ namespace Sweet.Jayson.Tests
 
             Assert.IsNotNull(result);
             Assert.IsTrue(result is ITypedContainerNoDto);
+        }
+
+        [Test]
+        public static void TestIgnoreMember1()
+        {
+            var dto = TestClasses.GetTypedContainerIgnoreMemberDto();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            TypedContainerIgnoreMemberDto result = null;
+            Assert.DoesNotThrow(() =>
+            {
+                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                result = JaysonConverter.ToObject<TypedContainerIgnoreMemberDto>(json, jaysonDeserializationSettings);
+            });
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(result.InheritedInt1, 1);
+            Assert.AreEqual(result.InheritedInt2, 0);
+            Assert.AreEqual(result.InheritedInt3, 3);
+            Assert.AreEqual(result.InheritedInt4, 0);
+            Assert.AreEqual(result.InheritedStr1, "Str1");
+            Assert.AreEqual(result.InheritedStr2, null);
+            Assert.AreEqual(result.InheritedStr3, "Str3");
+            Assert.AreEqual(result.InheritedStr4, null);
         }
 
         private class TestBinder : System.Runtime.Serialization.SerializationBinder
@@ -2745,6 +2857,197 @@ namespace Sweet.Jayson.Tests
 			var jsonObj = JaysonConverter.ToJsonObject(ds1, jaysonSerializationSettings);
 
 			Assert.IsNotNull(jsonObj);
+		}
+
+        [Test]
+        public static void TestHashSet1a()
+        {
+            var hset1 = new HashSet<int>();
+            hset1.Add(1);
+            hset1.Add(2);
+            hset1.Add(3);
+            hset1.Add(4);
+            hset1.Add(5);
+            hset1.Add(6);
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            HashSet<int> hset2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                string json = JaysonConverter.ToJsonString(hset1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                hset2 = JaysonConverter.ToObject<HashSet<int>>(json, jaysonDeserializationSettings);
+            });
+
+            Assert.IsNotNull(hset2);
+            Assert.AreEqual(hset2.Count, 6);
+            Assert.True(hset2.SetEquals(hset1));
+        }
+
+        [Test]
+        public static void TestHashSet1b()
+        {
+            var hset1 = new HashSet<int>();
+            hset1.Add(1);
+            hset1.Add(2);
+            hset1.Add(3);
+            hset1.Add(4);
+            hset1.Add(5);
+            hset1.Add(6);
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            HashSet<int> hset2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                string json = JaysonConverter.ToJsonString(hset1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                hset2 = JaysonConverter.ToObject<HashSet<int>>(json, jaysonDeserializationSettings);
+            });
+
+            Assert.IsNotNull(hset2);
+            Assert.AreEqual(hset2.Count, 6);
+            Assert.True(hset2.SetEquals(hset1));
+        }
+
+        [Test]
+        public static void TestHashTable1a()
+        {
+            var htable1 = new Hashtable();
+            htable1.Add(1, 2m);
+            htable1.Add(3, 4m);
+            htable1.Add(5, 6m);
+            htable1.Add(7, 8m);
+            htable1.Add(9, 10m);
+            htable1.Add(11, 12m);
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            Hashtable htable2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                string json = JaysonConverter.ToJsonString(htable1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                htable2 = JaysonConverter.ToObject<Hashtable>(json, jaysonDeserializationSettings);
+            });
+
+            Assert.IsNotNull(htable2);
+            Assert.AreEqual(htable2.Count, 6);
+            Assert.AreEqual(2, htable2[1]);
+            Assert.AreEqual(4, htable2[3]);
+            Assert.AreEqual(6, htable2[5]);
+            Assert.AreEqual(8, htable2[7]);
+            Assert.AreEqual(10, htable2[9]);
+            Assert.AreEqual(12, htable2[11]);
+        }
+
+        [Test]
+        public static void TestHashTable1b()
+        {
+            var htable1 = new Hashtable();
+            htable1.Add(1, 2m);
+            htable1.Add(3, 4m);
+            htable1.Add(5, 6m);
+            htable1.Add(7, 8m);
+            htable1.Add(9, 10m);
+            htable1.Add(11, 12m);
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            Hashtable htable2 = null;
+            Assert.DoesNotThrow(() =>
+            {
+                string json = JaysonConverter.ToJsonString(htable1, jaysonSerializationSettings);
+                JaysonConverter.Parse(json, jaysonDeserializationSettings);
+                htable2 = JaysonConverter.ToObject<Hashtable>(json, jaysonDeserializationSettings);
+            });
+
+            Assert.IsNotNull(htable2);
+            Assert.AreEqual(htable2.Count, 6);
+            Assert.AreEqual(2m, htable2[1]);
+            Assert.AreEqual(4m, htable2[3]);
+            Assert.AreEqual(6m, htable2[5]);
+            Assert.AreEqual(8m, htable2[7]);
+            Assert.AreEqual(10m, htable2[9]);
+            Assert.AreEqual(12m, htable2[11]);
+        }
+
+		[Test]
+		public static void TestHashTable1c()
+		{
+			var htable1 = new Hashtable();
+			htable1.Add(1, 2m);
+			htable1.Add(3, 4m);
+			htable1.Add(5, 6m);
+			htable1.Add(7, 8m);
+			htable1.Add(9, 10m);
+			htable1.Add(11, 12m);
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.IgnoreNullValues = false;
+			jaysonSerializationSettings.CaseSensitive = false;
+			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+			jaysonSerializationSettings.UseGlobalTypeNames = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = false;
+
+			Hashtable htable2 = null;
+			Assert.DoesNotThrow(() =>
+				{
+					string json = JaysonConverter.ToJsonString(htable1, jaysonSerializationSettings);
+					JaysonConverter.Parse(json, jaysonDeserializationSettings);
+					htable2 = JaysonConverter.ToObject<Hashtable>(json, jaysonDeserializationSettings);
+				});
+
+			Assert.IsNotNull(htable2);
+			Assert.AreEqual(htable2.Count, 6);
+			Assert.AreEqual(2m, htable2[1]);
+			Assert.AreEqual(4m, htable2[3]);
+			Assert.AreEqual(6m, htable2[5]);
+			Assert.AreEqual(8m, htable2[7]);
+			Assert.AreEqual(10m, htable2[9]);
+			Assert.AreEqual(12m, htable2[11]);
 		}
     }
 }

@@ -985,13 +985,13 @@ namespace Sweet.Jayson
 				{
 					JaysonSerializationSettings settings = context.Settings;
 					#if !(NET3500 || NET3000 || NET2000)
-					if (settings.DisableExpandoObjects && (info.Type == typeof(ExpandoObject)))
+					if (settings.IgnoreExpandoObjects && (info.Type == typeof(ExpandoObject)))
 					{
 						return null;
 					}
 					#endif
 
-                    if (settings.DisableAnonymousTypes && info.Anonymous)
+                    if (settings.IgnoreAnonymousTypes && info.Anonymous)
 					{
 						return null;
 					}
@@ -1019,7 +1019,7 @@ namespace Sweet.Jayson
 					#if !(NET3500 || NET3000 || NET2000)
 					if (obj is DynamicObject)
 					{
-						if (!settings.DisableDynamicObjects)
+						if (!settings.IgnoreDynamicObjects)
 						{
 							return AsDynamicObject((DynamicObject)obj, context);
 						}

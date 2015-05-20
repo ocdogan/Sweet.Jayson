@@ -879,11 +879,36 @@ namespace Sweet.Jayson
 
             bool hasStype = obj.ContainsKey("$type");
 
+			object kvListObj;
+			List<object> kvList = null;
+			if (obj.TryGetValue ("$kv", out kvListObj)) {
+				kvList = kvListObj as List<object>;
+			}
+
             if (instance is IDictionary<string, object>)
             {
                 IDictionary<string, object> instanceDict = (IDictionary<string, object>)instance;
 
-                string key;
+				string key;
+
+				if (kvList != null) {
+					int count = kvList.Count;
+					if (count > 0) {
+						object keyObj;
+						IDictionary<string, object> kvp;
+
+						for (int i = 0; i < count; i++) {
+							kvp = (IDictionary<string, object>)kvList [i];
+
+							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+							key = keyObj as string ?? keyObj.ToString ();
+
+							instanceDict[key] = ConvertObject(kvp["$v"], typeof(object), context);
+						}
+					}
+					return;
+				}
+
                 foreach (var entry in obj)
                 {
                     key = entry.Key;
@@ -908,6 +933,22 @@ namespace Sweet.Jayson
                     Type keyType = genArgs[0];
                     Type valType = genArgs[1];
 
+					if (kvList != null) {
+						int count = kvList.Count;
+						if (count > 0) {
+							object keyObj;
+							IDictionary<string, object> kvp;
+
+							for (int i = 0; i < count; i++) {
+								kvp = (IDictionary<string, object>)kvList [i];
+
+								keyObj = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
+								instanceDict[keyObj] = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+							}
+						}
+						return;
+					}
+
                     foreach (var entry in obj)
                     {
                         if (!hasStype || entry.Key != "$type")
@@ -918,6 +959,22 @@ namespace Sweet.Jayson
                     }
                     return;
                 }
+
+				if (kvList != null) {
+					int count = kvList.Count;
+					if (count > 0) {
+						object keyObj;
+						IDictionary<string, object> kvp;
+
+						for (int i = 0; i < count; i++) {
+							kvp = (IDictionary<string, object>)kvList [i];
+
+							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+							instanceDict[keyObj] = ConvertObject(kvp["$v"], typeof(object), context);
+						}
+					}
+					return;
+				}
 
                 foreach (var entry in obj)
                 {
@@ -939,9 +996,50 @@ namespace Sweet.Jayson
             {
                 NameValueCollection nvcollection = (NameValueCollection)instance;
 
-                string key;
-                object value;
-                Type valueType;
+				string key;
+				object value;
+				Type valueType;
+
+				if (kvList != null) {
+					int count = kvList.Count;
+					if (count > 0) {
+						object keyObj;
+						IDictionary<string, object> kvp;
+
+						for (int i = 0; i < count; i++) {
+							kvp = (IDictionary<string, object>)kvList [i];
+
+							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+							key = keyObj as string ?? keyObj.ToString ();
+
+							value = ConvertObject(kvp["$v"], typeof(object), context);
+
+							if (value == null || value is string)
+							{
+								nvcollection.Add(key, (string)value);
+							}
+							else
+							{
+								valueType = value.GetType();
+								if (JaysonTypeInfo.IsJPrimitive(valueType))
+								{
+									nvcollection.Add(key, JaysonFormatter.ToString(value, valueType));
+								}
+								else if (value is IFormattable)
+								{
+									nvcollection.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+								}
+								else
+								{
+									nvcollection.Add(key, ToJsonString(value));
+								}
+							}
+
+						}
+					}
+					return;
+				}
+
                 foreach (var item in obj)
                 {
                     key = item.Key;
@@ -975,9 +1073,49 @@ namespace Sweet.Jayson
             {
                 StringDictionary sidic = (StringDictionary)instance;
 
-                string key;
-                object value;
-                Type valueType;
+				string key;
+				object value;
+				Type valueType;
+
+				if (kvList != null) {
+					int count = kvList.Count;
+					if (count > 0) {
+						object keyObj;
+						IDictionary<string, object> kvp;
+
+						for (int i = 0; i < count; i++) {
+							kvp = (IDictionary<string, object>)kvList [i];
+
+							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+							key = keyObj as string ?? keyObj.ToString ();
+
+							value = ConvertObject(kvp["$v"], typeof(object), context);
+
+							if (value == null || value is string)
+							{
+								sidic.Add(key, (string)value);
+							}
+							else
+							{
+								valueType = value.GetType();
+								if (JaysonTypeInfo.IsJPrimitive(valueType))
+								{
+									sidic.Add(key, JaysonFormatter.ToString(value, valueType));
+								}
+								else if (value is IFormattable)
+								{
+									sidic.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+								}
+								else
+								{
+									sidic.Add(key, ToJsonString(value));
+								}
+							}
+						}
+					}
+					return;
+				}
+
                 foreach (var item in obj)
                 {
                     key = item.Key;
@@ -1084,7 +1222,7 @@ namespace Sweet.Jayson
                         Action<object, object[]> addMethod = JaysonCommon.GetIDictionaryAddMethod(instanceType);
                         if (addMethod != null)
                         {
-                            bool changeVal = genArgs[1] != typeof(object);
+							bool changeValue = genArgs[1] != typeof(object);
                             bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
 
                             object key;
@@ -1093,12 +1231,29 @@ namespace Sweet.Jayson
                             Type keyType = genArgs[0];
                             Type valType = genArgs[1];
 
+							if (kvList != null) {
+								int count = kvList.Count;
+								if (count > 0) {
+									IDictionary<string, object> kvp;
+
+									for (int i = 0; i < count; i++) {
+										kvp = (IDictionary<string, object>)kvList [i];
+
+										key = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
+										value = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+
+										addMethod(instance, new object[] { key, value });
+									}
+								}
+								return;
+							}
+
                             foreach (var entry in obj)
                             {
                                 if (!hasStype || entry.Key != "$type")
                                 {
 									key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
-									value = changeVal ? ConvertObject(entry.Value, valType, context) : entry.Value;
+									value = changeValue ? ConvertObject(entry.Value, valType, context) : entry.Value;
 
                                     addMethod(instance, new object[] { key, value });
                                 }

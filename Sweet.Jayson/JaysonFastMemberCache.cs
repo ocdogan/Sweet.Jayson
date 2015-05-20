@@ -85,8 +85,8 @@ namespace Sweet.Jayson
 				{
 					var iParams = pi.GetIndexParameters();
 
-					if ((iParams == null || iParams.Length == 0) &&
-						pi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+					if ((iParams == null || iParams.Length == 0) && !pi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
+						// pi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
 					{
 						member = new JaysonFastProperty(pi, true, true);
 
@@ -102,7 +102,8 @@ namespace Sweet.Jayson
 			for (int i = fis.Length - 1; i > -1; i--)
 			{
 				fi = fis[i];
-				if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+				// if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+                if (!fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
 				{
 					member = new JaysonFastField(fi, true, true);
 
@@ -170,7 +171,8 @@ namespace Sweet.Jayson
 			for (int i = fis.Length - 1; i > -1; i--)
 			{
 				fi = fis[i];
-				if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+				// if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+                if (!fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
 				{
 					fastField = new JaysonFastField(fi, true, true);
 

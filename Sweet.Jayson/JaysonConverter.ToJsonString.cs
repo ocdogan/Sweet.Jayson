@@ -305,103 +305,129 @@ namespace Sweet.Jayson
             return true;
         }
 
-		private static bool WriteKeyValueEntry(string key, object value, JaysonSerializationContext context, 
-			bool isFirst, bool ignoreEscape = false)
-		{
-			if ((value != null) && (value != DBNull.Value)) {
-				StringBuilder builder = context.Builder;
-				JaysonSerializationSettings settings = context.Settings;
+        private static bool WriteKeyValueEntry(string key, object value, JaysonSerializationContext context, bool isFirst, 
+            bool forceNullValues = false, bool ignoreEscape = false)
+        {
+            if ((value != null) && (value != DBNull.Value))
+            {
+                StringBuilder builder = context.Builder;
+                JaysonSerializationSettings settings = context.Settings;
 
-				if (!isFirst) {
-					builder.Append (',');
-				}
-				if (settings.Formatting) {
-					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-				}
+                if (!isFirst)
+                {
+                    builder.Append(',');
+                }
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
 
-				builder.Append ('"');
+                builder.Append('"');
 
-				if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
-					builder.Append (settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
-				} else {
-					JaysonFormatter.EncodeUnicodeString (settings.CaseSensitive ? key : 
-						key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
-				}
+                if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars))
+                {
+                    builder.Append(settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
+                }
+                else
+                {
+                    JaysonFormatter.EncodeUnicodeString(settings.CaseSensitive ? key :
+                        key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
+                }
 
-				if (settings.Formatting) {
-					builder.Append ("\": ");
-				} else {
-					builder.Append ('"');
-					builder.Append (':');
-				}
+                if (settings.Formatting)
+                {
+                    builder.Append("\": ");
+                }
+                else
+                {
+                    builder.Append('"');
+                    builder.Append(':');
+                }
 
-				var valueType = value.GetType ();
-				var jtc = JaysonTypeInfo.GetJTypeCode(valueType);
+                var valueType = value.GetType();
+                var jtc = JaysonTypeInfo.GetJTypeCode(valueType);
 
-				if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool) {
-					context.Formatter.Format (value, valueType, context.Builder);
-					return false; // isFirst
-				} 
+                if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
+                {
+                    context.Formatter.Format(value, valueType, context.Builder);
+                    return false; // isFirst
+                }
 
-				if (jtc == JaysonTypeCode.Object) {
-					WriteJsonObject (value, valueType, context);
-					return false; // isFirst
-				} 
+                if (jtc == JaysonTypeCode.Object)
+                {
+                    WriteJsonObject(value, valueType, context);
+                    return false; // isFirst
+                }
 
-				JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
+                JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
-				if (jtns == JaysonTypeNameSerialization.All ||
-					((jtns == JaysonTypeNameSerialization.Auto ||
-						jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
-						(jtc == JaysonTypeCode.Nullable || 
-							((JaysonTypeCode.Primitive & jtc) == jtc &&
-								(JaysonTypeCode.Number & jtc) != jtc)))) {
-					context.ObjectDepth++;
-					try {
-						WritePrimitiveTypeName (valueType, context);
-						context.Formatter.Format (value, valueType, builder);
-					} finally {
-						context.ObjectDepth--;
-						if (context.Settings.Formatting) {
-							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-						}
-						builder.Append ('}');
-					}
-					return false; // isFirst
-				} 
+                if (jtns == JaysonTypeNameSerialization.All ||
+                    ((jtns == JaysonTypeNameSerialization.Auto ||
+                        jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
+                        (jtc == JaysonTypeCode.Nullable ||
+                            ((JaysonTypeCode.Primitive & jtc) == jtc &&
+                                (JaysonTypeCode.Number & jtc) != jtc))))
+                {
+                    context.ObjectDepth++;
+                    try
+                    {
+                        WritePrimitiveTypeName(valueType, context);
+                        context.Formatter.Format(value, valueType, builder);
+                    }
+                    finally
+                    {
+                        context.ObjectDepth--;
+                        if (context.Settings.Formatting)
+                        {
+                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        }
+                        builder.Append('}');
+                    }
+                    return false; // isFirst
+                }
 
-				context.Formatter.Format(value, valueType, context.Builder);
-				return false; // isFirst
-			} else if (!context.Settings.IgnoreNullValues) {
-				StringBuilder builder = context.Builder;
-				JaysonSerializationSettings settings = context.Settings;
+                context.Formatter.Format(value, valueType, context.Builder);
+                return false; // isFirst
+            }
+            else if (forceNullValues || !context.Settings.IgnoreNullValues)
+            {
+                StringBuilder builder = context.Builder;
+                JaysonSerializationSettings settings = context.Settings;
 
-				if (!isFirst) {
-					builder.Append (',');
-				}
-				if (context.Settings.Formatting) {
-					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
-				}
+                if (!isFirst)
+                {
+                    builder.Append(',');
+                }
+                if (context.Settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
 
-				builder.Append ('"');
+                builder.Append('"');
 
-				if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars)) {
-					builder.Append (settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
-				} else {
-					JaysonFormatter.EncodeUnicodeString (settings.CaseSensitive ? key : 
-						key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
-				}
+                if (ignoreEscape || !(settings.EscapeChars || settings.EscapeUnicodeChars))
+                {
+                    builder.Append(settings.CaseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture));
+                }
+                else
+                {
+                    JaysonFormatter.EncodeUnicodeString(settings.CaseSensitive ? key :
+                        key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
+                }
 
-				if (settings.Formatting) {
-					builder.Append ("\": null");
-				} else {
-					builder.Append ("\":null");
-				}
-				return false; // isFirst
-			}
+                if (settings.Formatting)
+                {
+                    builder.Append("\": null");
+                }
+                else
+                {
+                    builder.Append("\":null");
+                }
+                return false; // isFirst
+            }
 
-			return isFirst;
-		}
+            return isFirst;
+        }
 
 		private static bool WriteEnumerableValue(object value, JaysonSerializationContext context, bool isFirst)
 		{
@@ -722,6 +748,12 @@ namespace Sweet.Jayson
                     DataColumn column;
                     string defaultNamespace = dataTable.Namespace;
 
+                    int iValue;
+                    bool bValue;
+                    long lValue;
+                    string sValue;
+                    MappingType mValue;
+
                     for (int i = 0; i < columnCount; i++)
                     {
                         if (i > 0)
@@ -745,59 +777,72 @@ namespace Sweet.Jayson
                             column = columns[i];
 
                             isFirst = true;
-                            if (!column.AllowDBNull)
+                            bValue = column.AllowDBNull;
+                            if (!bValue)
                             {
-								isFirst = WriteKeyValueEntry("AllowDBNull", column.AllowDBNull, context, isFirst);
+								isFirst = WriteKeyValueEntry("AllowDBNull", bValue, context, isFirst);
                             }
+                            bValue = column.AutoIncrement;
                             if (column.AutoIncrement)
                             {
-								isFirst = WriteKeyValueEntry("AutoIncrement", column.AutoIncrement, context, isFirst);
+								isFirst = WriteKeyValueEntry("AutoIncrement", bValue, context, isFirst);
                             }
-                            if (column.AutoIncrementSeed != 0)
+                            lValue = column.AutoIncrementSeed;
+                            if (lValue != 0)
                             {
-								isFirst = WriteKeyValueEntry("AutoIncrementSeed", column.AutoIncrementSeed, context, isFirst);
+								isFirst = WriteKeyValueEntry("AutoIncrementSeed", lValue, context, isFirst);
                             }
-                            if (column.AutoIncrementStep != 1)
+                            lValue = column.AutoIncrementStep;
+                            if (lValue != 1)
                             {
-								isFirst = WriteKeyValueEntry("AutoIncrementStep", column.AutoIncrementStep, context, isFirst);
+								isFirst = WriteKeyValueEntry("AutoIncrementStep", lValue, context, isFirst);
                             }
-                            if (!String.IsNullOrEmpty(column.Caption) && column.Caption != column.ColumnName)
+                            sValue = column.Caption;
+                            if (!String.IsNullOrEmpty(sValue) && sValue != column.ColumnName)
                             {
-								isFirst = WriteKeyValueEntry("Caption", column.Caption, context, isFirst);
+								isFirst = WriteKeyValueEntry("Caption", sValue, context, isFirst);
                             }
-                            if (column.ColumnMapping != MappingType.Element)
+                            mValue = column.ColumnMapping;
+                            if (mValue != MappingType.Element)
                             {
-								isFirst = WriteKeyValueEntry("ColumnMapping", column.ColumnMapping, context, isFirst);
+								isFirst = WriteKeyValueEntry("ColumnMapping", mValue, context, isFirst);
                             }
-                            if (!String.IsNullOrEmpty(column.ColumnName))
+                            sValue = column.ColumnName;
+                            if (!String.IsNullOrEmpty(sValue))
                             {
-								isFirst = WriteKeyValueEntry("ColumnName", column.ColumnName, context, isFirst);
+								isFirst = WriteKeyValueEntry("ColumnName", sValue, context, isFirst);
                             }
                             isFirst = WriteKeyValueEntry("DataType", JaysonTypeInfo.GetTypeName(column.DataType, JaysonTypeNameInfo.TypeNameWithAssembly), context, isFirst);
-                            if (!String.IsNullOrEmpty(column.Expression))
+                            sValue = column.Expression;
+                            if (!String.IsNullOrEmpty(sValue))
                             {
-                                isFirst = WriteKeyValueEntry("Expression", column.Expression, context, isFirst);
+                                isFirst = WriteKeyValueEntry("Expression", sValue, context, isFirst);
                             }
-                            if (column.MaxLength != -1)
+                            iValue = column.MaxLength;
+                            if (iValue != -1)
                             {
-								isFirst = WriteKeyValueEntry("MaxLength", column.MaxLength, context, isFirst);
+								isFirst = WriteKeyValueEntry("MaxLength", iValue, context, isFirst);
                             }
-                            if (!String.IsNullOrEmpty(column.Namespace) && column.Namespace != defaultNamespace)
+                            sValue = column.Namespace;
+                            if (!String.IsNullOrEmpty(sValue) && sValue != defaultNamespace)
                             {
 								isFirst = WriteKeyValueEntry("Namespace", column.Namespace, context, isFirst);
                             }
 							isFirst = WriteKeyValueEntry("Ordinal", column.Ordinal, context, isFirst);
-                            if (!String.IsNullOrEmpty(column.Prefix))
+                            sValue = column.Prefix;
+                            if (!String.IsNullOrEmpty(sValue))
                             {
-								isFirst = WriteKeyValueEntry("Prefix", column.Prefix, context, isFirst);
+								isFirst = WriteKeyValueEntry("Prefix", sValue, context, isFirst);
                             }
-                            if (column.ReadOnly)
+                            bValue = column.ReadOnly;
+                            if (bValue)
                             {
-								isFirst = WriteKeyValueEntry("ReadOnly", column.ReadOnly, context, isFirst);
+								isFirst = WriteKeyValueEntry("ReadOnly", bValue, context, isFirst);
                             }
-                            if (column.Unique)
+                            bValue = column.Unique;
+                            if (bValue)
                             {
-								isFirst = WriteKeyValueEntry("Unique", column.Unique, context, isFirst);
+								isFirst = WriteKeyValueEntry("Unique", bValue, context, isFirst);
                             }
 
                             if (column.ExtendedProperties.Count > 0)
@@ -859,25 +904,30 @@ namespace Sweet.Jayson
                 }
 
                 isFirst = WriteKeyValueEntry("$datatype", "DataTable", context, isFirst);
-                if (dataTable.CaseSensitive)
+                bool bValue = dataTable.CaseSensitive;
+                if (bValue)
                 {
-					isFirst = WriteKeyValueEntry("CaseSensitive", dataTable.CaseSensitive, context, isFirst);
+					isFirst = WriteKeyValueEntry("CaseSensitive", bValue, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataTable.DisplayExpression))
+                string sValue = dataTable.DisplayExpression;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("DisplayExpression", dataTable.DisplayExpression, context, isFirst);
+					isFirst = WriteKeyValueEntry("DisplayExpression", sValue, context, isFirst);
                 }
-                if (dataTable.Locale != CultureInfo.InvariantCulture)
+                CultureInfo cValue = dataTable.Locale;
+                if (!ReferenceEquals(cValue, CultureInfo.InvariantCulture))
                 {
-					isFirst = WriteKeyValueEntry("Locale", dataTable.Locale.Name, context, isFirst);
+					isFirst = WriteKeyValueEntry("Locale", cValue.Name, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataTable.Namespace))
+                sValue = dataTable.Namespace;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("Namespace", dataTable.Namespace, context, isFirst);
+					isFirst = WriteKeyValueEntry("Namespace", sValue, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataTable.Prefix))
+                sValue = dataTable.Prefix;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("Prefix", dataTable.Prefix, context, isFirst);
+					isFirst = WriteKeyValueEntry("Prefix", sValue, context, isFirst);
                 }
 
 				var columns = dataTable.PrimaryKey;
@@ -886,9 +936,10 @@ namespace Sweet.Jayson
 					isFirst = !WriteDataColumnNames ("PrimaryKey", columns, context, isFirst);
 				}
 
-                if (!String.IsNullOrEmpty(dataTable.TableName))
+                sValue = dataTable.TableName;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("TableName", dataTable.TableName, context, isFirst);
+					isFirst = WriteKeyValueEntry("TableName", sValue, context, isFirst);
                 }
 
                 if (dataTable.ExtendedProperties.Count > 0)
@@ -968,6 +1019,10 @@ namespace Sweet.Jayson
                     return true;
                 }
 
+                bool bValue;
+                string sValue;
+                DataTable dValue;
+
                 DataRelation relation;
                 string defaultNamespace = dataSet.Namespace;
 
@@ -983,7 +1038,7 @@ namespace Sweet.Jayson
                     }
                     builder.Append('{');
 
-                    context.ObjectDepth++;
+                    context.ObjectDepth++;                   
                     try
                     {
                         if (!ValidObjectDepth(context))
@@ -994,19 +1049,23 @@ namespace Sweet.Jayson
                         relation = relations[i];
 
                         isFirst = true;
-                        if (!String.IsNullOrEmpty(relation.RelationName))
+                        sValue = relation.RelationName;
+                        if (!String.IsNullOrEmpty(sValue))
                         {
-                            isFirst = WriteKeyValueEntry("RelationName", relation.RelationName, context, isFirst);
+                            isFirst = WriteKeyValueEntry("RelationName", sValue, context, isFirst);
                         }
 
                         isFirst = !WriteDataColumnNames("ChildColumns", relation.ChildColumns, context, isFirst);
 
-                        if (relation.ChildTable != null)
+                        dValue = relation.ChildTable;
+                        if (dValue != null)
                         {
-                            isFirst = WriteKeyValueEntry("ChildTable", relation.ChildTable.TableName, context, isFirst);
-                            if (!String.IsNullOrEmpty(relation.ChildTable.Namespace))
+                            isFirst = WriteKeyValueEntry("ChildTable", dValue.TableName, context, isFirst);
+                            
+                            sValue = dValue.Namespace;
+                            if (!String.IsNullOrEmpty(sValue))
                             {
-                                isFirst = WriteKeyValueEntry("ChildTableNamespace", relation.ChildTable.Namespace, context, isFirst);
+                                isFirst = WriteKeyValueEntry("ChildTableNamespace", sValue, context, isFirst);
                             }
                         }
 
@@ -1023,19 +1082,23 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        if (relation.Nested)
+                        bValue = relation.Nested;
+                        if (bValue)
                         {
-                            isFirst = WriteKeyValueEntry("Nested", relation.Nested, context, isFirst);
+                            isFirst = WriteKeyValueEntry("Nested", bValue, context, isFirst);
                         }
 
                         isFirst = !WriteDataColumnNames("ParentColumns", relation.ParentColumns, context, isFirst);
 
-                        if (relation.ParentTable != null)
+                        dValue = relation.ParentTable;
+                        if (dValue != null)
                         {
-                            isFirst = WriteKeyValueEntry("ParentTable", relation.ParentTable.TableName, context, isFirst);
-                            if (!String.IsNullOrEmpty(relation.ParentTable.Namespace))
+                            isFirst = WriteKeyValueEntry("ParentTable", dValue.TableName, context, isFirst);
+
+                            sValue = dValue.Namespace;
+                            if (!String.IsNullOrEmpty(sValue))
                             {
-                                isFirst = WriteKeyValueEntry("ParentTableNamespace", relation.ParentTable.Namespace, context, isFirst);
+                                isFirst = WriteKeyValueEntry("ParentTableNamespace", sValue, context, isFirst);
                             }
                         }
                     }
@@ -1140,8 +1203,8 @@ namespace Sweet.Jayson
 			return true;
 		}
 
-		private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
-		{
+        private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
+        {
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
             bool formatting = context.Settings.Formatting;
@@ -1163,33 +1226,40 @@ namespace Sweet.Jayson
                 }
 
                 isFirst = WriteKeyValueEntry("$datatype", "DataSet", context, isFirst);
-                if (dataSet.CaseSensitive)
+                bool bValue = dataSet.CaseSensitive;
+                if (bValue)
                 {
-                    isFirst = WriteKeyValueEntry("CaseSensitive", dataSet.CaseSensitive, context, isFirst);
+                    isFirst = WriteKeyValueEntry("CaseSensitive", bValue, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataSet.DataSetName))
+                string sValue = dataSet.DataSetName;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("DataSetName", dataSet.DataSetName, context, isFirst);
+                    isFirst = WriteKeyValueEntry("DataSetName", sValue, context, isFirst);
                 }
-                if (!dataSet.EnforceConstraints)
+                bValue = dataSet.EnforceConstraints;
+                if (!bValue)
                 {
-					isFirst = WriteKeyValueEntry("EnforceConstraints", dataSet.EnforceConstraints, context, isFirst);
+                    isFirst = WriteKeyValueEntry("EnforceConstraints", bValue, context, isFirst);
                 }
-                if (dataSet.Locale != CultureInfo.InvariantCulture)
+                CultureInfo cValue = dataSet.Locale;
+                if (!ReferenceEquals(cValue, CultureInfo.InvariantCulture))
                 {
-					isFirst = WriteKeyValueEntry("Locale", dataSet.Locale.Name, context, isFirst);
+                    isFirst = WriteKeyValueEntry("Locale", cValue.Name, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataSet.Namespace))
+                sValue = dataSet.Namespace;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("Namespace", dataSet.Namespace, context, isFirst);
+                    isFirst = WriteKeyValueEntry("Namespace", sValue, context, isFirst);
                 }
-                if (!String.IsNullOrEmpty(dataSet.Prefix))
+                sValue = dataSet.Prefix;
+                if (!String.IsNullOrEmpty(sValue))
                 {
-					isFirst = WriteKeyValueEntry("Prefix", dataSet.Prefix, context, isFirst);
+                    isFirst = WriteKeyValueEntry("Prefix", sValue, context, isFirst);
                 }
-                if (dataSet.SchemaSerializationMode != SchemaSerializationMode.IncludeSchema)
+                SchemaSerializationMode scValue = dataSet.SchemaSerializationMode;
+                if (scValue != SchemaSerializationMode.IncludeSchema)
                 {
-					isFirst = WriteKeyValueEntry("SchemaSerializationMode", dataSet.SchemaSerializationMode, context, isFirst);
+                    isFirst = WriteKeyValueEntry("SchemaSerializationMode", scValue, context, isFirst);
                 }
                 if (dataSet.ExtendedProperties.Count > 0)
                 {
@@ -1204,8 +1274,8 @@ namespace Sweet.Jayson
                     }
                 }
 
-				isFirst = !WriteDataRelations(dataSet, context, isFirst);
-				isFirst = !WriteDataTables(dataSet, context, isFirst);
+                isFirst = !WriteDataRelations(dataSet, context, isFirst);
+                isFirst = !WriteDataTables(dataSet, context, isFirst);
             }
             finally
             {
@@ -1220,7 +1290,7 @@ namespace Sweet.Jayson
 
         # endregion DataSet & DataTable
 
-		private static IEnumerable<JaysonKeyValue<string, object>> GetDictionaryEntries(IDictionary source, 
+		private static IEnumerable<JaysonKeyValue<object, object>> GetDictionaryEntries(IDictionary source, 
 			JaysonSerializationContext context)
 		{
 			string key;
@@ -1236,7 +1306,7 @@ namespace Sweet.Jayson
 				value = dEntry.Value;
 
 				keyObj = dEntry.Key;
-				key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+				key = (keyObj as string) ?? keyObj.ToString ();
 
 				if ((value != null) && canFilter)
 				{
@@ -1245,12 +1315,148 @@ namespace Sweet.Jayson
 
 				if ((value != null) || !ignoreNullValues)
 				{
-					yield return new JaysonKeyValue<string, object> { Key = key, Value = value };
+					yield return new JaysonKeyValue<object, object> { Key = keyObj, Value = value };
 				}
 			}
 		}
 
-		private static void WriteDictionary(IDictionary obj, JaysonSerializationContext context)
+        private static void WriteDictionaryObjectKey(IDictionary obj, JaysonSerializationContext context)
+        {
+			bool formatting = context.Settings.Formatting;
+
+			context.ObjectDepth++;
+			StringBuilder builder = context.Builder;
+            try
+            {
+                if (!WriteObjectType(obj, context))
+                {
+					builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context))
+                {
+                    return;
+                }
+
+                if (obj.Count > 0)
+                {
+					if (formatting) {
+						builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+					}
+
+                    context.ObjectDepth++;
+                    try
+                    {
+						if (formatting) {
+							builder.Append("\"$kv\": [");
+						} else {
+							builder.Append("\"$kv\":[");
+						}
+
+						context.ObjectDepth++;
+						try 
+						{
+							bool isFirstItem = true;
+
+	                        if (context.Settings.OrderNames)
+	                        {
+	                            foreach (var kvp in GetDictionaryEntries(obj, context).OrderBy(kvp => kvp.Key))
+	                            {
+									if (!isFirstItem) {
+										builder.Append (',');
+									}
+									if (formatting) {
+										builder.Append (JaysonConstants.Indentation [context.ObjectDepth-1]);
+									}
+
+									try {
+										builder.Append ('{');
+
+										WriteKeyValueEntry(key: "$k", value: kvp.Key, context: context, 
+											isFirst: true, forceNullValues: true);
+										WriteKeyValueEntry(key: "$v", value: kvp.Value, context: context, 
+											isFirst: true, forceNullValues: true);
+									} finally {
+										isFirstItem = false;
+										if (formatting) {
+											builder.Append (JaysonConstants.Indentation [context.ObjectDepth-1]);
+										}
+										builder.Append ('}');
+									}
+	                            }
+	                        }
+	                        else
+	                        {
+								string key;
+								object value;
+								object keyObj;
+
+								Func<string, object, object> filter = context.Filter;
+								bool canFilter = (filter != null);
+
+	                            foreach (DictionaryEntry dEntry in obj)
+	                            {
+	                                keyObj = dEntry.Key;
+	                                value = dEntry.Value;
+
+	                                key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+
+	                                if ((value != null) && canFilter)
+	                                {
+	                                    value = filter(key, value);
+	                                }
+
+									if (!isFirstItem) {
+										builder.Append (',');
+									}
+									if (formatting) {
+										builder.Append (JaysonConstants.Indentation [context.ObjectDepth - 1]);
+									}
+
+									try {
+										builder.Append ('{');
+
+										WriteKeyValueEntry (key: "$k", value: keyObj, context: context, 
+											isFirst: true, forceNullValues: true);
+										WriteKeyValueEntry (key: "$v", value: value, context: context, 
+											isFirst: true, forceNullValues: true);
+									}
+									finally {
+										isFirstItem = false;
+										if (formatting) {
+											builder.Append (JaysonConstants.Indentation [context.ObjectDepth - 1]);
+										}
+										builder.Append ('}');
+									}
+
+	                            }
+	                        }
+						} finally {
+							context.ObjectDepth--;
+						}
+                    }
+                    finally
+                    {
+                        context.ObjectDepth--;
+						if (formatting) {
+							builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+						}
+						builder.Append (']');
+                    }
+                }
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+				builder.Append('}');
+            }
+        }
+
+		private static void WriteDictionaryStringKey(IDictionary obj, JaysonSerializationContext context)
 		{
 			context.ObjectDepth++;
 			StringBuilder builder = context.Builder;
@@ -1268,35 +1474,34 @@ namespace Sweet.Jayson
 
 				if (obj.Count > 0) {
 					string key;
-					object value;
 					object keyObj;
-
-					Func<string, object, object> filter = context.Filter;
-					bool canFilter = (filter != null);
 
 					if (context.Settings.OrderNames) {
 						foreach (var kvp in GetDictionaryEntries(obj, context).OrderBy(kvp => kvp.Key)) {
-							key = kvp.Key;
-							value = kvp.Value;
+							keyObj = kvp.Key;
+							key = (keyObj as string) ?? keyObj.ToString ();
 
-							if ((value != null) && canFilter) {
-								value = filter (key, value);
-							}
-
-							isFirst = WriteKeyValueEntry (key, value, context, isFirst);
+							isFirst = WriteKeyValueEntry (key: key, value: kvp.Value, context: context, 
+								isFirst: isFirst, forceNullValues: true);
 						}
 					} else {
+						object value;
+
+						Func<string, object, object> filter = context.Filter;
+						bool canFilter = (filter != null);
+
 						foreach (DictionaryEntry dEntry in obj) {
 							keyObj = dEntry.Key;
 							value = dEntry.Value;
 
-							key = (keyObj is string) ? (string)keyObj : keyObj.ToString ();
+							key = (keyObj as string) ?? keyObj.ToString ();
 
 							if ((value != null) && canFilter) {
 								value = filter (key, value);
 							}
 
-							isFirst = WriteKeyValueEntry (key, value, context, isFirst);
+							isFirst = WriteKeyValueEntry (key: key, value: value, context: context, 
+								isFirst: isFirst, forceNullValues: true);
 						}
 					}
 				}
@@ -1512,7 +1717,8 @@ namespace Sweet.Jayson
 	                                    }
 	                                }
 
-	                                isFirst = WriteKeyValueEntry(fKey, value, context, isFirst, true);
+	                                isFirst = WriteKeyValueEntry(key: fKey, value: value, context: context, isFirst: isFirst, 
+                                        forceNullValues: false, ignoreEscape: true);
 	                            }
 							}
 						}
@@ -1538,7 +1744,8 @@ namespace Sweet.Jayson
 						value = filter(dKey, value);
 					}
 
-					isFirst = WriteKeyValueEntry(dKey, value, context, isFirst, true);
+                    isFirst = WriteKeyValueEntry(key: dKey, value: value, context: context, isFirst: isFirst,
+                                        forceNullValues: false, ignoreEscape: true);
 				}
 			}
 			finally
@@ -1611,7 +1818,8 @@ namespace Sweet.Jayson
 	                                    }
 	                                }
 
-	                                isFirst = WriteKeyValueEntry(key, value, context, isFirst, true);
+	                                isFirst = WriteKeyValueEntry(key: key, value: value, context: context, isFirst: isFirst, 
+                                        forceNullValues: false, ignoreEscape: true);
 	                            }
 							}
 						}
@@ -1669,7 +1877,8 @@ namespace Sweet.Jayson
 							value = filter (key, value);
 						}
 
-						isFirst = WriteKeyValueEntry (key, value, context, isFirst, isExpando);
+                        isFirst = WriteKeyValueEntry(key: key, value: value, context: context, isFirst: isFirst,
+                                        forceNullValues: false, ignoreEscape: isExpando);
 					}
 				}
 			} finally {
@@ -2212,11 +2421,11 @@ namespace Sweet.Jayson
 								}
 							}
 						} else {
-							context.ObjectDepth++;
+							// context.ObjectDepth++;
 							while (enumerator.MoveNext ()) {
 								isFirst = WriteEnumerableValue (enumerator.Current, context, isFirst);
 							}
-							context.ObjectDepth--;
+							// context.ObjectDepth--;
 						}
 					} finally {
 						if (enumerator is IDisposable) {
@@ -2379,7 +2588,7 @@ namespace Sweet.Jayson
 			{
 				JaysonSerializationSettings settings = context.Settings;
 				#if !(NET3500 || NET3000 || NET2000)
-				if (settings.DisableExpandoObjects && (objType == typeof(ExpandoObject)))
+				if (settings.IgnoreExpandoObjects && (objType == typeof(ExpandoObject)))
 				{
 					if (!settings.IgnoreNullValues) {
 						context.Builder.Append("null");
@@ -2391,7 +2600,7 @@ namespace Sweet.Jayson
 				}
 				#endif
 
-                if (settings.DisableAnonymousTypes && JaysonTypeInfo.IsAnonymous(objType))
+                if (settings.IgnoreAnonymousTypes && JaysonTypeInfo.IsAnonymous(objType))
 				{
 					if (!settings.IgnoreNullValues) {
 						context.Builder.Append("null");
@@ -2408,12 +2617,17 @@ namespace Sweet.Jayson
 				}
 				else if (obj is IDictionary)
 				{
-					WriteDictionary((IDictionary)obj, context);
+                    var genericArgs = info.GenericArguments;
+                    if (genericArgs != null && genericArgs.Length > 0 && genericArgs[0] == typeof(string)) {
+                        WriteDictionaryStringKey((IDictionary)obj, context);
+                    } else {
+                        WriteDictionaryObjectKey((IDictionary)obj, context);
+                    }
 				}
 				#if !(NET3500 || NET3000 || NET2000)
 				else if (obj is DynamicObject)
 				{
-					if (!settings.DisableDynamicObjects) {
+					if (!settings.IgnoreDynamicObjects) {
 						WriteDynamicObject((DynamicObject)obj, context);
 					} else if (!settings.IgnoreNullValues) {
 						context.Builder.Append("null");

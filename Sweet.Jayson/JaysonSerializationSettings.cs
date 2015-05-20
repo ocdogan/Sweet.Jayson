@@ -44,16 +44,16 @@ namespace Sweet.Jayson
 
 		public bool CaseSensitive = true;
 		public bool ConvertDecimalToDouble = false;
-		public bool DisableAnonymousTypes = false;
-		#if !(NET3500 || NET3000 || NET2000)
-		public bool DisableDynamicObjects = false;
-		public bool DisableExpandoObjects = false;
-		#endif
 		public bool EscapeChars = true;
 		public bool EscapeUnicodeChars = false;
 		public bool Formatting = false;
 		public bool GuidAsByteArray = false;
-		public bool IgnorePrimitiveTypeNames = true;
+        public bool IgnoreAnonymousTypes = true;
+        #if !(NET3500 || NET3000 || NET2000)
+        public bool IgnoreDynamicObjects = false;
+        public bool IgnoreExpandoObjects = false;
+        #endif
+        public bool IgnorePrimitiveTypeNames = true;
         public bool IgnoreReadOnlyMembers = false;
 		public bool IgnoreNullValues = true;
         public bool IgnoreNullListItems = false;
@@ -98,10 +98,10 @@ namespace Sweet.Jayson
 			destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
 			destination.DateTimeZoneType = DateTimeZoneType;
 			destination.TimeSpanFormat = TimeSpanFormat;
-			destination.DisableAnonymousTypes = DisableAnonymousTypes;
+			destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
 			#if !(NET3500 || NET3000 || NET2000)
-			destination.DisableDynamicObjects = DisableDynamicObjects;
-			destination.DisableExpandoObjects = DisableExpandoObjects;
+			destination.IgnoreDynamicObjects = IgnoreDynamicObjects;
+			destination.IgnoreExpandoObjects = IgnoreExpandoObjects;
 			#endif
 			destination.EscapeChars = EscapeChars;
 			destination.EscapeUnicodeChars = EscapeUnicodeChars;

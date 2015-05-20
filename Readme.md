@@ -23,9 +23,13 @@ Open sourced under [MIT license][2].
 -   Any *POCO* type serialization/deserialization,
 
 -   Default .Net types (`DateTime`*,* `DateTimeOffset`*,* `TimeSpan`*,*
-    `Guid`*,* `ArrayList`*,* `HashTable` …),
+    `Guid`*,* `ArrayList`*,* `Hashtable`*,* `HashSet` …),
 
 -   Default and custom generic .Net types (`List<T>`*,* `Dictionary<T, K>` …),
+
+-   Any dictionary type that has key type different than `typeof(string)` with
+    special key value pair (`$k`, `$v`) object (`IDictionary<int, decimal>`*,*
+    `IDictionary, Hashtable` …),
 
 -   `DataTable`*,* `DataSet` (also *custom* `DataSets` and `DataTable`
     *relations in DataSets*),
@@ -107,8 +111,8 @@ or
 -   Changing types in deserialization using
     `System.Runtime.Serialization.SerializationBinder`,
 
--   Changing `Property` and `Field`* names into any value* without using custom
-    `Attribute` classes by `JaysonTypeOverride`,
+-   Changing `Property` and `Field`\* names into any value\* without using
+    custom `Attribute` classes by `JaysonTypeOverride`,
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var dto1 = TestClasses.GetTypedContainerDto();
@@ -200,7 +204,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
     \u0357
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   *Sorting *`Field` and `Property`* names* descending,
+-   *Sorting* `Field` and `Property`\* names\* descending,
 
 -   Ignoring `Circular References` or raise exception on Circular Reference,
 

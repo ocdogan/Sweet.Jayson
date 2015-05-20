@@ -36,7 +36,7 @@ namespace Sweet.Jayson
 		public const int CacheInitialCapacity = 100;
 		public const int DictionaryCapacity = 5;
 
-		public const string TimeSpanDefaultFormat = "HH:mm:ss";
+		public const string TimeSpanDefaultFormat = "c";
 		public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
 		public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";
 		public const string DateMicrosoftJsonFormat = "\\/Date({0})\\/";
