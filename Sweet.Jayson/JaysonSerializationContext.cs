@@ -44,6 +44,8 @@ namespace Sweet.Jayson
 		public Type CurrentType;
 		public JaysonObjectType ObjectType;
 
+		public bool SkipCurrentType;
+
 		public JaysonSerializationContext(JaysonSerializationSettings settings, JaysonStackList stack,
 			Func<string, object, object> filter, JaysonFormatter formatter = null, 
 			StringBuilder builder = null, Type currentType = null,

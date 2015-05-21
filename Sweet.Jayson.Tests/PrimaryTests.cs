@@ -127,7 +127,7 @@ namespace Sweet.Jayson.Tests
 		[Test]
 		public static void TestLong2()
 		{
-			long? long1 = 1998730980944080L;
+			long? long1 = 1998730980944080L; 
 			string json = JaysonConverter.ToJsonString(long1);
 			var long2 = JaysonConverter.ToObject<long?>(json);
 			Assert.True(long1 == long2);
@@ -1229,14 +1229,14 @@ namespace Sweet.Jayson.Tests
             });
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(result.InheritedInt1, 1);
-            Assert.AreEqual(result.InheritedInt2, 0);
-            Assert.AreEqual(result.InheritedInt3, 3);
-            Assert.AreEqual(result.InheritedInt4, 0);
-            Assert.AreEqual(result.InheritedStr1, "Str1");
-            Assert.AreEqual(result.InheritedStr2, null);
-            Assert.AreEqual(result.InheritedStr3, "Str3");
-            Assert.AreEqual(result.InheritedStr4, null);
+            Assert.AreEqual(result.InheritedInt1, 0);
+            Assert.AreEqual(result.InheritedInt2, 2);
+            Assert.AreEqual(result.InheritedInt3, 0);
+            Assert.AreEqual(result.InheritedInt4, 4);
+            Assert.AreEqual(result.InheritedStr1, null);
+            Assert.AreEqual(result.InheritedStr2, "Str2");
+            Assert.AreEqual(result.InheritedStr3, null);
+            Assert.AreEqual(result.InheritedStr4, "Str4");
         }
 
         private class TestBinder : System.Runtime.Serialization.SerializationBinder
@@ -2580,7 +2580,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestDeserializeSimpleDataTable()
+        public static void TestDeserializeSimpleDataTable1a()
         {
             DataTable dt1 = new DataTable("My DataTable 1", "myTableNamespace");
             dt1.Columns.Add(new DataColumn("col1", typeof(string), null, MappingType.Element));
@@ -2588,16 +2588,23 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
 
+			dt1.Columns[0].ExtendedProperties.Add (1, 2m);
+			dt1.Columns[0].ExtendedProperties.Add (3, 4m);
+
             dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
             dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
-				new SimpleObj {
+				new SimpleObjDerivative {
 					Value1 = "Hello",
-					Value2 = "World 2"
+					Value2 = "My",
+					Value3 = "World 1"
 				}});
+
+			dt1.ExtendedProperties.Add (5, 6m);
+			dt1.ExtendedProperties.Add (7, 8m);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
             {
@@ -2613,8 +2620,54 @@ namespace Sweet.Jayson.Tests
             DataTable dt2 = JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dt2);
+			Assert.True(dt1.Rows.Count == dt2.Rows.Count);
             Assert.True(dt1.Columns.Count == dt2.Columns.Count);
         }
+
+		[Test]
+		public static void TestDeserializeSimpleDataTable1b()
+		{
+			DataTable dt1 = new DataTable("My DataTable 1", "myTableNamespace");
+			dt1.Columns.Add(new DataColumn("col1", typeof(string), null, MappingType.Element));
+			dt1.Columns.Add(new DataColumn("col2", typeof(bool)));
+			dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
+			dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
+
+			dt1.Columns[0].ExtendedProperties.Add (1, 2m);
+			dt1.Columns[0].ExtendedProperties.Add (3, 4m);
+
+			dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+				new SimpleObj {
+					Value1 = "Hello",
+					Value2 = "World 1"
+				}});
+			dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+				new SimpleObjDerivative {
+					Value1 = "Hello",
+					Value2 = "My",
+					Value3 = "World 2"
+				}});
+
+			dt1.ExtendedProperties.Add (5, 6m);
+			dt1.ExtendedProperties.Add (7, 8m);
+
+			JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+			{
+				Formatting = false,
+				TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+				TypeNames = JaysonTypeNameSerialization.All
+			};
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CaseSensitive = true;
+
+			string json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
+			DataTable dt2 = JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(dt2);
+			Assert.True(dt1.Rows.Count == dt2.Rows.Count);
+			Assert.True(dt1.Columns.Count == dt2.Columns.Count);
+		}
 
         [Test]
         public static void TestDeserializeSimpleDataSet()
@@ -2627,7 +2680,10 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+			dt1.Columns[0].ExtendedProperties.Add (1, 2m);
+			dt1.Columns[0].ExtendedProperties.Add (3, 4m);
+
+			dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
@@ -2638,7 +2694,10 @@ namespace Sweet.Jayson.Tests
 					Value2 = "World 2"
 				}});
 
-            ds1.Tables.Add(dt1);
+			dt1.ExtendedProperties.Add (5, 6m);
+			dt1.ExtendedProperties.Add (7, 8m);
+
+			ds1.Tables.Add(dt1);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
             {

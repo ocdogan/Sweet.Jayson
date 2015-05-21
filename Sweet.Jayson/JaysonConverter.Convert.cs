@@ -174,26 +174,39 @@ namespace Sweet.Jayson
         private static void SetExtendedProperties(PropertyCollection extendedProperties, object obj, 
 			JaysonDeserializationContext context)
         {
-            if (obj is Hashtable)
-            {
-                foreach (DictionaryEntry ekvp in (Hashtable)obj)
-                {
-                    if (!(ekvp.Key is string) || (string)ekvp.Key != "$type")
-                    {
-						extendedProperties.Add(ekvp.Key, ConvertObject(ekvp.Value, typeof(object), context));
-                    }
-                }
-            }
-            else if (obj is IDictionary<string, object>)
-            {
-                foreach (var ekvp in (IDictionary<string, object>)obj)
-                {
-                    if (ekvp.Key != "$type")
-                    {
-						extendedProperties.Add(ekvp.Key, ConvertObject(ekvp.Value, typeof(object), context));
-                    }
-                }
-            }
+			var dct = obj as IDictionary<string, object>; 
+			if (dct != null)
+			{
+				object kvListObj;
+				if (dct.TryGetValue("$kv", out kvListObj))
+				{
+					var kvList = kvListObj as List<object>;
+					if (kvList != null)
+					{
+						int count = kvList.Count;
+						if (count > 0)
+						{
+							IDictionary<string, object> kvp;
+							for (int i = 0; i < count; i++)
+							{
+								kvp = (IDictionary<string, object>)kvList[i];
+
+								extendedProperties.Add(ConvertObject(kvp["$k"], typeof(object), context), 
+									ConvertObject(kvp["$v"], typeof(object), context));
+							}
+						}
+					}
+					return;
+				}
+
+				foreach (var ekvp in dct) 
+				{
+					if (ekvp.Key != "$type") 
+					{
+						extendedProperties.Add (ekvp.Key, ConvertObject (ekvp.Value, typeof(object), context));
+					}
+				}
+			}
         }
 
         private static void SetDataTableProperties(IDictionary<string, object> obj, DataTable dataTable,
@@ -240,7 +253,7 @@ namespace Sweet.Jayson
                 dataTable.TableName = (string)propValue;
             }
 
-            if (obj.TryGetValue("ExtendedProperties", out propValue))
+			if (obj.TryGetValue("ExtendedProperties", out propValue))
             {
 				SetExtendedProperties(dataTable.ExtendedProperties, propValue, context);
             }
@@ -471,7 +484,7 @@ namespace Sweet.Jayson
                             }
                     }
 
-                    if (columnInfo.TryGetValue("ExtendedProperties", out propValue))
+					if (columnInfo.TryGetValue("ExtendedProperties", out propValue))
                     {
 						SetExtendedProperties(column.ExtendedProperties, propValue, context);
                     }
@@ -777,7 +790,7 @@ namespace Sweet.Jayson
                     }
             }
 
-            if (obj.TryGetValue("ExtendedProperties", out propValue))
+			if (obj.TryGetValue("ExtendedProperties", out propValue))
             {
 				SetExtendedProperties(dataSet.ExtendedProperties, propValue, context);
             }
@@ -870,452 +883,564 @@ namespace Sweet.Jayson
         # endregion Convert DataTable & DataSet
 
         private static void SetDictionary(IDictionary<string, object> obj, object instance,
-			JaysonDeserializationContext context)
+            JaysonDeserializationContext context)
         {
-            if (instance == null || obj == null || obj.Count == 0 || instance is DBNull)
+            if (instance != null && obj != null && obj.Count > 0 && !(instance is DBNull))
             {
-                return;
+                if (instance is IDictionary<string, object>)
+                {
+                    SetDictionaryStringKey(obj, (IDictionary<string, object>)instance, context);
+                    return;
+                }
+
+                if (instance is IDictionary)
+                {
+                    SetDictionaryIDictionary(obj, (IDictionary)instance, context);
+                    return;
+                }
+
+                if (instance is DataTable)
+                {
+                    SetDataTable(obj, (DataTable)instance, context);
+                    return;
+                }
+
+                if (instance is DataSet)
+                {
+                    SetDataSet(obj, (DataSet)instance, context);
+                    return;
+                }
+
+                if (instance is NameValueCollection)
+                {
+                    SetDictionaryNameValueCollection(obj, (NameValueCollection)instance, context);
+                    return;
+                }
+
+                if (instance is StringDictionary)
+                {
+                    SetDictionaryStringDictionary(obj, (StringDictionary)instance, context);
+                    return;
+                }
+
+                Type instanceType = instance.GetType();
+
+                if (JaysonTypeInfo.IsAnonymous(instanceType))
+                {
+                    SetDictionaryAnonymousType(obj, instance, instanceType, context);
+                    return;
+                }
+
+                if (SetDictionaryGeneric(obj, instance, instanceType, context))
+                {
+                    return;
+                }
+
+                SetDictionaryClassOrStruct(obj, instance, instanceType, context);
             }
+        }
 
-            bool hasStype = obj.ContainsKey("$type");
-
-			object kvListObj;
-			List<object> kvList = null;
-			if (obj.TryGetValue ("$kv", out kvListObj)) {
-				kvList = kvListObj as List<object>;
-			}
-
-            if (instance is IDictionary<string, object>)
+        private static void SetDictionaryClassOrStruct(IDictionary<string, object> obj, object instance, Type instanceType, 
+            JaysonDeserializationContext context)
+        {
+            if (!JaysonTypeInfo.IsJPrimitive(instanceType))
             {
-                IDictionary<string, object> instanceDict = (IDictionary<string, object>)instance;
+                var settings = context.Settings;
 
-				string key;
+                bool caseSensitive = settings.CaseSensitive;
+                bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
 
-				if (kvList != null) {
-					int count = kvList.Count;
-					if (count > 0) {
-						object keyObj;
-						IDictionary<string, object> kvp;
+                IJaysonFastMember member;
+                IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
 
-						for (int i = 0; i < count; i++) {
-							kvp = (IDictionary<string, object>)kvList [i];
+                string memberName;
+                object memberValue;
 
-							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
-							key = keyObj as string ?? keyObj.ToString ();
-
-							instanceDict[key] = ConvertObject(kvp["$v"], typeof(object), context);
-						}
-					}
-					return;
-				}
+                bool hasStype = obj.ContainsKey("$type");
+                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
 
                 foreach (var entry in obj)
                 {
-                    key = entry.Key;
-                    if (!hasStype || key != "$type")
+                    memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
+                    if (!hasStype || memberName != "$type")
                     {
-						instanceDict[key] = ConvertObject(entry.Value, typeof(object), context);
+                        if (!members.TryGetValue(memberName, out member) && typeOverride != null)
+                        {
+                            memberName = typeOverride.GetAliasMember(memberName);
+                            if (!String.IsNullOrEmpty(memberName))
+                            {
+                                if (!caseSensitive)
+                                {
+                                    memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
+                                }
+                                members.TryGetValue(memberName, out member);
+                            }
+                        }
+
+                        if (member != null)
+                        {
+                            if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                            {
+                                if (member.CanWrite)
+                                {
+                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
+                                }
+                                else if (entry.Value != null)
+                                {
+                                    memberValue = member.Get(instance);
+                                    if (instance != null)
+                                    {
+                                        SetObject(memberValue, entry.Value, context);
+                                    }
+                                }
+                            }
+                        }
+                        else if (raiseErrorOnMissingMember)
+                        {
+                            throw new JaysonException("Missing member: " + entry.Key);
+                        }
                     }
                 }
             }
-            else if (instance is IDictionary)
+        }
+
+        private static bool SetDictionaryGeneric(IDictionary<string, object> obj, object instance, Type instanceType,
+            JaysonDeserializationContext context)
+        {
+            Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instanceType);
+            if (genArgs != null)
             {
-                IDictionary instanceDict = (IDictionary)instance;
-
-                object key;
-                Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instance.GetType());
-
-                if (genArgs != null)
+                Action<object, object[]> addMethod = JaysonCommon.GetIDictionaryAddMethod(instanceType);
+                if (addMethod != null)
                 {
-                    bool changeValue = hasStype || (genArgs[1] != typeof(object));
+                    bool changeValue = genArgs[1] != typeof(object);
                     bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
+
+                    object key;
+                    object value;
 
                     Type keyType = genArgs[0];
                     Type valType = genArgs[1];
 
-					if (kvList != null) {
-						int count = kvList.Count;
-						if (count > 0) {
-							object keyObj;
-							IDictionary<string, object> kvp;
+                    object kvListObj;
+                    List<object> kvList = null;
+                    if (obj.TryGetValue("$kv", out kvListObj))
+                    {
+                        kvList = kvListObj as List<object>;
+                    }
 
-							for (int i = 0; i < count; i++) {
-								kvp = (IDictionary<string, object>)kvList [i];
+                    if (kvList != null)
+                    {
+                        int count = kvList.Count;
+                        if (count > 0)
+                        {
+                            IDictionary<string, object> kvp;
 
-								keyObj = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
-								instanceDict[keyObj] = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
-							}
-						}
-						return;
-					}
+                            for (int i = 0; i < count; i++)
+                            {
+                                kvp = (IDictionary<string, object>)kvList[i];
+
+                                key = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
+                                value = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+
+                                addMethod(instance, new object[] { key, value });
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    bool hasStype = obj.ContainsKey("$type");
 
                     foreach (var entry in obj)
                     {
                         if (!hasStype || entry.Key != "$type")
                         {
-							key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
-							instanceDict[key] = !changeValue ? entry.Value : ConvertObject(entry.Value, valType, context);
+                            key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
+                            value = changeValue ? ConvertObject(entry.Value, valType, context) : entry.Value;
+
+                            addMethod(instance, new object[] { key, value });
                         }
+                    }
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static void SetDictionaryAnonymousType(IDictionary<string, object> obj, object instance, Type instanceType, 
+            JaysonDeserializationContext context)
+        {
+            var settings = context.Settings;
+            if (!settings.IgnoreAnonymousTypes)
+            {
+                bool caseSensitive = settings.CaseSensitive;
+                bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
+
+                IDictionary<string, IJaysonFastMember> members =
+                    JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
+
+                if (members == null || members.Count == 0)
+                {
+                    if (raiseErrorOnMissingMember)
+                    {
+                        throw new JaysonException("Missing members");
                     }
                     return;
                 }
 
-				if (kvList != null) {
-					int count = kvList.Count;
-					if (count > 0) {
-						object keyObj;
-						IDictionary<string, object> kvp;
+                IJaysonFastMember member;
 
-						for (int i = 0; i < count; i++) {
-							kvp = (IDictionary<string, object>)kvList [i];
+                bool hasStype = obj.ContainsKey("$type");
+                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
 
-							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
-							instanceDict[keyObj] = ConvertObject(kvp["$v"], typeof(object), context);
-						}
-					}
-					return;
-				}
+                string key;
+                string memberName;
+                object memberValue;
 
                 foreach (var entry in obj)
                 {
                     if (!hasStype || entry.Key != "$type")
                     {
-						instanceDict[entry.Key] = ConvertObject(entry.Value, typeof(object), context);
-                    }
-                }
-            }
-			else if (instance is DataTable)
-			{
-				SetDataTable(obj, (DataTable)instance, context);
-			}
-			else if (instance is DataSet)
-			{
-				SetDataSet(obj, (DataSet)instance, context);
-			}
-            else if (instance is NameValueCollection)
-            {
-                NameValueCollection nvcollection = (NameValueCollection)instance;
+                        key = entry.Key;
 
-				string key;
-				object value;
-				Type valueType;
-
-				if (kvList != null) {
-					int count = kvList.Count;
-					if (count > 0) {
-						object keyObj;
-						IDictionary<string, object> kvp;
-
-						for (int i = 0; i < count; i++) {
-							kvp = (IDictionary<string, object>)kvList [i];
-
-							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
-							key = keyObj as string ?? keyObj.ToString ();
-
-							value = ConvertObject(kvp["$v"], typeof(object), context);
-
-							if (value == null || value is string)
-							{
-								nvcollection.Add(key, (string)value);
-							}
-							else
-							{
-								valueType = value.GetType();
-								if (JaysonTypeInfo.IsJPrimitive(valueType))
-								{
-									nvcollection.Add(key, JaysonFormatter.ToString(value, valueType));
-								}
-								else if (value is IFormattable)
-								{
-									nvcollection.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
-								}
-								else
-								{
-									nvcollection.Add(key, ToJsonString(value));
-								}
-							}
-
-						}
-					}
-					return;
-				}
-
-                foreach (var item in obj)
-                {
-                    key = item.Key;
-                    if (!hasStype || key != "$type")
-                    {
-                        value = item.Value;
-                        if (value == null || value is string)
+                        memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                        if (!members.TryGetValue(memberName, out member) && typeOverride != null)
                         {
-                            nvcollection.Add(key, (string)value);
-                        }
-                        else
-                        {
-                            valueType = value.GetType();
-                            if (JaysonTypeInfo.IsJPrimitive(valueType))
-                            {
-                                nvcollection.Add(key, JaysonFormatter.ToString(value, valueType));
-                            }
-                            else if (value is IFormattable)
-                            {
-                                nvcollection.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
-                            }
-                            else
-                            {
-                                nvcollection.Add(key, ToJsonString(value));
-                            }
-                        }
-                    }
-                }
-            }
-            else if (instance is StringDictionary)
-            {
-                StringDictionary sidic = (StringDictionary)instance;
-
-				string key;
-				object value;
-				Type valueType;
-
-				if (kvList != null) {
-					int count = kvList.Count;
-					if (count > 0) {
-						object keyObj;
-						IDictionary<string, object> kvp;
-
-						for (int i = 0; i < count; i++) {
-							kvp = (IDictionary<string, object>)kvList [i];
-
-							keyObj = ConvertObject(kvp["$k"], typeof(object), context);
-							key = keyObj as string ?? keyObj.ToString ();
-
-							value = ConvertObject(kvp["$v"], typeof(object), context);
-
-							if (value == null || value is string)
-							{
-								sidic.Add(key, (string)value);
-							}
-							else
-							{
-								valueType = value.GetType();
-								if (JaysonTypeInfo.IsJPrimitive(valueType))
-								{
-									sidic.Add(key, JaysonFormatter.ToString(value, valueType));
-								}
-								else if (value is IFormattable)
-								{
-									sidic.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
-								}
-								else
-								{
-									sidic.Add(key, ToJsonString(value));
-								}
-							}
-						}
-					}
-					return;
-				}
-
-                foreach (var item in obj)
-                {
-                    key = item.Key;
-                    if (!hasStype || key != "$type")
-                    {
-                        value = item.Value;
-                        if (value == null || value is string)
-                        {
-                            sidic.Add(key, (string)value);
-                        }
-                        else
-                        {
-                            valueType = value.GetType();
-                            if (JaysonTypeInfo.IsJPrimitive(valueType))
-                            {
-                                sidic.Add(key, JaysonFormatter.ToString(value, valueType));
-                            }
-                            else if (value is IFormattable)
-                            {
-                                sidic.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
-                            }
-                            else
-                            {
-                                sidic.Add(key, ToJsonString(value));
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-				var settings = context.Settings;
-
-                Type instanceType = instance.GetType();
-				JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
-
-                if (JaysonTypeInfo.IsAnonymous(instanceType))
-                {
-					if (settings.IgnoreAnonymousTypes)
-                    {
-                        return;
-                    }
-
-					bool caseSensitive = settings.CaseSensitive;
-					bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
-
-                    IJaysonFastMember member;
-                    IDictionary<string, IJaysonFastMember> members =
-                        JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
-
-                    string key;
-                    string memberName;
-                    object memberValue;
-
-                    foreach (var entry in obj)
-                    {
-                        if (!hasStype || entry.Key != "$type")
-                        {
-                            key = entry.Key;
-                            if (!hasStype || key != "$type")
+                            key = typeOverride.GetAliasMember(key);
+                            if (!String.IsNullOrEmpty(key))
                             {
                                 memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                                if (!members.TryGetValue(memberName, out member) && typeOverride != null)
-                                {
-                                    key = typeOverride.GetAliasMember(key);
-                                    if (!String.IsNullOrEmpty(key))
-                                    {
-                                        memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                                        members.TryGetValue(memberName, out member);
-                                    }
-                                }
+                                members.TryGetValue(memberName, out member);
+                            }
+                        }
 
-                                if (member != null)
+                        if (member != null)
+                        {
+                            if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                            {
+                                if (member.CanWrite)
                                 {
-                                    if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
+                                }
+                                else if (entry.Value != null)
+                                {
+                                    memberValue = member.Get(instance);
+                                    if (instance != null)
                                     {
-                                        if (member.CanWrite)
-                                        {
-											member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
-                                        }
-                                        else if (entry.Value != null)
-                                        {
-                                            memberValue = member.Get(instance);
-                                            if (instance != null)
-                                            {
-												SetObject(memberValue, entry.Value, context);
-                                            }
-                                        }
+                                        SetObject(memberValue, entry.Value, context);
                                     }
                                 }
-                                else if (raiseErrorOnMissingMember)
-                                {
-                                    throw new JaysonException("Missing member: " + entry.Key);
-                                }
+                            }
+                        }
+                        else if (raiseErrorOnMissingMember)
+                        {
+                            throw new JaysonException("Missing member: " + entry.Key);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void SetDictionaryStringDictionary(IDictionary<string, object> obj, StringDictionary instance, 
+            JaysonDeserializationContext context)
+        {
+            bool hasStype = obj.ContainsKey("$type");
+
+            object kvListObj;
+            List<object> kvList = null;
+            if (obj.TryGetValue("$kv", out kvListObj))
+            {
+                kvList = kvListObj as List<object>;
+            }
+
+            string key;
+            object value;
+            Type valueType;
+
+            if (kvList != null)
+            {
+                int count = kvList.Count;
+                if (count > 0)
+                {
+                    object keyObj;
+                    IDictionary<string, object> kvp;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        kvp = (IDictionary<string, object>)kvList[i];
+
+                        keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+                        key = keyObj as string ?? keyObj.ToString();
+
+                        value = ConvertObject(kvp["$v"], typeof(object), context);
+
+                        if (value == null || value is string)
+                        {
+                            instance.Add(key, (string)value);
+                        }
+                        else
+                        {
+                            valueType = value.GetType();
+                            if (JaysonTypeInfo.IsJPrimitive(valueType))
+                            {
+                                instance.Add(key, JaysonFormatter.ToString(value, valueType));
+                            }
+                            else if (value is IFormattable)
+                            {
+                                instance.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+                            }
+                            else
+                            {
+                                instance.Add(key, ToJsonString(value));
                             }
                         }
                     }
                 }
-                else
+                return;
+            }
+
+            foreach (var item in obj)
+            {
+                key = item.Key;
+                if (!hasStype || key != "$type")
                 {
-                    Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instanceType);
-                    if (genArgs != null)
+                    value = item.Value;
+                    if (value == null || value is string)
                     {
-                        Action<object, object[]> addMethod = JaysonCommon.GetIDictionaryAddMethod(instanceType);
-                        if (addMethod != null)
+                        instance.Add(key, (string)value);
+                    }
+                    else
+                    {
+                        valueType = value.GetType();
+                        if (JaysonTypeInfo.IsJPrimitive(valueType))
                         {
-							bool changeValue = genArgs[1] != typeof(object);
-                            bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
-
-                            object key;
-                            object value;
-
-                            Type keyType = genArgs[0];
-                            Type valType = genArgs[1];
-
-							if (kvList != null) {
-								int count = kvList.Count;
-								if (count > 0) {
-									IDictionary<string, object> kvp;
-
-									for (int i = 0; i < count; i++) {
-										kvp = (IDictionary<string, object>)kvList [i];
-
-										key = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
-										value = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
-
-										addMethod(instance, new object[] { key, value });
-									}
-								}
-								return;
-							}
-
-                            foreach (var entry in obj)
-                            {
-                                if (!hasStype || entry.Key != "$type")
-                                {
-									key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
-									value = changeValue ? ConvertObject(entry.Value, valType, context) : entry.Value;
-
-                                    addMethod(instance, new object[] { key, value });
-                                }
-                            }
-                            return;
+                            instance.Add(key, JaysonFormatter.ToString(value, valueType));
+                        }
+                        else if (value is IFormattable)
+                        {
+                            instance.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+                        }
+                        else
+                        {
+                            instance.Add(key, ToJsonString(value));
                         }
                     }
+                }
+            }
+        }
 
-                    if (!JaysonTypeInfo.IsJPrimitive(instanceType))
+        private static void SetDictionaryNameValueCollection(IDictionary<string, object> obj, NameValueCollection instance, 
+            JaysonDeserializationContext context)
+        {
+            bool hasStype = obj.ContainsKey("$type");
+
+            object kvListObj;
+            List<object> kvList = null;
+            if (obj.TryGetValue("$kv", out kvListObj))
+            {
+                kvList = kvListObj as List<object>;
+            }
+
+            string key;
+            object value;
+            Type valueType;
+
+            if (kvList != null)
+            {
+                int count = kvList.Count;
+                if (count > 0)
+                {
+                    object keyObj;
+                    IDictionary<string, object> kvp;
+
+                    for (int i = 0; i < count; i++)
                     {
-                        bool caseSensitive = settings.CaseSensitive;
-                        bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
+                        kvp = (IDictionary<string, object>)kvList[i];
 
-                        IJaysonFastMember member;
-                        IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
+                        keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+                        key = keyObj as string ?? keyObj.ToString();
 
-                        string memberName;
-                        object memberValue;
+                        value = ConvertObject(kvp["$v"], typeof(object), context);
 
-                        foreach (var entry in obj)
+                        if (value == null || value is string)
                         {
-                            memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
-                            if (!hasStype || memberName != "$type")
+                            instance.Add(key, (string)value);
+                        }
+                        else
+                        {
+                            valueType = value.GetType();
+                            if (JaysonTypeInfo.IsJPrimitive(valueType))
                             {
-                                if (!members.TryGetValue(memberName, out member) && typeOverride != null)
-                                {
-                                    memberName = typeOverride.GetAliasMember(memberName);
-                                    if (!String.IsNullOrEmpty(memberName))
-                                    {
-                                        if (!caseSensitive)
-                                        {
-                                            memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
-                                        }
-                                        members.TryGetValue(memberName, out member);
-                                    }
-                                }
-
-                                if (member != null)
-                                {
-                                    if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
-                                    {
-                                        if (member.CanWrite)
-                                        {
-											member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
-                                        }
-                                        else if (entry.Value != null)
-                                        {
-                                            memberValue = member.Get(instance);
-                                            if (instance != null)
-                                            {
-												SetObject(memberValue, entry.Value, context);
-                                            }
-                                        }
-                                    }
-                                }
-                                else if (raiseErrorOnMissingMember)
-                                {
-                                    throw new JaysonException("Missing member: " + entry.Key);
-                                }
+                                instance.Add(key, JaysonFormatter.ToString(value, valueType));
+                            }
+                            else if (value is IFormattable)
+                            {
+                                instance.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+                            }
+                            else
+                            {
+                                instance.Add(key, ToJsonString(value));
                             }
                         }
+
                     }
+                }
+                return;
+            }
+
+            foreach (var item in obj)
+            {
+                key = item.Key;
+                if (!hasStype || key != "$type")
+                {
+                    value = item.Value;
+                    if (value == null || value is string)
+                    {
+                        instance.Add(key, (string)value);
+                    }
+                    else
+                    {
+                        valueType = value.GetType();
+                        if (JaysonTypeInfo.IsJPrimitive(valueType))
+                        {
+                            instance.Add(key, JaysonFormatter.ToString(value, valueType));
+                        }
+                        else if (value is IFormattable)
+                        {
+                            instance.Add(key, ((IFormattable)value).ToString(null, JaysonConstants.InvariantCulture));
+                        }
+                        else
+                        {
+                            instance.Add(key, ToJsonString(value));
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void SetDictionaryIDictionary(IDictionary<string, object> obj, IDictionary instance, JaysonDeserializationContext context)
+        {
+            bool hasStype = obj.ContainsKey("$type");
+
+            object kvListObj;
+            List<object> kvList = null;
+            if (obj.TryGetValue("$kv", out kvListObj))
+            {
+                kvList = kvListObj as List<object>;
+            }
+
+            object key;
+            Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instance.GetType());
+
+            if (genArgs != null)
+            {
+                bool changeValue = hasStype || (genArgs[1] != typeof(object));
+                bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
+
+                Type keyType = genArgs[0];
+                Type valType = genArgs[1];
+
+                if (kvList != null)
+                {
+                    int count = kvList.Count;
+                    if (count > 0)
+                    {
+                        object keyObj;
+                        IDictionary<string, object> kvp;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            kvp = (IDictionary<string, object>)kvList[i];
+
+                            keyObj = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
+                            instance[keyObj] = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+                        }
+                    }
+                    return;
+                }
+
+                foreach (var entry in obj)
+                {
+                    if (!hasStype || entry.Key != "$type")
+                    {
+                        key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
+                        instance[key] = !changeValue ? entry.Value : ConvertObject(entry.Value, valType, context);
+                    }
+                }
+                return;
+            }
+
+            if (kvList != null)
+            {
+                int count = kvList.Count;
+                if (count > 0)
+                {
+                    object keyObj;
+                    IDictionary<string, object> kvp;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        kvp = (IDictionary<string, object>)kvList[i];
+
+                        keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+                        instance[keyObj] = ConvertObject(kvp["$v"], typeof(object), context);
+                    }
+                }
+                return;
+            }
+
+            foreach (var entry in obj)
+            {
+                if (!hasStype || entry.Key != "$type")
+                {
+                    instance[entry.Key] = ConvertObject(entry.Value, typeof(object), context);
+                }
+            }
+        }
+
+        private static void SetDictionaryStringKey(IDictionary<string, object> obj, IDictionary<string, object> instance, 
+            JaysonDeserializationContext context)
+        {
+            bool hasStype = obj.ContainsKey("$type");
+
+            object kvListObj;
+            List<object> kvList = null;
+            if (obj.TryGetValue("$kv", out kvListObj))
+            {
+                kvList = kvListObj as List<object>;
+            }
+
+            string key;
+
+            if (kvList != null)
+            {
+                int count = kvList.Count;
+                if (count > 0)
+                {
+                    object keyObj;
+                    IDictionary<string, object> kvp;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        kvp = (IDictionary<string, object>)kvList[i];
+
+                        keyObj = ConvertObject(kvp["$k"], typeof(object), context);
+                        key = keyObj as string ?? keyObj.ToString();
+
+                        instance[key] = ConvertObject(kvp["$v"], typeof(object), context);
+                    }
+                }
+                return;
+            }
+
+            foreach (var entry in obj)
+            {
+                key = entry.Key;
+                if (!hasStype || key != "$type")
+                {
+                    instance[key] = ConvertObject(entry.Value, typeof(object), context);
                 }
             }
         }

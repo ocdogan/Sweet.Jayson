@@ -722,7 +722,7 @@ namespace Sweet.Jayson
             }
             if (dataColumn.ExtendedProperties.Count > 0)
             {
-                result.Add("ExtendedProperties", AsDictionary(dataColumn.ExtendedProperties, context));
+				result.Add("ExtendedProperties", AsDictionary(dataColumn.ExtendedProperties, context));
             }
 
             return result;
@@ -793,7 +793,7 @@ namespace Sweet.Jayson
             }
             if (dataTable.ExtendedProperties.Count > 0)
             {
-                result.Add("ExtendedProperties", AsDictionary(dataTable.ExtendedProperties, context));
+				result.Add("ExtendedProperties", AsDictionary(dataTable.ExtendedProperties, context));
             }
 
             return result;
@@ -925,7 +925,7 @@ namespace Sweet.Jayson
             }
             if (dataSet.ExtendedProperties.Count > 0)
             {
-                result.Add("ExtendedProperties", AsDictionary(dataSet.ExtendedProperties, context));
+				result.Add("ExtendedProperties", AsDictionary(dataSet.ExtendedProperties, context));
             }
 
             var relations = AsDataRelations(dataSet.Relations, context);

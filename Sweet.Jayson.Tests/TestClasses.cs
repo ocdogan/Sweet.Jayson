@@ -257,6 +257,48 @@ namespace Sweet.Jayson.Tests
             };
         }
 
+        public static object GetTypedContainerIgnoreMemberDto()
+        {
+            return new TypedContainerIgnoreMemberDto
+            {
+                Date1 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Utc),
+                Date2 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Local),
+                Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
+                P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
+                P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
+                ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
+					{"op", new List<dynamic> { "a", 1 } } }),
+                #if !(NET3500 || NET3000 || NET2000)
+                DynamicProperty = 12,
+                #endif
+                ByteArray = Encoding.UTF8.GetBytes("Hello world!"),
+                Source = new List<TextElementDto> { new TextElementDto {
+						ElementId = "text_1",
+						ElementType = "text",
+						// Raw nesting - won't be escaped
+						Content = new ElementContentDto { ElementId = "text_1", Content = "text goes here" },
+						Action = new ElementActionDto { ElementId = "text_1", Action = "action goes here" }
+					}
+				},
+                Destination = "Here is the destionation",
+                ObjectArrayList = new List<object[]> { 
+					new object[] { 1, 3.0123456789m, "item1", new ElementContentDto { 
+							ElementId = "text_1", Content = "text goes here" } }, 
+					new object[] { 2, 3, 4, 5 } },
+                Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
+					new object[2][] { new object[] { 4, 5, 6 }, new object[] { 7, 8 } } },
+                IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } },
+                InheritedInt1 = 1,
+                InheritedInt2 = 2,
+                InheritedInt3 = 3,
+                InheritedInt4 = 4,
+                InheritedStr1 = "Str1",
+                InheritedStr2 = "Str2",
+                InheritedStr3 = "Str3",
+                InheritedStr4 = "Str4"
+            };
+        }
+
         public static colclass CreateColClass()
         {
             var c = new colclass();
@@ -392,7 +434,13 @@ namespace Sweet.Jayson.Tests
         public object O4 { get; set; }
     }
 
-    public class SimpleObj
+	public class SimpleObjDerivative : SimpleObj
+	{
+		public string Value3 { get; set; }
+		public string Value4 { get; set; }
+	}
+
+	public class SimpleObj
     {
         public string Value1 { get; set; }
         public string Value2 { get; set; }
@@ -430,6 +478,23 @@ namespace Sweet.Jayson.Tests
     public class TypedContainerNoDto : TypedContainerDto, ITypedContainerNoDto
     {
         public IJsonValueContainerNoDto ValueContainer { get; set; }
+    }
+
+    public class TypedContainerIgnoreMemberDto : TypedContainerDto
+    {
+        [JaysonIgnoreMember]
+        public int InheritedInt1;
+        public int InheritedInt2;
+        [JaysonIgnoreMember]
+        public int InheritedInt3 { get; set; }
+        public int InheritedInt4 { get; set; }
+
+        [JaysonIgnoreMember]
+        public string InheritedStr1;
+        public string InheritedStr2;
+        [JaysonIgnoreMember]
+        public string InheritedStr3 { get; set; }
+        public string InheritedStr4 { get; set; }
     }
 
     public class TypedContainerDto

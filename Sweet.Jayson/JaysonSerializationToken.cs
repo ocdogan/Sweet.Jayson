@@ -36,7 +36,8 @@ namespace Sweet.Jayson
 		Comma = 3,
 		Key = 4,
 		Colon = 5,
-		Value = 6
+		Value = 6,
+		ValueExit = 7
 	}
 
 	# endregion JaysonSerializationToken

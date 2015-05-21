@@ -952,6 +952,11 @@ namespace Sweet.Jayson
 					switch (ch)
 					{
 					case '"':
+						if (prevToken == JaysonSerializationToken.Value)
+						{
+							throw new JaysonException("Invalid Json object key.");
+						}
+
 						key = ParseString(str, ref context.Position);
 						if (key == null)
 						{
