@@ -188,7 +188,11 @@ namespace Sweet.Jayson
 			SByteNullable |
 			GuidNullable |
 			TimeSpanNullable |
-			DateTimeOffsetNullable
+			DateTimeOffsetNullable,
+
+        AutoTyped = 
+            Number | 
+            Nullable
 	}
 
 	# endregion JaysonTypeCode

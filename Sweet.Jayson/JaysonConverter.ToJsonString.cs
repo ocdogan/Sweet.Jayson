@@ -109,7 +109,7 @@ namespace Sweet.Jayson
 		{
 			try {
 				if (context.SkipCurrentType && 
-					context.CurrentType == objType) {
+                    context.CurrentType == objType) {
 					return false;
 				}
 
@@ -470,11 +470,8 @@ namespace Sweet.Jayson
                 JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
                 if (jtns == JaysonTypeNameSerialization.All ||
-                    ((jtns == JaysonTypeNameSerialization.Auto ||
-                        jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
-                        (jtc == JaysonTypeCode.Nullable ||
-                            ((JaysonTypeCode.Primitive & jtc) == jtc &&
-                                (JaysonTypeCode.Number & jtc) != jtc))))
+                    (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
+                    (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc))
                 {
 					bool typeWritten = false;
                     context.ObjectDepth++;
@@ -1438,7 +1435,7 @@ namespace Sweet.Jayson
         private static void WriteDictionaryObjectKey(IDictionary obj, JaysonSerializationContext context)
         {
 			var settings = context.Settings;
-			bool formatting = context.Settings.Formatting;
+			bool formatting = settings.Formatting;
 
 			bool typeWritten = false;
 
@@ -1493,8 +1490,8 @@ namespace Sweet.Jayson
 									try {
 										builder.Append ('{');
 
-										WriteKeyValueEntry(key: "$k", value: kvp.Key, context: context, isFirst: true, forceNullValues: true);
-										WriteKeyValueEntry(key: "$v", value: kvp.Value, context: context, isFirst: false, forceNullValues: true);
+										WriteKeyValueEntry (key: "$k", value: kvp.Key, context: context, isFirst: true, forceNullValues: true);
+										WriteKeyValueEntry (key: "$v", value: kvp.Value, context: context, isFirst: false, forceNullValues: true);
 									} finally {
 										isFirstItem = false;
 										if (formatting) {
@@ -1544,7 +1541,6 @@ namespace Sweet.Jayson
 										}
 										builder.Append ('}');
 									}
-
 	                            }
 	                        }
 						} finally {
@@ -1681,26 +1677,19 @@ namespace Sweet.Jayson
 				}
 
 				if (obj.Count > 0) {
-					string key;
-					object value;
-					object keyObj;
-
-					Func<string, object, object> filter = context.Filter;
-					bool canFilter = (filter != null);
-
 					if (settings.OrderNames) {
 						foreach (var kvp in GetStringDictionaryEntries(obj, context).OrderBy(kvp => kvp.Key)) {
-							key = kvp.Key;
-							value = kvp.Value;
-
-							if ((value != null) && canFilter) {
-								value = filter (key, value);
-							}
-
 							isFirst = WriteKeyValueEntry (kvp.Key, kvp.Value, context, isFirst);
 						}
 					} else {
-						foreach (DictionaryEntry dEntry in obj) {
+                        string key;
+                        object value;
+                        object keyObj;
+
+                        Func<string, object, object> filter = context.Filter;
+                        bool canFilter = (filter != null);
+
+                        foreach (DictionaryEntry dEntry in obj) {
 							keyObj = dEntry.Key;
 							value = dEntry.Value;
 
@@ -1983,7 +1972,23 @@ namespace Sweet.Jayson
 					IEnumerable<KeyValuePair<string, object>> eDict = obj;
 					if (settings.OrderNames) {
 						eDict = eDict.OrderBy (kvp => kvp.Key);
-					}
+
+                        foreach (var kvp in obj)
+                        {
+                            key = kvp.Key;
+                            value = kvp.Value;
+
+                            if ((value != null) && canFilter)
+                            {
+                                value = filter(key, value);
+                            }
+
+                            isFirst = WriteKeyValueEntry(key: key, value: value, context: context, isFirst: isFirst,
+                                forceNullValues: false, ignoreEscape: isExpando);
+                        }
+
+                        return;
+                    }
 
 					foreach (var kvp in obj) {
 						key = kvp.Key;
@@ -2475,27 +2480,21 @@ namespace Sweet.Jayson
 					IEnumerator enumerator = obj.GetEnumerator ();
 					try {
 						if (dType == JaysonDictionaryType.IDictionary) {
-							string key;
-							object value;
-							object keyObj;
-							DictionaryEntry dEntry;
-
-							Func<string, object, object> filter = context.Filter;
-							bool canFilter = (filter != null);
-
 							if (settings.OrderNames) {
 								foreach (var kvp in GetEnumDictionaryEntries(obj, context).OrderBy(kvp => kvp.Key)) {
-									key = kvp.Key;
-									value = kvp.Value;
-
-									if ((value != null) && canFilter) {
-										value = filter (key, value);
-									}
-
 									isFirst = WriteKeyValueEntry (kvp.Key, kvp.Value, context, isFirst);
 								}
 							} else {
-								while (enumerator.MoveNext ()) {
+                                string key;
+                                object value;
+                                object keyObj;
+                                DictionaryEntry dEntry;
+
+                                Func<string, object, object> filter = context.Filter;
+                                bool canFilter = (filter != null);
+
+                                while (enumerator.MoveNext())
+                                {
 									dEntry = (DictionaryEntry)enumerator.Current;
 
 									keyObj = dEntry.Key;
@@ -2511,16 +2510,15 @@ namespace Sweet.Jayson
 								}
 							}
 						} else if (dType == JaysonDictionaryType.IGenericDictionary) {
-							string key;
-							object value;
-
 							IJaysonFastMember keyFm;
 							IJaysonFastMember valueFm;
 
 							IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers (entryType);
 
 							if (members.TryGetValue ("Key", out keyFm) && members.TryGetValue ("Value", out valueFm)) {
-								object keyObj;
+                                string key;
+                                object value;
+                                object keyObj;
 
 								Func<string, object, object> filter = context.Filter;
 								bool canFilter = (filter != null);
@@ -2638,12 +2636,9 @@ namespace Sweet.Jayson
 
 				JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
-				if (jtns == JaysonTypeNameSerialization.All ||
-					((jtns == JaysonTypeNameSerialization.Auto ||
-						jtns == JaysonTypeNameSerialization.AllButNoPrimitive) &&
-						(jtc == JaysonTypeCode.Nullable || 
-						((JaysonTypeCode.Primitive & jtc) == jtc &&
-							(JaysonTypeCode.Number & jtc) != jtc)))) {
+                if (jtns == JaysonTypeNameSerialization.All ||
+                    (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
+                    (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)) {
 					StringBuilder builder = context.Builder;
 
 					bool typeWritten = false;

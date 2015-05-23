@@ -42,50 +42,101 @@ namespace Sweet.Jayson
 	{
 		# region ToJsonObject
 
-		private static Dictionary<string, object> AsDictionary(IDictionary obj, JaysonSerializationContext context)
+        private static Dictionary<string, object> AsDictionaryObjectKey(IDictionary obj, JaysonSerializationContext context)
+        {
+            if (obj.Count == 0)
+            {
+                return new Dictionary<string, object>();
+            }
+
+            List<object> kvList = new List<object>(obj.Count);
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            result["$kv"] = kvList;
+
+            string key;
+            object value;
+            object keyObj;
+
+            Func<string, object, object> filter = context.Filter;
+            bool canFilter = (filter != null);
+
+            foreach (DictionaryEntry dEntry in obj)
+            {
+                keyObj = dEntry.Key;
+                value = dEntry.Value;
+
+                if (value != null)
+                {
+                    if (canFilter)
+                    {
+                        key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+                        value = filter(key, value);
+                    }
+
+                    if (value != null)
+                    {
+                        value = ToJsonObject(value, context);
+                    }
+                }
+
+
+                kvList.Add(new Dictionary<string, object> { 
+                    { "$k", ToJsonObject(keyObj, context) },
+                    { "$v", ToJsonObject(value, context) } 
+                });
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, object> AsDictionary(IDictionary obj, JaysonSerializationContext context)
 		{
-			if (obj.Count == 0)
-			{
-				return new Dictionary<string, object>();
-			}
+            var genericArgs = JaysonTypeInfo.GetGenericArguments(obj.GetType());
+            if ((genericArgs != null) && (genericArgs.Length > 0) && (genericArgs[0] == typeof(string)))
+            {
+                if (obj.Count == 0)
+                {
+                    return new Dictionary<string, object>();
+                }
 
-			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+                Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
-			string key;
-			object value;
-			object keyObj;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
+                string key;
+                object value;
+                object keyObj;
+                bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
-			Func<string, object, object> filter = context.Filter;
-			bool canFilter = (filter != null);
+                Func<string, object, object> filter = context.Filter;
+                bool canFilter = (filter != null);
 
-			foreach (DictionaryEntry dEntry in obj)
-			{
-				value = dEntry.Value;
+                foreach (DictionaryEntry dEntry in obj)
+                {
+                    value = dEntry.Value;
 
-				keyObj = dEntry.Key;
-				key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+                    keyObj = dEntry.Key;
+                    key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
 
-				if (value != null)
-				{
-					if (canFilter)
-					{
-						value = filter(key, value);
-					}
+                    if (value != null)
+                    {
+                        if (canFilter)
+                        {
+                            value = filter(key, value);
+                        }
 
-					if (value != null)
-					{
-						value = ToJsonObject(value, context);
-					}
-				}
+                        if (value != null)
+                        {
+                            value = ToJsonObject(value, context);
+                        }
+                    }
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result[key] = value;
-				}
-			}
+                    result[key] = value;
+                }
 
-			return result;
+                return result;
+            }
+
+            return AsDictionaryObjectKey(obj, context);
 		}
 
 		private static Dictionary<string, object> AsStringDictionary(StringDictionary obj, JaysonSerializationContext context)
@@ -122,55 +173,49 @@ namespace Sweet.Jayson
 					}
 				}
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(key, value);
-				}
+    			result.Add(key, value);
 			}
 
 			return result;
 		}
 
-		private static Dictionary<string, object> AsNameValueCollection(NameValueCollection obj, JaysonSerializationContext context)
-		{
-			if (obj.Count == 0)
-			{
-				return new Dictionary<string, object>();
-			}
+        private static Dictionary<string, object> AsNameValueCollection(NameValueCollection obj, JaysonSerializationContext context)
+        {
+            if (obj.Count == 0)
+            {
+                return new Dictionary<string, object>();
+            }
 
-			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
-			object value;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
+            object value;
+            bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
-			Func<string, object, object> filter = context.Filter;
-			bool canFilter = (filter != null);
+            Func<string, object, object> filter = context.Filter;
+            bool canFilter = (filter != null);
 
-			foreach (var key in obj.AllKeys)
-			{
-				value = obj[key];
+            foreach (var key in obj.AllKeys)
+            {
+                value = obj[key];
 
-				if (value != null)
-				{
-					if (canFilter)
-					{
-						value = filter(key, value);
-					}
+                if (value != null)
+                {
+                    if (canFilter)
+                    {
+                        value = filter(key, value);
+                    }
 
-					if (value != null)
-					{
-						value = ToJsonObject(value, context);
-					}
-				}
+                    if (value != null)
+                    {
+                        value = ToJsonObject(value, context);
+                    }
+                }
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(key, value);
-				}
-			}
+                result.Add(key, value);
+            }
 
-			return result;
-		}
+            return result;
+        }
 
 		#if !(NET3500 || NET3000 || NET2000)
 		private static Dictionary<string, object> AsDynamicObject(DynamicObject obj, JaysonSerializationContext context)
@@ -327,10 +372,7 @@ namespace Sweet.Jayson
 					}
 				}
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(key, value);
-				}
+				result.Add(key, value);
 			}
 
 			return result;

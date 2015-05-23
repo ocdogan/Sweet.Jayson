@@ -2665,8 +2665,29 @@ namespace Sweet.Jayson.Tests
 			DataTable dt2 = JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull(dt2);
-			Assert.True(dt1.Rows.Count == dt2.Rows.Count);
-			Assert.True(dt1.Columns.Count == dt2.Columns.Count);
+
+			Assert.AreEqual(dt1.Columns.Count, dt2.Columns.Count);
+			Assert.AreEqual(dt1.Columns[0].ExtendedProperties.Count, dt2.Columns[0].ExtendedProperties.Count);
+			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[1], 2m);
+			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[3], 4m);
+			Assert.AreEqual(dt1.ExtendedProperties.Count, dt2.ExtendedProperties.Count);
+			Assert.AreEqual(dt2.ExtendedProperties[5], 6m);
+			Assert.AreEqual(dt2.ExtendedProperties[7], 8m);
+
+			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
+			Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
+			Assert.AreEqual(dt2.Rows[0][1], true);
+			Assert.AreEqual(dt2.Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+			Assert.True(dt2.Rows[0][3] is SimpleObj);
+			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
+			Assert.AreEqual(dt2.Rows[1][0], "row2");
+			Assert.AreEqual(dt2.Rows[1][1], false);
+			Assert.AreEqual(dt2.Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+			Assert.True(dt2.Rows[1][3] is SimpleObjDerivative);
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value2, "My");
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value3, "World 2");
 		}
 
         [Test]
@@ -2689,9 +2710,10 @@ namespace Sweet.Jayson.Tests
 					Value2 = "World 1"
 				}});
             dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
-				new SimpleObj {
+				new SimpleObjDerivative {
 					Value1 = "Hello",
-					Value2 = "World 2"
+					Value2 = "My",
+					Value3 = "World 2"
 				}});
 
 			dt1.ExtendedProperties.Add (5, 6m);
@@ -2717,6 +2739,29 @@ namespace Sweet.Jayson.Tests
 
             Assert.IsNotNull(ds2);
             Assert.True(ds1.Tables.Count == ds2.Tables.Count);
+
+			Assert.AreEqual(ds1.Tables[0].Columns.Count, ds2.Tables[0].Columns.Count);
+			Assert.AreEqual(ds1.Tables[0].Columns[0].ExtendedProperties.Count, ds2.Tables[0].Columns[0].ExtendedProperties.Count);
+			Assert.AreEqual(ds2.Tables[0].Columns[0].ExtendedProperties[1], 2m);
+			Assert.AreEqual(ds2.Tables[0].Columns[0].ExtendedProperties[3], 4m);
+			Assert.AreEqual(ds1.Tables[0].ExtendedProperties.Count, ds2.Tables[0].ExtendedProperties.Count);
+			Assert.AreEqual(ds2.Tables[0].ExtendedProperties[5], 6m);
+			Assert.AreEqual(ds2.Tables[0].ExtendedProperties[7], 8m);
+
+			Assert.AreEqual(ds1.Tables[0].Rows.Count, ds2.Tables[0].Rows.Count);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][0], DBNull.Value);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][1], true);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+			Assert.True(ds2.Tables[0].Rows[0][3] is SimpleObj);
+			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value2, "World 1");
+			Assert.AreEqual(ds2.Tables[0].Rows[1][0], "row2");
+			Assert.AreEqual(ds2.Tables[0].Rows[1][1], false);
+			Assert.AreEqual(ds2.Tables[0].Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+			Assert.True(ds2.Tables[0].Rows[1][3] is SimpleObjDerivative);
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value2, "My");
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value3, "World 2");
         }
 
         [Test]
@@ -2740,9 +2785,10 @@ namespace Sweet.Jayson.Tests
 					Value2 = "World 1"
 				}});
             dt1.Rows.Add(new object[] { 1, "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
-				new SimpleObj {
+				new SimpleObjDerivative {
 					Value1 = "Hello",
-					Value2 = "World 2"
+					Value2 = "My",
+					Value3 = "World 2"
 				}});
 
             dt1.ExtendedProperties.Add("x2", 2);
@@ -2794,7 +2840,7 @@ namespace Sweet.Jayson.Tests
             Assert.IsNotNull(ds2.Tables["My DataTable 1", "myTableNamespace1"]);
             Assert.IsNotNull(ds2.Tables["My DataTable 2", "myTableNamespace2"]);
             Assert.IsNotNull(ds2.Relations["dr1"]);
-        }
+		}
 
         [Test]
         public static void TestSerializeDeserializeCustomDataSetTypeAll()
