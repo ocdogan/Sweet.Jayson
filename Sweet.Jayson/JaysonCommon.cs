@@ -29,6 +29,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace Sweet.Jayson
 {
@@ -49,6 +50,8 @@ namespace Sweet.Jayson
 		# region Static Members
 
 		private static int s_IsMono = -1;
+
+		private static readonly int LowerCaseDif = (int)'a' - (int)'A';
 
 		private static TimeSpan s_UtcOffsetUpdate;
 		private static long s_LastUtcOffsetUpdate = -1;
@@ -906,6 +909,44 @@ namespace Sweet.Jayson
 				}
 			}
 			return false;
+		}
+
+		public static string AsciiToLower(string asciiStr)
+		{
+			if (asciiStr == null) {
+				return asciiStr;
+			}
+
+			int length = asciiStr.Length;
+			if (length == 0) {
+				return asciiStr;
+			}
+
+			char ch;
+			int len;
+			int start = 0;
+
+			StringBuilder builder = new StringBuilder (20, int.MaxValue);
+			for (int i = 0; i < length; i++) {
+				ch = asciiStr [i];
+				if (ch >= 'A' && ch <= 'Z') {
+					len = i - start;
+					if (len > 1) {
+						builder.Append (asciiStr, start, len);
+					} 
+					builder.Append ((char)((int)ch + LowerCaseDif));
+					start = i + 1;
+				}
+			}
+
+			if (start == 0) {
+				return asciiStr;
+			}
+
+			if (start < length) {
+				builder.Append (asciiStr, start, length - start);
+			}
+			return builder.ToString ();
 		}
 
 		public static bool ParseBoolean(string str) 

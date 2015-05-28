@@ -44,6 +44,40 @@ namespace Sweet.Jayson.Tests
     [TestFixture]
     public class PrimaryTests
     {
+		#if !(NET3500 || NET3000 || NET2000)
+		[Test]
+		public static void TestTuple1()
+		{
+			var t1 = new Tuple<int, int, int> (2, 33, 44);
+			string json = JaysonConverter.ToJsonString(t1);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int, int>>(json);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2a()
+		{
+			var t1 = new Tuple<int, int, int> (2, 33, 44);
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int, int>>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+		#endif
+
 		[Test]
 		public static void TestTimeSpan1()
 		{
@@ -2520,12 +2554,15 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col2", typeof(bool)));
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
+			dt1.Columns.Add(new DataColumn("col5", typeof(byte[])));
 
             dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
-				}});
+				},
+				Encoding.UTF8.GetBytes ("Hello World 1")
+			});
             dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObj {
 					Value1 = "Hello",
@@ -2587,6 +2624,7 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col2", typeof(bool)));
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
+			dt1.Columns.Add(new DataColumn("col5", typeof(byte[])));
 
 			dt1.Columns[0].ExtendedProperties.Add (1, 2m);
 			dt1.Columns[0].ExtendedProperties.Add (3, 4m);
@@ -2595,13 +2633,17 @@ namespace Sweet.Jayson.Tests
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
-				}});
+				},
+				null
+			});
             dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
 					Value3 = "World 1"
 				}});
+
+			dt1.Rows [0] [4] = Encoding.UTF8.GetBytes ("Hello World 1");
 
 			dt1.ExtendedProperties.Add (5, 6m);
 			dt1.ExtendedProperties.Add (7, 8m);
@@ -2632,6 +2674,7 @@ namespace Sweet.Jayson.Tests
 			dt1.Columns.Add(new DataColumn("col2", typeof(bool)));
 			dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
 			dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
+			dt1.Columns.Add(new DataColumn("col5", typeof(byte[])));
 
 			dt1.Columns[0].ExtendedProperties.Add (1, 2m);
 			dt1.Columns[0].ExtendedProperties.Add (3, 4m);
@@ -2640,13 +2683,17 @@ namespace Sweet.Jayson.Tests
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
-				}});
+				}
+			});
 			dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
 					Value3 = "World 2"
-				}});
+				}
+			});
+
+			dt1.Rows [0] [4] = Encoding.UTF8.GetBytes ("Hello World 1");
 
 			dt1.ExtendedProperties.Add (5, 6m);
 			dt1.ExtendedProperties.Add (7, 8m);
@@ -2662,6 +2709,7 @@ namespace Sweet.Jayson.Tests
 			jaysonDeserializationSettings.CaseSensitive = true;
 
 			string json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
+
 			DataTable dt2 = JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull(dt2);
@@ -2676,13 +2724,14 @@ namespace Sweet.Jayson.Tests
 
 			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
 			Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
-			Assert.AreEqual(dt2.Rows[0][1], true);
+			Assert.AreEqual((bool)dt2.Rows[0][1], true);
 			Assert.AreEqual(dt2.Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
 			Assert.True(dt2.Rows[0][3] is SimpleObj);
 			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
 			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
+			Assert.AreEqual(((byte[])dt2.Rows[0][4])[0], Encoding.UTF8.GetBytes ("Hello World 1")[0]);
 			Assert.AreEqual(dt2.Rows[1][0], "row2");
-			Assert.AreEqual(dt2.Rows[1][1], false);
+			Assert.AreEqual((bool)dt2.Rows[1][1], false);
 			Assert.AreEqual(dt2.Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
 			Assert.True(dt2.Rows[1][3] is SimpleObjDerivative);
 			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");

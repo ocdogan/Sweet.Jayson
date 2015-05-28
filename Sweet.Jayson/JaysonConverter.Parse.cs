@@ -104,7 +104,7 @@ namespace Sweet.Jayson
 			int start = pos;
 			bool terminated = false;
 
-			StringBuilder charStore = new StringBuilder(20, int.MaxValue); // JaysonParserBuilderCache.Acquire(20);
+            StringBuilder charStore = new StringBuilder(20, int.MaxValue);
 			do
 			{
 				ch = str[pos];
@@ -204,7 +204,6 @@ namespace Sweet.Jayson
 
 				charStore.Append(str, start, len);
 			}
-			// return JaysonParserBuilderCache.GetStringAndRelease(charStore);
 			return charStore.ToString();
 		}
 

@@ -215,7 +215,7 @@ namespace Sweet.Jayson
             object propValue;
 			if (dataTable.ChildRelations.Count == 0 && dataTable.ParentRelations.Count == 0) 
 			{
-				if (obj.TryGetValue ("CaseSensitive", out propValue)) 
+				if (obj.TryGetValue ("Cs", out propValue) || obj.TryGetValue ("cs", out propValue)) 
 				{
 					if (propValue is bool) 
 					{
@@ -227,33 +227,33 @@ namespace Sweet.Jayson
 					}
 				}
 
-				if (obj.TryGetValue ("Locale", out propValue)) 
+				if (obj.TryGetValue ("Lcl", out propValue) || obj.TryGetValue ("lcl", out propValue)) 
 				{
 					dataTable.Locale = CultureInfo.GetCultureInfo ((string)propValue);
 				}
 			}
 
-            if (obj.TryGetValue("DisplayExpression", out propValue))
+			if (obj.TryGetValue("De", out propValue) || obj.TryGetValue("de", out propValue))
             {
                 dataTable.DisplayExpression = (string)propValue;
             }
 
-            if (obj.TryGetValue("Namespace", out propValue))
+			if (obj.TryGetValue("Ns", out propValue) || obj.TryGetValue("ns", out propValue))
             {
                 dataTable.Namespace = (string)propValue;
             }
 
-            if (obj.TryGetValue("Prefix", out propValue))
+			if (obj.TryGetValue("Pfx", out propValue) || obj.TryGetValue("pfx", out propValue))
             {
                 dataTable.Prefix = (string)propValue;
             }
 
-            if (obj.TryGetValue("TableName", out propValue))
+			if (obj.TryGetValue("Tn", out propValue) || obj.TryGetValue("tn", out propValue))
             {
                 dataTable.TableName = (string)propValue;
             }
 
-			if (obj.TryGetValue("ExtendedProperties", out propValue))
+			if (obj.TryGetValue("Ep", out propValue) || obj.TryGetValue("ep", out propValue))
             {
 				SetExtendedProperties(dataTable.ExtendedProperties, propValue, context);
             }
@@ -263,7 +263,7 @@ namespace Sweet.Jayson
 			JaysonDeserializationContext context)
         {
             object columnsObj;
-            if (obj.TryGetValue("Columns", out columnsObj))
+			if (obj.TryGetValue("Cols", out columnsObj) || obj.TryGetValue("cols", out columnsObj))
             {
 				var columnList = (IList)columnsObj;
 
@@ -287,7 +287,7 @@ namespace Sweet.Jayson
                     columnInfo = (Dictionary<string, object>)columnInfoObj;
 
                     columnName = null;
-                    if (columnInfo.TryGetValue("ColumnName", out propValue))
+					if (columnInfo.TryGetValue("Cn", out propValue) || columnInfo.TryGetValue("cn", out propValue))
                     {
                         columnName = (string)propValue ?? String.Empty;
                     }
@@ -298,7 +298,8 @@ namespace Sweet.Jayson
                     }
                     else
                     {
-                        if (columnInfo.TryGetValue("DataType", out propValue) && propValue != null)
+						if ((columnInfo.TryGetValue("Dt", out propValue) ||
+							columnInfo.TryGetValue("dt", out propValue)) && propValue != null)
                         {
                             dataType = JaysonCommon.GetType((string)propValue, settings.Binder);
 
@@ -318,12 +319,13 @@ namespace Sweet.Jayson
                         }
 
                         expression = null;
-                        if (columnInfo.TryGetValue("Expression", out propValue))
+						if (columnInfo.TryGetValue("Exp", out propValue) || columnInfo.TryGetValue("exp", out propValue))
                         {
                             expression = (string)propValue;
                         }
 
-                        if (columnInfo.TryGetValue("ColumnMapping", out propValue) && propValue != null)
+						if ((columnInfo.TryGetValue("Cm", out propValue) ||
+							columnInfo.TryGetValue("cm", out propValue)) && propValue != null)
                         {
                             mappingType = (MappingType)JaysonEnumCache.Parse((string)propValue, typeof(MappingType));
                         }
@@ -335,7 +337,7 @@ namespace Sweet.Jayson
                         column = new DataColumn(columnName, dataType, expression, mappingType);
 
                         ordinal = -1;
-                        if (columnInfo.TryGetValue("Ordinal", out propValue))
+						if (columnInfo.TryGetValue("Ord", out propValue) || columnInfo.TryGetValue("ord", out propValue))
                         {
                             if (propValue is int)
                             {
@@ -363,12 +365,12 @@ namespace Sweet.Jayson
                         }
                     }
 
-                    if (columnInfo.TryGetValue("Namespace", out propValue))
+					if (columnInfo.TryGetValue("Ns", out propValue) || columnInfo.TryGetValue("ns", out propValue))
                     {
                         column.Namespace = (string)propValue;
                     }
 
-                    if (columnInfo.TryGetValue("AllowDBNull", out propValue))
+					if (columnInfo.TryGetValue("Adbn", out propValue) || columnInfo.TryGetValue("adbn", out propValue))
                     {
                         if (propValue is bool)
                         {
@@ -381,7 +383,7 @@ namespace Sweet.Jayson
                             }
                     }
 
-                    if (columnInfo.TryGetValue("AutoIncrement", out propValue))
+					if (columnInfo.TryGetValue("Ai", out propValue) || columnInfo.TryGetValue("ai", out propValue))
                     {
                         if (propValue is bool)
                         {
@@ -394,7 +396,7 @@ namespace Sweet.Jayson
                             }
                     }
 
-                    if (columnInfo.TryGetValue("AutoIncrementSeed", out propValue))
+					if (columnInfo.TryGetValue("Aisd", out propValue) || columnInfo.TryGetValue("aisd", out propValue))
                     {
                         if (propValue is int)
                         {
@@ -412,7 +414,7 @@ namespace Sweet.Jayson
                                 }
                     }
 
-                    if (columnInfo.TryGetValue("AutoIncrementStep", out propValue))
+					if (columnInfo.TryGetValue("Aistp", out propValue) || columnInfo.TryGetValue("aistp", out propValue))
                     {
                         if (propValue is int)
                         {
@@ -430,7 +432,7 @@ namespace Sweet.Jayson
                                 }
                     }
 
-                    if (columnInfo.TryGetValue("MaxLength", out propValue))
+					if (columnInfo.TryGetValue("Ml", out propValue) || columnInfo.TryGetValue("ml", out propValue))
                     {
                         if (propValue is int)
                         {
@@ -448,17 +450,17 @@ namespace Sweet.Jayson
                                 }
                     }
 
-                    if (columnInfo.TryGetValue("Caption", out propValue))
+					if (columnInfo.TryGetValue("Cap", out propValue) || columnInfo.TryGetValue("cap", out propValue))
                     {
                         column.Caption = (string)propValue;
                     }
 
-                    if (columnInfo.TryGetValue("Prefix", out propValue))
+					if (columnInfo.TryGetValue("Pfx", out propValue) || columnInfo.TryGetValue("pfx", out propValue))
                     {
                         column.Prefix = (string)propValue;
                     }
 
-                    if (columnInfo.TryGetValue("ReadOnly", out propValue))
+					if (columnInfo.TryGetValue("Ro", out propValue) || columnInfo.TryGetValue("ro", out propValue))
                     {
                         if (propValue is bool)
                         {
@@ -471,7 +473,7 @@ namespace Sweet.Jayson
                             }
                     }
 
-                    if (columnInfo.TryGetValue("Unique", out propValue))
+					if (columnInfo.TryGetValue("Uq", out propValue) || columnInfo.TryGetValue("uq", out propValue))
                     {
                         if (propValue is bool)
                         {
@@ -484,7 +486,7 @@ namespace Sweet.Jayson
                             }
                     }
 
-					if (columnInfo.TryGetValue("ExtendedProperties", out propValue))
+					if (columnInfo.TryGetValue("Ep", out propValue) || columnInfo.TryGetValue("ep", out propValue))
                     {
 						SetExtendedProperties(column.ExtendedProperties, propValue, context);
                     }
@@ -518,7 +520,8 @@ namespace Sweet.Jayson
 			JaysonDeserializationContext context)
         {
             object primaryKey;
-            if (obj.TryGetValue("PrimaryKey", out primaryKey) && (primaryKey != null))
+			if ((obj.TryGetValue("Pk", out primaryKey) ||
+				obj.TryGetValue("pk", out primaryKey)) && (primaryKey != null))
             {
                 var currPrimaryKey = dataTable.PrimaryKey;
                 if (currPrimaryKey == null || currPrimaryKey.Length == 0)
@@ -622,7 +625,7 @@ namespace Sweet.Jayson
 			JaysonDeserializationContext context)
         {
             object relationsObj;
-            if (obj.TryGetValue("Relations", out relationsObj))
+			if (obj.TryGetValue("Rel", out relationsObj) || obj.TryGetValue("rel", out relationsObj))
             {
 				var relationsList = (IList)relationsObj;
 
@@ -645,19 +648,22 @@ namespace Sweet.Jayson
                     relationInfo = (Dictionary<string, object>)relationInfoObj;
 
                     relationName = null;
-                    if (relationInfo.TryGetValue("RelationName", out propValue) && propValue != null)
+					if ((relationInfo.TryGetValue("Rn", out propValue) || 
+						relationInfo.TryGetValue("rn", out propValue)) && propValue != null)
                     {
                         relationName = (string)propValue;
                         if (dataSet.Relations.Contains(relationName))
                             continue;
 
                         tableName = null;
-                        if (relationInfo.TryGetValue("ChildTable", out propValue) && propValue != null)
+						if ((relationInfo.TryGetValue("CTab", out propValue) ||
+							relationInfo.TryGetValue("ctab", out propValue)) && propValue != null)
                         {
                             tableName = (string)propValue;
 
                             tableNamespace = null;
-                            if (relationInfo.TryGetValue("ChildTableNamespace", out propValue) && propValue != null)
+							if ((relationInfo.TryGetValue("CTabNs", out propValue) ||
+								relationInfo.TryGetValue("ctabns", out propValue)) && propValue != null)
                             {
                                 tableNamespace = (string)propValue;
                             }
@@ -668,7 +674,7 @@ namespace Sweet.Jayson
                             if (childTable != null)
                             {
                                 childColumns.Clear();
-                                if (relationInfo.TryGetValue("ChildColumns", out propValue))
+									if (relationInfo.TryGetValue("CCol", out propValue) || relationInfo.TryGetValue("ccol", out propValue))
                                 {
                                     columns = childTable.Columns;
                                     foreach (var columnNameObj in (IList)propValue)
@@ -684,12 +690,14 @@ namespace Sweet.Jayson
                                 if (childColumns.Count > 0)
                                 {
                                     tableName = null;
-                                    if (relationInfo.TryGetValue("ParentTable", out propValue) && propValue != null)
+									if ((relationInfo.TryGetValue("PTab", out propValue) ||
+											relationInfo.TryGetValue("ptab", out propValue)) && propValue != null)
                                     {
                                         tableName = (string)propValue;
 
                                         tableNamespace = null;
-                                        if (relationInfo.TryGetValue("ParentTableNamespace", out propValue) && propValue != null)
+										if ((relationInfo.TryGetValue("PTabNs", out propValue) ||
+											relationInfo.TryGetValue("ptabns", out propValue)) && propValue != null)
                                         {
                                             tableNamespace = (string)propValue;
                                         }
@@ -700,7 +708,7 @@ namespace Sweet.Jayson
                                         if (parentTable != null)
                                         {
                                             parentColumns.Clear();
-                                            if (relationInfo.TryGetValue("ParentColumns", out propValue))
+											if (relationInfo.TryGetValue("PCol", out propValue) || relationInfo.TryGetValue("pcol", out propValue))
                                             {
                                                 columns = parentTable.Columns;
                                                 foreach (var columnNameObj in (IList)propValue)
@@ -731,7 +739,7 @@ namespace Sweet.Jayson
 			JaysonDeserializationContext context)
         {
             object propValue;
-            if (obj.TryGetValue("CaseSensitive", out propValue))
+			if (obj.TryGetValue("Cs", out propValue) || obj.TryGetValue("cs", out propValue))
             {
                 if (propValue is bool)
                 {
@@ -744,12 +752,12 @@ namespace Sweet.Jayson
                     }
             }
 
-            if (obj.TryGetValue("DataSetName", out propValue))
+			if (obj.TryGetValue("Dsn", out propValue) || obj.TryGetValue("dsn", out propValue))
             {
                 dataSet.DataSetName = (string)propValue;
             }
 
-            if (obj.TryGetValue("EnforceConstraints", out propValue))
+			if (obj.TryGetValue("Ec", out propValue) || obj.TryGetValue("ec", out propValue))
             {
                 if (propValue is bool)
                 {
@@ -762,22 +770,22 @@ namespace Sweet.Jayson
                     }
             }
 
-            if (obj.TryGetValue("Locale", out propValue))
+			if (obj.TryGetValue("Lcl", out propValue) || obj.TryGetValue("lcl", out propValue))
             {
                 dataSet.Locale = CultureInfo.GetCultureInfo((string)propValue);
             }
 
-            if (obj.TryGetValue("Namespace", out propValue))
+			if (obj.TryGetValue("Ns", out propValue) || obj.TryGetValue("ns", out propValue))
             {
                 dataSet.Namespace = (string)propValue;
             }
 
-            if (obj.TryGetValue("Prefix", out propValue))
+			if (obj.TryGetValue("Pfx", out propValue) || obj.TryGetValue("pfx", out propValue))
             {
                 dataSet.Prefix = (string)propValue;
             }
 
-            if (obj.TryGetValue("SchemaSerializationMode", out propValue))
+			if (obj.TryGetValue("Ssm", out propValue) || obj.TryGetValue("ssm", out propValue))
             {
                 if (propValue is SchemaSerializationMode)
                 {
@@ -790,7 +798,7 @@ namespace Sweet.Jayson
                     }
             }
 
-			if (obj.TryGetValue("ExtendedProperties", out propValue))
+			if (obj.TryGetValue("Ep", out propValue) || obj.TryGetValue("ep", out propValue))
             {
 				SetExtendedProperties(dataSet.ExtendedProperties, propValue, context);
             }
@@ -803,10 +811,10 @@ namespace Sweet.Jayson
 
             object propValue;
 
-            if (tableObj.TryGetValue("TableName", out propValue))
+			if (tableObj.TryGetValue("Tn", out propValue) || tableObj.TryGetValue("tn", out propValue))
             {
                 tableName = (string)propValue;
-                if (tableObj.TryGetValue("Namespace", out propValue))
+				if (tableObj.TryGetValue("Ns", out propValue) || tableObj.TryGetValue("ns", out propValue))
                 {
                     tableNamespace = (string)propValue;
                 }
@@ -819,7 +827,7 @@ namespace Sweet.Jayson
 			JaysonDeserializationContext context)
 		{
 			object tablesObj;
-			if (obj.TryGetValue ("Tables", out tablesObj)) {
+			if (obj.TryGetValue ("Tab", out tablesObj) || obj.TryGetValue ("tab", out tablesObj)) {
 				var tableList = (IList)tablesObj;
 
 				if (tableList.Count > 0) {
@@ -1823,14 +1831,14 @@ namespace Sweet.Jayson
 				}
 			} 
 
-			if (obj.TryGetValue ("$datatype", out Stype) && Stype != null) {
+			if (obj.TryGetValue ("$dt", out Stype) && Stype != null) {
 				string dataType = Stype as string;
 				if (dataType != null) {
-					if (dataType.Equals ("DataTable", StringComparison.OrdinalIgnoreCase)) {
+					if (dataType.Equals ("Tbl", StringComparison.OrdinalIgnoreCase)) {
 						if (!typeof(DataTable).IsAssignableFrom (toType)) {
 							toType = typeof(DataTable);
 						}
-					} else if (dataType.Equals ("DataSet", StringComparison.OrdinalIgnoreCase)) {
+					} else if (dataType.Equals ("Ds", StringComparison.OrdinalIgnoreCase)) {
 						if (!typeof(DataSet).IsAssignableFrom (toType)) {
 							toType = typeof(DataSet);
 						}
