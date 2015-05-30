@@ -47,7 +47,7 @@ namespace Sweet.Jayson
 		{
 			string id;
 			if (!m_Types.TryGetValue (type, out id)) {
-				id = (m_Ref++).ToString(JaysonConstants.InvariantCulture);
+				id = JaysonFormatter.Format(m_Ref++);
 
 				m_Types.Add (type, id);
 				m_OrderedList.Add (new JaysonKeyValue<string, Type> { Key = id, Value = type });

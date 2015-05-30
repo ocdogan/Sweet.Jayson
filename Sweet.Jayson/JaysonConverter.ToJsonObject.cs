@@ -105,7 +105,6 @@ namespace Sweet.Jayson
                 string key;
                 object value;
                 object keyObj;
-                bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
                 Func<string, object, object> filter = context.Filter;
                 bool canFilter = (filter != null);
@@ -150,7 +149,6 @@ namespace Sweet.Jayson
 
 			string key;
 			object value;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
 			Func<string, object, object> filter = context.Filter;
 			bool canFilter = (filter != null);
@@ -189,7 +187,6 @@ namespace Sweet.Jayson
             Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             object value;
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
             Func<string, object, object> filter = context.Filter;
             bool canFilter = (filter != null);
@@ -349,7 +346,6 @@ namespace Sweet.Jayson
 
 			string key;
 			object value;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
 			Func<string, object, object> filter = context.Filter;
 			bool canFilter = (filter != null);

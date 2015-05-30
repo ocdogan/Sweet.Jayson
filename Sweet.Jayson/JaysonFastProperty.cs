@@ -93,7 +93,7 @@ namespace Sweet.Jayson
 				var instanceVar = Expression.Parameter(typeof(object), "instance");
 
 				Type declaringT = pi.DeclaringType;
-				UnaryExpression instanceCast = (!declaringT.IsValueType) ?
+				UnaryExpression instanceCast = !declaringT.IsValueType ?
 					Expression.TypeAs(instanceVar, declaringT) : Expression.Convert(instanceVar, declaringT);
 
 				m_GetDelegate = Expression.Lambda<Func<object, object>>(Expression.TypeAs(Expression.Call(instanceCast,
@@ -111,7 +111,7 @@ namespace Sweet.Jayson
 
 				// value as T is slightly faster than (T)value, so if it's not a value type, use that
 				Type declaringT = pi.DeclaringType;
-				UnaryExpression instanceCast = (!declaringT.IsValueType) ?
+				UnaryExpression instanceCast = !declaringT.IsValueType ?
 					Expression.TypeAs(instanceVar, declaringT) : Expression.Convert(instanceVar, declaringT);
 
 				UnaryExpression valueCast = (!pi.PropertyType.IsValueType) ?

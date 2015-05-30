@@ -109,11 +109,11 @@ namespace Sweet.Jayson
 
 				// value as T is slightly faster than (T)value, so if it's not a value type, use that
 				Type declaringT = fi.DeclaringType;
-				UnaryExpression instanceCast = (!declaringT.IsValueType) ?
+				UnaryExpression instanceCast = !declaringT.IsValueType ?
 				Expression.TypeAs (instance, declaringT) : Expression.Convert (instance, declaringT);
 
-				UnaryExpression valueCast = (!fi.FieldType.IsValueType) ?
-				Expression.TypeAs (value, fi.FieldType) : Expression.Convert (value, fi.FieldType);
+				UnaryExpression valueCast = !fi.FieldType.IsValueType ?
+					Expression.TypeAs (value, fi.FieldType) : Expression.Convert (value, fi.FieldType);
 
 				MemberExpression fieldExp = Expression.Field (instanceCast, fi);
 				#if !(NET3500 || NET3000 || NET2000)

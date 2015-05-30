@@ -54,6 +54,11 @@ namespace Sweet.Jayson
 				return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
 			}
 
+			JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+			if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
+				return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
+			} 
+
 			return () => (T)FormatterServices.GetUninitializedObject(objType);
 		}
 

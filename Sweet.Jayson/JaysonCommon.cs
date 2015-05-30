@@ -1859,27 +1859,39 @@ namespace Sweet.Jayson
 
 		public static Func<object[], object> CreateActivator (ConstructorInfo ctor)
 		{
-			var ctorParams = ctor.GetParameters ();
-			var paramExp = Expression.Parameter (typeof(object[]), "args");
+			Type declaringT = ctor.DeclaringType;
+			ParameterInfo[] ctorParams = ctor.GetParameters ();
 
-			var expArr = new Expression[ctorParams.Length];
+			// Create a single param of type object[]
+			ParameterExpression paramExp = Expression.Parameter(typeof(object[]), "args");
 
-			Type ctorType;
-			BinaryExpression argExp;
-			Expression argExpConverted;
+			int length = ctorParams.Length;
+			Expression[] argsExp = new Expression[length];
 
-			for (int i = 0; i < ctorParams.Length; i++) 
+			Type paramType;
+			Expression paramAccessorExp;
+			UnaryExpression paramCastExp;
+
+			// Pick each arg from the params array and create a typed expression of them
+			for (int i = 0; i < length; i++)
 			{
-				ctorType = ctorParams [i].ParameterType;
-				argExp = Expression.ArrayIndex (paramExp, Expression.Constant (i));
-				argExpConverted = (!ctorType.IsValueType) ?
-					Expression.TypeAs (argExp, ctorType) : 
-					Expression.Convert (argExp, ctorType);
+				paramType = ctorParams[i].ParameterType;
 
-				expArr [i] = argExpConverted;
-			}
+				#if !(NET3500 || NET3000 || NET2000)
+				paramAccessorExp = Expression.ArrayAccess(paramExp, Expression.Constant(i));
+				#else
+				paramAccessorExp = Expression.ArrayIndex(paramExp, Expression.Constant (i));
+				#endif
+				paramCastExp = !paramType.IsValueType ?
+					Expression.TypeAs(paramAccessorExp, paramType) : Expression.Convert(paramAccessorExp, paramType);
 
-			var newExp = Expression.New (ctor, expArr);
+				argsExp[i] = paramCastExp;
+			}                  
+
+			// Make a NewExpression that calls the ctor with the args we just created
+			NewExpression newExp = Expression.New(ctor, argsExp);                  
+
+			// Create a lambda with the New Expression as body and our param object[] as arg
 			var lambda = Expression.Lambda<Func<object[], object>> (newExp, paramExp);
 
 			return lambda.Compile ();
@@ -1930,8 +1942,7 @@ namespace Sweet.Jayson
 
 					arrayAccessExp = Expression.ArrayAccess(argsExp, Expression.Constant(i));
 					arrayValueCastExp = !paramType.IsValueType ?
-						Expression.TypeAs (arrayAccessExp, paramType) : 
-						Expression.Convert(arrayAccessExp, paramType);
+						Expression.TypeAs (arrayAccessExp, paramType) : Expression.Convert(arrayAccessExp, paramType);
 
 					variableAssignExp = Expression.Assign(newVariableExp, arrayValueCastExp);
 					bodyExps.Add(variableAssignExp);
@@ -1949,41 +1960,39 @@ namespace Sweet.Jayson
 		#else
 		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
-		var declaringT = methodInfo.DeclaringType;
-		var methodParams = methodInfo.GetParameters();
+			var declaringT = methodInfo.DeclaringType;
+			var methodParams = methodInfo.GetParameters();
 
-		var paramExp = Expression.Parameter(typeof (object[]), "args");
-		var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
+			var paramExp = Expression.Parameter(typeof (object[]), "args");
+			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
-		var inputCastExp = !declaringT.IsValueType ?
-		Expression.TypeAs (inputObjExp, declaringT) : 
-		Expression.Convert(inputObjExp, declaringT);
+			var inputCastExp = !declaringT.IsValueType ?
+			Expression.TypeAs (inputObjExp, declaringT) : Expression.Convert(inputObjExp, declaringT);
 
-		Expression callExp;
-		if (methodParams.Length == 0) {
-		callExp = Expression.Call (inputCastExp, methodInfo);
-		} else {
-		var callArguments = new Expression[methodParams.Length];
+			Expression callExp;
+			if (methodParams.Length == 0) {
+				callExp = Expression.Call (inputCastExp, methodInfo);
+			} else {
+				var callArguments = new Expression[methodParams.Length];
 
-		Type paramType;
-		Expression arrayAccessExp;
-		Expression arrayValueCastExp;
+				Type paramType;
+				Expression arrayAccessExp;
+				Expression arrayValueCastExp;
 
-		for (var i = 0; i < methodParams.Length; i++) {
-		paramType = methodParams [i].ParameterType;
+				for (var i = 0; i < methodParams.Length; i++) {
+					paramType = methodParams [i].ParameterType;
 
-		arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
+					arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
 
-		arrayValueCastExp = !paramType.IsValueType ?
-		Expression.TypeAs (arrayAccessExp, paramType) : 
-		Expression.Convert (arrayAccessExp, paramType);
+					arrayValueCastExp = !paramType.IsValueType ?
+						Expression.TypeAs (arrayAccessExp, paramType) : Expression.Convert (arrayAccessExp, paramType);
 
-		callArguments [i] = arrayValueCastExp;
-		}
+					callArguments [i] = arrayValueCastExp;
+				}
 
-		callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
-		}
-		return Expression.Lambda<Action<object, object[]>>(callExp, paramExp).Compile ();            
+				callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
+			}
+			return Expression.Lambda<Action<object, object[]>>(callExp, paramExp).Compile ();            
 		}
 		#endif
 

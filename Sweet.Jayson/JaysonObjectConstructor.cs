@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -35,9 +36,9 @@ namespace Sweet.Jayson
 	internal static class JaysonObjectConstructor
 	{
 		private static readonly object s_SyncRoot = new object();
+
 		private static readonly Dictionary<Type, object> s_LockCache = new Dictionary<Type, object>();
-		private static readonly Dictionary<Type, Func<object>> s_DefaultCache =
-			new Dictionary<Type, Func<object>>();
+		private static readonly Dictionary<Type, Func<object>> s_DefaultCache = new Dictionary<Type, Func<object>>();
 
 		private static object GetLock(Type objType)
 		{
@@ -72,21 +73,22 @@ namespace Sweet.Jayson
                         }
                         else
                         {
-                            if (info.Enum)
-                            {
-                                return Enum.ToObject(objType, 0L);
+                            if (info.Enum) {
+								function = () => Enum.ToObject(objType, 0L);
                             }
-                            else if (info.DefaultJConstructor)
-                            {
-                                function = Expression.Lambda<Func<object>>(Expression.New(objType)).Compile();
-                            }
-                            else
-                            {
-                                function = () => FormatterServices.GetUninitializedObject(objType);
-                            }
+                            
+							if (info.DefaultJConstructor) {
+								function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
+							} else {
+								JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+								if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
+									function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
+								} else {
+									function = () => FormatterServices.GetUninitializedObject (objType);
+								}
+							}
                         }
-
-                        s_DefaultCache[objType] = function;
+						s_DefaultCache[objType] = function;
                     }
                 }
             }
