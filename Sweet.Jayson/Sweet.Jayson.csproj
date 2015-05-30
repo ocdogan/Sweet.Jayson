@@ -81,6 +81,7 @@
     <Compile Include="JaysonSerializationTypeList.cs" />
     <Compile Include="JaysonDeserializationTypeList.cs" />
     <Compile Include="JaysonCtorInfo.cs" />
+    <Compile Include="JaysonCtorParamMatcher.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

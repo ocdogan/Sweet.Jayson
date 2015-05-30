@@ -30,6 +30,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
@@ -75,6 +76,107 @@ namespace Sweet.Jayson.Tests
 			Assert.AreEqual(t1.Item1, t2.Item1);
 			Assert.AreEqual(t1.Item2, t2.Item2);
 			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2b()
+		{
+			var t1 = new Tuple<int, int?, Tuple<int>> (2, null, Tuple.Create (44));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int?, Tuple<int>>>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2c()
+		{
+			var t1 = new Tuple<int, int?, Tuple<int>> (2, null, Tuple.Create (44));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = (Tuple<int, int?, Tuple<int>>)JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2d()
+		{
+			var t1 = new Tuple<int, int?, Tuple<int>> (2, 3, Tuple.Create (44));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = (Tuple<int, int?, Tuple<int>>)JaysonConverter.ToObject(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2e()
+		{
+			var t1 = new Tuple<int, int?, Tuple<int>> (2, null, Tuple.Create (44));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int?, Tuple<int>>>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.AreEqual(t1.Item3, t2.Item3);
+		}
+
+		[Test]
+		public static void TestTuple2f()
+		{
+			var t1 = new Tuple<int, int?, Tuple<bool?, decimal>> (2, null, new Tuple<bool?, decimal>(null, 12345.67890987654m));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.CtorParamMatcher = (paramName, obj) => {
+				return obj.FirstOrDefault (kvp => 
+					paramName.Equals (kvp.Key.Replace("_", ""), StringComparison.OrdinalIgnoreCase)).Value;
+			};
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int?, Tuple<bool?, decimal>>>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.IsNotNull(t2.Item3);
+			Assert.AreEqual(t1.Item3.Item1, t2.Item3.Item1);
+			Assert.AreEqual(t1.Item3.Item2, t2.Item3.Item2);
 		}
 		#endif
 

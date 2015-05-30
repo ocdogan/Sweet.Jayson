@@ -77,6 +77,8 @@ namespace Sweet.Jayson
 
         private static readonly Dictionary<Type, Type> s_GenericUnderlyingCache = new Dictionary<Type, Type>();
 
+		private static readonly JaysonCtorParamMatcher DefaultMatcher = CtorParamMatcher;
+
         # endregion Static Members
 
         # region Convert
@@ -1826,6 +1828,12 @@ namespace Sweet.Jayson
             return edt.EvaluatedType;
         }
 
+		private static object CtorParamMatcher(string ctorParamName, IDictionary<string, object> obj)
+		{
+			return obj.FirstOrDefault (kvp => 
+				ctorParamName.Equals (kvp.Key, StringComparison.OrdinalIgnoreCase)).Value;
+		}
+
         private static object ConvertDictionary(IDictionary<string, object> obj, Type toType,
             JaysonDeserializationContext context, bool forceType = false)
         {
@@ -1959,11 +1967,15 @@ namespace Sweet.Jayson
 						result = JaysonObjectConstructor.New (toType);
 					} else {
 						object paramValue;
+						ParameterInfo ctorParam;
 						List<object> ctorParams = new List<object> ();
 
-						foreach (var ctorParam in ctorInfo.CtorParams) {
-							paramValue = obj.FirstOrDefault (kvp => 
-								ctorParam.Name.Equals (kvp.Key, StringComparison.OrdinalIgnoreCase)).Value;
+						var matcher = context.Settings.CtorParamMatcher ?? DefaultMatcher;
+
+						for (int i = 0; i < ctorInfo.ParamLength; i++) {
+							ctorParam = ctorInfo.CtorParams [i];
+
+							paramValue = matcher (ctorParam.Name, obj);
 
 							if (paramValue != null) {
 								if (paramValue.GetType () != ctorParam.ParameterType) {
@@ -1978,7 +1990,6 @@ namespace Sweet.Jayson
 							ctorParams.Add (paramValue);
 						}
 
-						// result = ctorInfo.Ctor.Invoke (ctorParams.ToArray ());
 						result = ctorInfo.New (ctorParams.ToArray ());
 					}
 				}

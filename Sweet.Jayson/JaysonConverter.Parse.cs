@@ -566,21 +566,26 @@ namespace Sweet.Jayson
                     throw new JaysonException("Invalid number character.");
                 }
 
-                int digitCount = 0;
+				int digitCount = 0;
                 bool exponent = false;
                 char startChar = str[context.Position];
 
-                do
+				int decimalPointCount = 0;
+				bool inDecimalPoint = false;
+
+				do
                 {
                     ch = str[context.Position];
 
                     if (!(ch < '0' || ch > '9'))
                     {
                         context.Position++;
-                        if (!exponent)
-                        {
+                        if (!exponent) {
                             digitCount++;
                         }
+						if (inDecimalPoint) {
+							decimalPointCount++;
+						}
                         continue;
                     }
 
@@ -592,6 +597,8 @@ namespace Sweet.Jayson
                         }
 
                         context.Position++;
+						inDecimalPoint = true;
+
                         numType = JaysonNumberType.Double;
                         numStyle |= NumberStyles.AllowDecimalPoint;
                         continue;
@@ -605,7 +612,9 @@ namespace Sweet.Jayson
                         }
 
                         context.Position++;
-                        numType = JaysonNumberType.Decimal;
+						inDecimalPoint = false;
+
+						numType = JaysonNumberType.Decimal;
                         numStyle |= NumberStyles.AllowExponent;
                         continue;
                     }
@@ -633,7 +642,7 @@ namespace Sweet.Jayson
                 int len = context.Position - start;
                 if (len > 0)
                 {
-                    if (digitCount > 19 || (digitCount == 19 && startChar == '9'))
+					if (digitCount > 19 || decimalPointCount > 10 || (digitCount == 19 && startChar == '9'))
                     {
                         decimal d;
                         if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.InvariantCulture, out d))

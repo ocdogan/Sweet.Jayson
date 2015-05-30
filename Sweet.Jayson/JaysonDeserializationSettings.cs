@@ -55,6 +55,7 @@ namespace Sweet.Jayson
 		public DictionaryDeserializationType DictionaryType = DictionaryDeserializationType.Dictionary;
 
 		public JaysonObjectActivator ObjectActivator;
+		public JaysonCtorParamMatcher CtorParamMatcher;
 
         public JaysonDeserializationSettings()
             : this(null)

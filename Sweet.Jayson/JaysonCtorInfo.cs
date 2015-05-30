@@ -39,6 +39,7 @@ namespace Sweet.Jayson
 
 		public readonly bool HasCtor;
 		public readonly bool HasParam;
+		public readonly int ParamLength;
 
 		public readonly ConstructorInfo Ctor;
 		public readonly ParameterInfo[] CtorParams;
@@ -48,7 +49,8 @@ namespace Sweet.Jayson
 			Ctor = ctor;
 			HasCtor = ctor != null;
 			CtorParams = !HasCtor ? new ParameterInfo[0] : (ctor.GetParameters () ?? new ParameterInfo[0]);
-			HasParam = CtorParams.Length > 0;
+			ParamLength = CtorParams.Length;
+			HasParam = ParamLength > 0;
 		}
 
 		private JaysonCtorInfo(ConstructorInfo ctor, ParameterInfo[] ctorParams)
@@ -56,7 +58,8 @@ namespace Sweet.Jayson
 			Ctor = ctor;
 			HasCtor = ctor != null;
 			CtorParams = !HasCtor ? new ParameterInfo[0] : (ctorParams ?? new ParameterInfo[0]);
-			HasParam = CtorParams.Length > 0;
+			ParamLength = CtorParams.Length;
+			HasParam = ParamLength > 0;
 		}
 
 		public static JaysonCtorInfo GetDefaultCtorInfo(Type objType)
