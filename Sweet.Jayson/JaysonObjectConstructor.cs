@@ -67,27 +67,22 @@ namespace Sweet.Jayson
                 {
                     if (!s_DefaultCache.TryGetValue(objType, out function))
                     {
-                        if (info.JTypeCode == JaysonTypeCode.String)
-                        {
+                        if (info.JTypeCode == JaysonTypeCode.String) {
                             function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
                         }
-                        else
-                        {
-                            if (info.Enum) {
-								function = () => Enum.ToObject(objType, 0L);
-                            }
-                            
-							if (info.DefaultJConstructor) {
+                        else if (info.Enum) {
+							function = () => Enum.ToObject(objType, 0L);
+                        }                            
+						else if (info.DefaultJConstructor) {
+							function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
+						} else {
+							JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+							if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
 								function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
 							} else {
-								JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
-								if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
-									function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
-								} else {
-									function = () => FormatterServices.GetUninitializedObject (objType);
-								}
+								function = () => FormatterServices.GetUninitializedObject (objType);
 							}
-                        }
+						}
 						s_DefaultCache[objType] = function;
                     }
                 }
