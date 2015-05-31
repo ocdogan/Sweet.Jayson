@@ -52,6 +52,8 @@ Open sourced under [MIT license][2].
 
 -   `dynamic` Types,
 
+-   `struct` Types, both on serialization and deserialization,
+
 -   Types without default constructor (e.g. `Tuple`),
 
 -   Embedding type information with “`$type`*"* notation for exact type

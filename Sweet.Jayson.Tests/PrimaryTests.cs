@@ -45,6 +45,27 @@ namespace Sweet.Jayson.Tests
     [TestFixture]
     public class PrimaryTests
     {
+		[Test]
+		public static void TestStruct1()
+		{
+			var s1 = new SampleStructDto1 (2, 33);
+			s1.D1 = 12345m;
+			s1.D2 = 23456m;
+			s1.S1 = "abcdefg";
+			s1.S2 = "wxyz";
+
+			string json = JaysonConverter.ToJsonString(s1);
+			var s2 = JaysonConverter.ToObject<SampleStructDto1>(json);
+
+			Assert.IsNotNull(s2);
+			Assert.AreEqual(s1.I1, s2.I1);
+			Assert.AreEqual(s1.I2, s2.I2);
+			Assert.AreEqual(s1.D1, s2.D1);
+			Assert.AreEqual(s1.D2, s2.D2);
+			Assert.AreEqual(s1.S1, s2.S1);
+			Assert.AreEqual(s1.S2, s2.S2);
+		}
+
 		#if !(NET3500 || NET3000 || NET2000)
 		[Test]
 		public static void TestTuple1()

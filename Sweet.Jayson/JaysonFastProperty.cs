@@ -32,6 +32,8 @@ namespace Sweet.Jayson
 
     internal sealed class JaysonFastProperty : IJaysonFastMember
 	{
+		private delegate void ByRefAction(ref object instance, object value);
+
 		private bool m_Get;
 		private bool m_Set;
 
@@ -41,8 +43,9 @@ namespace Sweet.Jayson
 		private bool m_CanRead;
 		private bool m_CanWrite;
 
+		private ByRefAction m_SetDelegate;
 		private Func<object, object> m_GetDelegate;
-		private Action<object, object> m_SetDelegate;
+		// private Action<object, object> m_SetDelegate;
 
 		public JaysonFastMemberType Type
 		{
@@ -106,19 +109,28 @@ namespace Sweet.Jayson
 			MethodInfo setMethod = pi.GetSetMethod();
 			if (setMethod != null)
 			{
-				var instanceVar = Expression.Parameter(typeof(object), "instance");
-				var valueParam = Expression.Parameter(typeof(object), "value");
-
-				// value as T is slightly faster than (T)value, so if it's not a value type, use that
 				Type declaringT = pi.DeclaringType;
-				UnaryExpression instanceCast = !declaringT.IsValueType ?
-					Expression.TypeAs(instanceVar, declaringT) : Expression.Convert(instanceVar, declaringT);
 
-				UnaryExpression valueCast = (!pi.PropertyType.IsValueType) ?
-					Expression.TypeAs(valueParam, pi.PropertyType) : Expression.Convert(valueParam, pi.PropertyType);
+				if (declaringT.IsValueType) {
+					m_SetDelegate = delegate(ref object instance, object value) {
+						m_PropInfo.SetValue (instance, value);
+					};
+				} else {
+					var instanceExp = Expression.Parameter (typeof(object).MakeByRefType (), "instance");
+					var valueExp = Expression.Parameter (typeof(object), "value");
 
-				m_SetDelegate = Expression.Lambda<Action<object, object>>(Expression.Call(instanceCast,
-					setMethod, valueCast), new ParameterExpression[] { instanceVar, valueParam }).Compile();
+					// value as T is slightly faster than (T)value, so if it's not a value type, use that
+					UnaryExpression instanceCast = Expression.TypeAs (instanceExp, declaringT);
+
+					UnaryExpression valueCast = !m_MemberType.IsValueType ?
+						Expression.TypeAs (valueExp, m_MemberType) : 
+						Expression.Convert (valueExp, m_MemberType);
+
+					Expression callExp = Expression.Call (instanceCast, setMethod, valueCast);
+
+					m_SetDelegate = Expression.Lambda<ByRefAction> (callExp, 
+						new ParameterExpression[] { instanceExp, valueExp }).Compile ();
+				}
 			}
 		}
 
@@ -136,7 +148,7 @@ namespace Sweet.Jayson
 			return null;
 		}
 
-		public void Set(object instance, object value)
+		public void Set(ref object instance, object value)
 		{
 			if (m_CanWrite)
 			{
@@ -147,7 +159,7 @@ namespace Sweet.Jayson
 				}
 				if (m_SetDelegate != null)
 				{
-					m_SetDelegate(instance, value);
+					m_SetDelegate(ref instance, value);
 				}
 			}
 		}

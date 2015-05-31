@@ -1890,9 +1890,11 @@ namespace Sweet.Jayson
 
 			// Make a NewExpression that calls the ctor with the args we just created
 			NewExpression newExp = Expression.New(ctor, argsExp);                  
+			Expression returnExp = !declaringT.IsValueType ? (Expression)newExp :
+				Expression.Convert (newExp, typeof(object));
 
 			// Create a lambda with the New Expression as body and our param object[] as arg
-			var lambda = Expression.Lambda<Func<object[], object>> (newExp, paramExp);
+			var lambda = Expression.Lambda<Func<object[], object>> (returnExp, paramExp);
 
 			return lambda.Compile ();
 		}

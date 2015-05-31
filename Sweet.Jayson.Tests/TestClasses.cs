@@ -578,6 +578,44 @@ namespace Sweet.Jayson.Tests
         // There can be more nested objects in here
     }
 
+	public struct SampleStructDto1
+	{
+		private int m_I2;
+		private string m_S2;
+		private decimal m_D2;
+
+		public int I1;
+		public string S1;
+		public decimal D1;
+
+		public int I2 
+		{ 
+			get { return m_I2; }
+			set { m_I2 = value; }
+		}
+		public string S2
+		{ 
+			get { return m_S2; }
+			set { m_S2 = value; }
+		}
+		public decimal D2
+		{ 
+			get { return m_D2; }
+			set { m_D2 = value; }
+		}
+
+		public SampleStructDto1(int i1, int i2) 
+			: this()
+		{
+			I1 = i1;
+			S1 = null;
+			D1 = 0m;
+			m_I2 = i2;
+			m_S2 = null;
+			m_D2 = 0m;
+		}
+	}
+
     # region [ data objects ]
 
     [Serializable]
@@ -662,7 +700,6 @@ namespace Sweet.Jayson.Tests
         public baseclass[] arrayType { get; set; }
         public byte[] bytes { get; set; }
         public int[] intarray { get; set; }
-
     }
 
     # endregion [ data objects ]

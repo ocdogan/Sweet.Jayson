@@ -32,6 +32,8 @@ namespace Sweet.Jayson
 
 	internal sealed class JaysonFastField : IJaysonFastMember
 	{
+		private delegate void ByRefAction(ref object instance, object value);
+
 		private bool m_Get;
 		private bool m_Set;
 
@@ -43,8 +45,8 @@ namespace Sweet.Jayson
 
 		private bool m_InvokeOnSet;
 
+		private ByRefAction m_SetDelegate;
 		private Func<object, object> m_GetDelegate;
-		private Action<object, object> m_SetDelegate;
 
 		public JaysonFastMemberType Type
 		{
@@ -93,8 +95,9 @@ namespace Sweet.Jayson
 				var instance = Expression.Parameter (typeof(object), "instance");
 
 				Type declaringT = fi.DeclaringType;
-				UnaryExpression instanceCast = (!declaringT.IsValueType) ?
-				Expression.TypeAs (instance, declaringT) : Expression.Convert (instance, declaringT);
+				UnaryExpression instanceCast = !declaringT.IsValueType ?
+					Expression.TypeAs (instance, declaringT) : 
+					Expression.Convert (instance, declaringT);
 
 				m_GetDelegate = Expression.Lambda<Func<object, object>> (Expression.TypeAs (Expression.Field (instanceCast,
 					fi), typeof(object)), instance).Compile ();
@@ -104,25 +107,35 @@ namespace Sweet.Jayson
 		private void InitializeSet(FieldInfo fi)
 		{
 			if (m_CanWrite) {
-				var instance = Expression.Parameter (typeof(object), "instance");
-				var value = Expression.Parameter (typeof(object), "value");
-
-				// value as T is slightly faster than (T)value, so if it's not a value type, use that
 				Type declaringT = fi.DeclaringType;
-				UnaryExpression instanceCast = !declaringT.IsValueType ?
-				Expression.TypeAs (instance, declaringT) : Expression.Convert (instance, declaringT);
 
-				UnaryExpression valueCast = !fi.FieldType.IsValueType ?
-					Expression.TypeAs (value, fi.FieldType) : Expression.Convert (value, fi.FieldType);
+				if (declaringT.IsValueType) {
+					m_SetDelegate = delegate(ref object instance, object value) {
+						m_FieldInfo.SetValue (instance, value);
+					};
+				} else {
+					var instanceExp = Expression.Parameter (typeof(object).MakeByRefType (), "instance");
+					var valueExp = Expression.Parameter (typeof(object), "value");
 
-				MemberExpression fieldExp = Expression.Field (instanceCast, fi);
-				#if !(NET3500 || NET3000 || NET2000)
-				BinaryExpression assignExp = Expression.Assign (fieldExp, valueCast);
-				#else
-				BinaryExpression assignExp = JaysonCommon.ExpressionAssign (fieldExp, valueCast);
-				#endif
+					// value as T is slightly faster than (T)value, so if it's not a value type, use that
+					UnaryExpression instanceCast = Expression.TypeAs (instanceExp, declaringT);
 
-				m_SetDelegate = Expression.Lambda<Action<object, object>> (assignExp, instance, value).Compile ();
+					UnaryExpression valueCast = !m_MemberType.IsValueType ?
+						Expression.TypeAs (valueExp, m_MemberType) : 
+						Expression.Convert (valueExp, m_MemberType);
+
+					MemberExpression fieldExp = Expression.Field (instanceCast, fi);
+					#if !(NET3500 || NET3000 || NET2000)
+					BinaryExpression assignExp = Expression.Assign (fieldExp, valueCast);
+					#else
+					BinaryExpression assignExp = JaysonCommon.ExpressionAssign (fieldExp, valueCast);
+					#endif
+
+					Expression toObjectExp = Expression.Convert (assignExp, typeof(object));
+
+					m_SetDelegate = Expression.Lambda<ByRefAction> (toObjectExp, 
+						new ParameterExpression[] { instanceExp, valueExp }).Compile ();
+				}
 			}
 		}
 
@@ -140,7 +153,7 @@ namespace Sweet.Jayson
 			return null;
 		}
 
-		public void Set(object instance, object value)
+		public void Set(ref object instance, object value)
 		{
 			if (m_CanWrite) {
 				if (!m_Set) {
@@ -148,7 +161,7 @@ namespace Sweet.Jayson
 					InitializeSet (m_FieldInfo);
 				}
 				if (m_SetDelegate != null) {
-					m_SetDelegate (instance, value);
+					m_SetDelegate (ref instance, value);
 				}
 			} else if (m_InvokeOnSet) {
 				m_FieldInfo.SetValue (instance, value);

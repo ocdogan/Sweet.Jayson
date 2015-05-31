@@ -920,7 +920,7 @@ namespace Sweet.Jayson
 
         # endregion Convert DataTable & DataSet
 
-        private static void SetDictionary(IDictionary<string, object> obj, object instance,
+        private static void SetDictionary(IDictionary<string, object> obj, ref object instance,
             JaysonDeserializationContext context)
         {
             if (instance != null && obj != null && obj.Count > 0 && !(instance is DBNull))
@@ -974,14 +974,15 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                SetDictionaryClassOrStruct(obj, instance, instanceType, context);
+                SetDictionaryClassOrStruct(obj, ref instance, instanceType, context);
             }
         }
 
-        private static void SetDictionaryClassOrStruct(IDictionary<string, object> obj, object instance, Type instanceType,
-            JaysonDeserializationContext context)
+        private static void SetDictionaryClassOrStruct(IDictionary<string, object> obj, ref object instance, 
+			Type instanceType, JaysonDeserializationContext context)
         {
-            if (!JaysonTypeInfo.IsJPrimitive(instanceType))
+			var info = JaysonTypeInfo.GetTypeInfo (instanceType);
+            if (!info.JPrimitive)
             {
                 var settings = context.Settings;
 
@@ -994,6 +995,7 @@ namespace Sweet.Jayson
                 string memberName;
                 object memberValue;
 
+				bool isStruct = !info.Class;
                 bool hasStype = obj.ContainsKey("$type");
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
 
@@ -1021,7 +1023,7 @@ namespace Sweet.Jayson
                             {
                                 if (member.CanWrite)
                                 {
-                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
                                 }
                                 else if (entry.Value != null)
                                 {
@@ -1157,7 +1159,7 @@ namespace Sweet.Jayson
                             {
                                 if (member.CanWrite)
                                 {
-                                    member.Set(instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
                                 }
                                 else if (entry.Value != null)
                                 {
@@ -1643,7 +1645,7 @@ namespace Sweet.Jayson
                 {
                     if (obj is IDictionary<string, object>)
                     {
-                        SetDictionary((IDictionary<string, object>)obj, instance, context);
+                        SetDictionary((IDictionary<string, object>)obj, ref instance, context);
                     }
                     else if (obj is IList<object>)
                     {
@@ -2010,7 +2012,7 @@ namespace Sweet.Jayson
 #endif
             }
 
-            SetDictionary(obj, result, context);
+            SetDictionary(obj, ref result, context);
 
 #if !(NET4000 || NET3500 || NET3000 || NET2000)
             if (asReadOnly)

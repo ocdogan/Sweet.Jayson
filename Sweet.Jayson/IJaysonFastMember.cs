@@ -37,7 +37,7 @@ namespace Sweet.Jayson
 		bool CanWrite { get; }
 
 		object Get(object instance);
-		void Set(object instance, object value);
+		void Set(ref object instance, object value);
 	}
 
 	# endregion IJaysonFastMember
