@@ -2366,6 +2366,46 @@ namespace Sweet.Jayson
             }
         }
 
+		# region ConvertJsonObject
+
+		public static object ConvertJsonObject(object obj, Type toType, JaysonDeserializationSettings settings = null)
+		{
+			if (obj == null || obj == DBNull.Value)
+			{
+				return JaysonTypeInfo.GetDefault(toType);
+			}
+
+			var context = new JaysonDeserializationContext
+			{
+				Text = String.Empty,
+				Length = 0,
+				Position = 0,
+				Settings = settings ?? JaysonDeserializationSettings.Default
+			};
+
+			return ConvertObject (obj, toType, context);
+		}
+
+		public static ToType ConvertJsonObject<ToType>(object obj, JaysonDeserializationSettings settings = null)
+		{
+			if (obj == null || obj == DBNull.Value)
+			{
+				return (ToType)JaysonTypeInfo.GetDefault(typeof(ToType));
+			}
+
+			var context = new JaysonDeserializationContext
+			{
+				Text = String.Empty,
+				Length = 0,
+				Position = 0,
+				Settings = settings ?? JaysonDeserializationSettings.Default
+			};
+
+			return (ToType)ConvertObject (obj, typeof(ToType), context);
+		}
+
+		# endregion ConvertJsonObject
+
         # endregion Convert
 
         # region ToX

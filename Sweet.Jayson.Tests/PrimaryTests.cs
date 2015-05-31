@@ -155,7 +155,7 @@ namespace Sweet.Jayson.Tests
 		}
 
 		[Test]
-		public static void TestTuple2f()
+		public static void TestTuple3a()
 		{
 			var t1 = new Tuple<int, int?, Tuple<bool?, decimal>> (2, null, new Tuple<bool?, decimal>(null, 12345.67890987654m));
 
@@ -166,6 +166,74 @@ namespace Sweet.Jayson.Tests
 			jaysonDeserializationSettings.CtorParamMatcher = (paramName, obj) => {
 				return obj.FirstOrDefault (kvp => 
 					paramName.Equals (kvp.Key.Replace("_", ""), StringComparison.OrdinalIgnoreCase)).Value;
+			};
+
+			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
+			var t2 = JaysonConverter.ToObject<Tuple<int, int?, Tuple<bool?, decimal>>>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(t2);
+			Assert.AreEqual(t1.Item1, t2.Item1);
+			Assert.AreEqual(t1.Item2, t2.Item2);
+			Assert.IsNotNull(t2.Item3);
+			Assert.AreEqual(t1.Item3.Item1, t2.Item3.Item1);
+			Assert.AreEqual(t1.Item3.Item2, t2.Item3.Item2);
+		}
+
+		[Test]
+		public static void TestTuple3b()
+		{
+			var t1 = new Tuple<int, int?, Tuple<bool?, decimal>> (2, null, new Tuple<bool?, decimal>(null, 12345.67890987654m));
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+			jaysonDeserializationSettings.ObjectActivator = delegate(Type objType,
+				IDictionary<string, object> parsedObject,
+				out bool useDefaultCtor)
+			{
+				useDefaultCtor = true;
+
+				if (objType == typeof(Tuple<int, int?, Tuple<bool?, decimal>>))
+				{
+					useDefaultCtor = false;
+
+					int item1 = 0;
+					int? item2 = null;
+					Tuple<bool?, decimal> item3 = null;
+
+					object obj;
+					if (parsedObject.TryGetValue ("Item1", out obj)) {
+						item1 = JaysonConverter.ConvertJsonObject<int> (obj, jaysonDeserializationSettings);
+					}
+					if (parsedObject.TryGetValue ("Item2", out obj)) {
+						item2 = JaysonConverter.ConvertJsonObject<int?> (obj, jaysonDeserializationSettings);
+					}
+					if (parsedObject.TryGetValue ("Item3", out obj)) {
+						item3 = JaysonConverter.ConvertJsonObject<Tuple<bool?, decimal>> (obj, jaysonDeserializationSettings);
+					}
+
+					return new Tuple<int, int?, Tuple<bool?, decimal>>(item1, item2, item3);
+				}
+
+				if (objType == typeof(Tuple<bool?, decimal>))
+				{
+					useDefaultCtor = false;
+
+					bool? item1 = null;
+					decimal item2 = 0m;
+
+					object obj;
+					if (parsedObject.TryGetValue ("Item1", out obj)) {
+						item1 = JaysonConverter.ConvertJsonObject<bool?> (obj, jaysonDeserializationSettings);
+					}
+					if (parsedObject.TryGetValue ("Item2", out obj)) {
+						item2 = JaysonConverter.ConvertJsonObject<decimal> (obj, jaysonDeserializationSettings);
+					}
+					return new Tuple<bool?, decimal>(item1, item2);
+				}
+
+				return null;
 			};
 
 			string json = JaysonConverter.ToJsonString(t1, jaysonSerializationSettings);
