@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -97,10 +98,13 @@ namespace Sweet.Jayson
 
 				Type declaringT = pi.DeclaringType;
 				UnaryExpression instanceCast = !declaringT.IsValueType ?
-					Expression.TypeAs(instanceVar, declaringT) : Expression.Convert(instanceVar, declaringT);
+					Expression.TypeAs(instanceVar, declaringT) : 
+					Expression.Convert(instanceVar, declaringT);
 
-				m_GetDelegate = Expression.Lambda<Func<object, object>>(Expression.TypeAs(Expression.Call(instanceCast,
-					getMethod), typeof(object)), instanceVar).Compile();
+				Expression callExp = Expression.Call (instanceCast, getMethod);
+				Expression toObjectExp = Expression.TypeAs (callExp, typeof(object));
+
+				m_GetDelegate = Expression.Lambda<Func<object, object>>(toObjectExp, instanceVar).Compile();
 			}
 		}
 
@@ -111,6 +115,7 @@ namespace Sweet.Jayson
 			{
 				Type declaringT = pi.DeclaringType;
 
+				#if (NET3500 || NET3000 || NET2000)
 				if (declaringT.IsValueType) {
 					m_SetDelegate = delegate(ref object instance, object value) {
 						m_PropInfo.SetValue (instance, value);
@@ -123,14 +128,46 @@ namespace Sweet.Jayson
 					UnaryExpression instanceCast = Expression.TypeAs (instanceExp, declaringT);
 
 					UnaryExpression valueCast = !m_MemberType.IsValueType ?
-						Expression.TypeAs (valueExp, m_MemberType) : 
-						Expression.Convert (valueExp, m_MemberType);
+					Expression.TypeAs (valueExp, m_MemberType) : 
+					Expression.Convert (valueExp, m_MemberType);
 
 					Expression callExp = Expression.Call (instanceCast, setMethod, valueCast);
 
 					m_SetDelegate = Expression.Lambda<ByRefAction> (callExp, 
 						new ParameterExpression[] { instanceExp, valueExp }).Compile ();
 				}
+				#else
+				var instanceExp = Expression.Parameter (typeof(object).MakeByRefType (), "instance");
+				var valueExp = Expression.Parameter (typeof(object), "value");
+
+				// value as T is slightly faster than (T)value, so if it's not a value type, use that
+				UnaryExpression instanceCast = !declaringT.IsValueType ? 
+					Expression.TypeAs (instanceExp, declaringT) :
+					Expression.Convert (instanceExp, declaringT);
+
+				UnaryExpression valueCast = !m_MemberType.IsValueType ?
+					Expression.TypeAs (valueExp, m_MemberType) : 
+					Expression.Convert (valueExp, m_MemberType);
+
+				List<Expression> expBlockList = new List<Expression> ();
+
+				var instanceRefExp = Expression.Variable (declaringT, "instanceRef");
+				expBlockList.Add(Expression.Assign (instanceRefExp, instanceCast));
+
+				MemberExpression propertyExp = Expression.Property (instanceRefExp, pi);
+				BinaryExpression assignExp = Expression.Assign (propertyExp, valueCast);
+
+				expBlockList.Add (assignExp);
+
+				Expression toObjectExp = Expression.Assign (instanceExp, 
+					Expression.Convert (instanceRefExp, typeof(object)));
+				expBlockList.Add (toObjectExp);
+
+				Expression blockExp = Expression.Block (new[] { instanceRefExp }, expBlockList);
+
+				m_SetDelegate = Expression.Lambda<ByRefAction> (blockExp, 
+					new ParameterExpression[] { instanceExp, valueExp }).Compile ();
+				#endif
 			}
 		}
 

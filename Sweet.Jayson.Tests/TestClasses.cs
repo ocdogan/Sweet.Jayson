@@ -580,6 +580,17 @@ namespace Sweet.Jayson.Tests
 
 	public struct SampleStructDto1
 	{
+		public int I1;
+		public string S1;
+		public decimal D1;
+
+		public int I2 { get; set; }
+		public string S2 { get; set; }
+		public decimal D2 { get; set; }
+	}
+
+	public struct SampleStructDto2
+	{
 		private int m_I2;
 		private string m_S2;
 		private decimal m_D2;
@@ -604,7 +615,7 @@ namespace Sweet.Jayson.Tests
 			set { m_D2 = value; }
 		}
 
-		public SampleStructDto1(int i1, int i2) 
+		public SampleStructDto2(int i1, int i2) 
 			: this()
 		{
 			I1 = i1;

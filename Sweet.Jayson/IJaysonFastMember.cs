@@ -30,13 +30,13 @@ namespace Sweet.Jayson
 
 	internal interface IJaysonFastMember
 	{
-		JaysonFastMemberType Type { get; }
+        JaysonFastMemberType Type { get; }
 		Type MemberType { get; }
 
 		bool CanRead { get; }
 		bool CanWrite { get; }
-
-		object Get(object instance);
+        
+        object Get(object instance);
 		void Set(ref object instance, object value);
 	}
 

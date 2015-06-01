@@ -1842,7 +1842,6 @@ namespace Sweet.Jayson
 			{
 				UpdateGenericListInfo(objType);
 				s_GenericListArgs.TryGetValue(objType, out result);
-				return result;
 			}
 			return result;
 		}

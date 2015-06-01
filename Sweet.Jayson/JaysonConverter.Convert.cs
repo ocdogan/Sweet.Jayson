@@ -995,7 +995,6 @@ namespace Sweet.Jayson
                 string memberName;
                 object memberValue;
 
-				bool isStruct = !info.Class;
                 bool hasStype = obj.ContainsKey("$type");
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
 
@@ -1722,14 +1721,16 @@ namespace Sweet.Jayson
             EvaluatedListType elt;
             if (!s_EvaluatedListTypeCache.TryGetValue(type, out elt))
             {
-                elt = new EvaluatedListType();
-                elt.EvaluatedType = EvaluateListType(type, out asList, out asArray, out asReadOnly);
-                elt.AsList = asList;
-                elt.AsArray = asArray;
-                elt.AsReadOnly = asReadOnly;
-                s_EvaluatedListTypeCache[type] = elt;
+                var eType = EvaluateListType(type, out asList, out asArray, out asReadOnly);
+                s_EvaluatedListTypeCache[type] = new EvaluatedListType
+                {
+                    EvaluatedType = eType,
+                    AsList = asList,
+                    AsArray = asArray,
+                    AsReadOnly = asReadOnly,
+                };
 
-                return elt.EvaluatedType;
+                return eType;
             }
 
             asList = elt.AsList;
@@ -1815,13 +1816,15 @@ namespace Sweet.Jayson
             EvaluatedDictionaryType edt;
             if (!s_EvaluatedDictionaryTypeCache.TryGetValue(type, out edt))
             {
-                edt = new EvaluatedDictionaryType();
-                edt.EvaluatedType = EvaluateDictionaryType(type, out asDictionary, out asReadOnly);
-                edt.AsDictionary = asDictionary;
-                edt.AsReadOnly = asReadOnly;
-                s_EvaluatedDictionaryTypeCache[type] = edt;
+                var eType = EvaluateDictionaryType(type, out asDictionary, out asReadOnly);
+                s_EvaluatedDictionaryTypeCache[type] = new EvaluatedDictionaryType
+                {
+                    EvaluatedType = eType,
+                    AsDictionary = asDictionary,
+                    AsReadOnly = asReadOnly
+                };
 
-                return edt.EvaluatedType;
+                return eType;
             }
 
             asDictionary = edt.AsDictionary;

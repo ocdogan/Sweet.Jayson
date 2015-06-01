@@ -74,12 +74,16 @@ namespace Sweet.Jayson
 							function = () => Enum.ToObject(objType, 0L);
                         }                            
 						else if (info.DefaultJConstructor) {
-							function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
+                            Expression newExp = Expression.New (objType);
+                            newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
+							function = Expression.Lambda<Func<object>> (newExp).Compile ();
 						} else {
 							JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
 							if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
-								function = Expression.Lambda<Func<object>> (Expression.New (objType)).Compile ();
-							} else {
+                                Expression newExp = Expression.New(objType);
+                                newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
+                                function = Expression.Lambda<Func<object>>(newExp).Compile();
+                            } else {
 								function = () => FormatterServices.GetUninitializedObject (objType);
 							}
 						}
