@@ -717,7 +717,11 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.CaseSensitive = false;
 
             string json = null;
+			#if (NET3500 || NET3000 || NET2000)
+			object list2 = null;
+			#else
             dynamic list2 = null;
+			#endif
             Assert.DoesNotThrow(() =>
             {
                 json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
@@ -725,7 +729,9 @@ namespace Sweet.Jayson.Tests
                 list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
             });
             Assert.IsNotNull(list2);
+			#if !(NET3500 || NET3000 || NET2000)
             Assert.AreEqual(list1.Count, list2.Count);
+			#endif
         }
 
         [Test]
@@ -748,7 +754,11 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.CaseSensitive = false;
 
             string json = null;
+			#if (NET3500 || NET3000 || NET2000)
+			object list2 = null; 
+			#else
             dynamic list2 = null;
+			#endif
             Assert.DoesNotThrow(() =>
             {
                 json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
@@ -756,7 +766,9 @@ namespace Sweet.Jayson.Tests
                 list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
             });
             Assert.IsNotNull(list2);
+			#if !(NET3500 || NET3000 || NET2000)
             Assert.AreEqual(list1.Count, list2.Count);
+			#endif
         }
 
         [Test]
@@ -1150,14 +1162,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			int[,] intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1175,14 +1183,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			int[,] intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1200,14 +1204,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			int[,] intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1225,14 +1225,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			int[,] intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1250,14 +1246,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			List<int[,]> intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1275,14 +1267,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			List<int[,]> intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1300,14 +1288,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			List<int[,]> intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1325,14 +1309,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			List<int[,]> intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1350,14 +1330,10 @@ namespace Sweet.Jayson.Tests
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			List<int[,]> intArray2D2 = null;
-			Assert.DoesNotThrow(() =>
-				{
-					json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
-					JaysonConverter.Parse(json, jaysonDeserializationSettings);
-					intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
-				});
+			string json = JaysonConverter.ToJsonString(intArray2D, jaysonSerializationSettings);
+			JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (intArray2D2);
 		}
 
@@ -1378,14 +1354,10 @@ namespace Sweet.Jayson.Tests
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = false;
 
-			string json = null;
-			TypedContainerDto dto2 = null;
-            Assert.DoesNotThrow(() =>
-            {
-                json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-				dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
-            });
+			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+            JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
 			Assert.IsNotNull (dto2);
         }
 
@@ -1414,13 +1386,10 @@ namespace Sweet.Jayson.Tests
                     SetMemberAlias("ElementId", "id").
                     IgnoreMember("ElementType")); 
 
-            TypedContainerDto dto2 = null;
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
-            });
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
             Assert.IsNotNull(dto2);
         }
 
@@ -1440,13 +1409,9 @@ namespace Sweet.Jayson.Tests
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = false;
 
-            object result = null;
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
-            });
+            string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+            JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			object result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(result is ITypedContainerNoDto);
@@ -1468,13 +1433,9 @@ namespace Sweet.Jayson.Tests
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = false;
 
-            TypedContainerIgnoreMemberDto result = null;
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                result = JaysonConverter.ToObject<TypedContainerIgnoreMemberDto>(json, jaysonDeserializationSettings);
-            });
+        	string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+        	JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			TypedContainerIgnoreMemberDto result = JaysonConverter.ToObject<TypedContainerIgnoreMemberDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(result.InheritedInt1, 0);
@@ -1502,11 +1463,13 @@ namespace Sweet.Jayson.Tests
                 return null;
             }
 
+			#if !(NET3500 || NET3000 || NET2000)
             public override void BindToName(Type serializedType, out string assemblyName, out string typeName)
             {
                 assemblyName = null;
                 typeName = null;
             }
+			#endif
         }
 
         [Test]
@@ -1527,13 +1490,9 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.CaseSensitive = false;
             jaysonDeserializationSettings.Binder = new TestBinder();
 
-            object result = null;
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
-            });
+            string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+            JaysonConverter.Parse(json, jaysonDeserializationSettings);
+            object result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(result is ITypedContainerNoDto);
@@ -1574,13 +1533,9 @@ namespace Sweet.Jayson.Tests
                 return null;
             };
 
-            object result = null;
-            Assert.DoesNotThrow(() =>
-            {
-                string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
-                JaysonConverter.Parse(json, jaysonDeserializationSettings);
-                result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
-            });
+            string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+            JaysonConverter.Parse(json, jaysonDeserializationSettings);
+			object result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(result is ITypedContainerNoDto);

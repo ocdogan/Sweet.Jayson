@@ -149,7 +149,7 @@ namespace Sweet.Jayson
             return result;
         }
 
-#if !(NET4000 || NET3500 || NET3000 || NET2000)
+		#if !(NET4000 || NET3500 || NET3000 || NET2000)
         private static ConstructorInfo GetReadOnlyDictionaryCtor(Type rodType)
         {
             ConstructorInfo ctor;
@@ -175,7 +175,7 @@ namespace Sweet.Jayson
             }
             return result;
         }
-#endif
+		#endif
 
         # region Convert DataTable & DataSet
 
@@ -1591,17 +1591,46 @@ namespace Sweet.Jayson
                 int count = obj.Count;
                 IList lResult = (IList)instance;
 
+                object item;
                 Type argType = JaysonCommon.GetGenericListArgs(info.Type);
                 if (argType != null)
                 {
+#if (NET3500 || NET3000 || NET2000)
+                    bool isNullable = JaysonTypeInfo.IsNullable(argType);
+
+                    Action<object, object[]> add = null;
+                    if (isNullable)
+                    {
+                        add = JaysonCommon.GetICollectionAddMethod(info.Type);
+                    }
+
+#endif
                     for (int i = 0; i < count; i++)
                     {
+#if !(NET3500 || NET3000 || NET2000)
                         lResult.Add(ConvertObject(obj[i], argType, context));
+#else
+                        if (!isNullable)
+                        {
+                            lResult.Add(ConvertObject(obj[i], argType, context));
+                        }
+                        else
+                        {
+                            item = ConvertObject(obj[i], argType, context);
+                            if (item == null)
+                            {
+                                add(lResult, new object[] { null });
+                            }
+                            else
+                            {
+                                lResult.Add(item);
+                            }
+                        }
+#endif
                     }
                     return;
                 }
 
-                object item;
                 for (int i = 0; i < count; i++)
                 {
                     item = obj[i];
@@ -1986,9 +2015,18 @@ namespace Sweet.Jayson
 								if (paramValue.GetType () != ctorParam.ParameterType) {
 									paramValue = ConvertObject (paramValue, ctorParam.ParameterType, context);
 								}
-							} else if (ctorParam.HasDefaultValue) {
+							} 
+#if !(NET4000 || NET3500 || NET3000 || NET2000)
+                            else if (ctorParam.HasDefaultValue) {
 								paramValue = ctorParam.DefaultValue;
-							} else {
+							} 
+#else
+                            else if ((ctorParam.Attributes & ParameterAttributes.HasDefault) == ParameterAttributes.HasDefault)
+                            {
+                                paramValue = ctorParam.DefaultValue;
+                            }
+#endif
+                            else {
 								paramValue = ConvertObject (null, ctorParam.ParameterType, context);
 							}
 
@@ -2029,14 +2067,18 @@ namespace Sweet.Jayson
 
         private static Type BindToType(JaysonDeserializationSettings settings, Type type)
         {
-#if !(NET3500 || NET3000 || NET2000)
             if (settings.Binder != null)
             {
                 string typeName;
                 string assemblyName;
                 Type instanceType = null;
 
+#if !(NET3500 || NET3000 || NET2000)
                 settings.Binder.BindToName(type, out assemblyName, out typeName);
+#else
+                typeName = null;
+                assemblyName = null;
+#endif
                 if (String.IsNullOrEmpty(typeName))
                 {
                     instanceType = settings.Binder.BindToType(type.Assembly.FullName, type.FullName);
@@ -2062,7 +2104,6 @@ namespace Sweet.Jayson
                 }
             }
 
-#endif
             return type;
         }
 
@@ -2241,16 +2282,14 @@ namespace Sweet.Jayson
                 {
                     return JaysonObjectConstructor.New(toType);
                 }
-                else
+
+                bool useDefaultCtor;
+                object result = context.Settings.ObjectActivator(toType, null, out useDefaultCtor);
+                if (useDefaultCtor)
                 {
-                    bool useDefaultCtor;
-                    object result = context.Settings.ObjectActivator(toType, null, out useDefaultCtor);
-                    if (useDefaultCtor)
-                    {
-                        return JaysonObjectConstructor.New(toType);
-                    }
-                    return result;
+                    return JaysonObjectConstructor.New(toType);
                 }
+                return result;
             }
 
             Type objType = obj.GetType();

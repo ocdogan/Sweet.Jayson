@@ -43,10 +43,15 @@ namespace Sweet.Jayson
 
 		private bool m_CanRead;
 		private bool m_CanWrite;
+		#if (NET3500 || NET3000 || NET2000)
+        private bool m_IsValueType;
+		#endif
 
-		private ByRefAction m_SetDelegate;
+		private ByRefAction m_SetRefDelegate;
 		private Func<object, object> m_GetDelegate;
-		// private Action<object, object> m_SetDelegate;
+        #if (NET3500 || NET3000 || NET2000)
+		private Action<object, object> m_SetDelegate;
+        #endif
 
 		public JaysonFastMemberType Type
 		{
@@ -72,6 +77,9 @@ namespace Sweet.Jayson
 		{
 			m_PropInfo = pi;
 			m_MemberType = m_PropInfo.PropertyType;
+			#if (NET3500 || NET3000 || NET2000)
+            m_IsValueType = pi.DeclaringType.IsValueType;
+			#endif
 
 			m_CanRead = m_PropInfo.CanRead;
 			m_CanWrite = m_PropInfo.CanWrite;
@@ -117,23 +125,23 @@ namespace Sweet.Jayson
 
 				#if (NET3500 || NET3000 || NET2000)
 				if (declaringT.IsValueType) {
-					m_SetDelegate = delegate(ref object instance, object value) {
-						m_PropInfo.SetValue (instance, value);
+					m_SetRefDelegate = delegate(ref object instance, object value) {
+						m_PropInfo.SetValue (instance, value, null);
 					};
 				} else {
-					var instanceExp = Expression.Parameter (typeof(object).MakeByRefType (), "instance");
+					var instanceExp = Expression.Parameter (typeof(object), "instance");
 					var valueExp = Expression.Parameter (typeof(object), "value");
 
 					// value as T is slightly faster than (T)value, so if it's not a value type, use that
 					UnaryExpression instanceCast = Expression.TypeAs (instanceExp, declaringT);
 
 					UnaryExpression valueCast = !m_MemberType.IsValueType ?
-					Expression.TypeAs (valueExp, m_MemberType) : 
-					Expression.Convert (valueExp, m_MemberType);
+					    Expression.TypeAs (valueExp, m_MemberType) : 
+					    Expression.Convert (valueExp, m_MemberType);
 
 					Expression callExp = Expression.Call (instanceCast, setMethod, valueCast);
 
-					m_SetDelegate = Expression.Lambda<ByRefAction> (callExp, 
+					m_SetDelegate = Expression.Lambda<Action<object, object>> (callExp, 
 						new ParameterExpression[] { instanceExp, valueExp }).Compile ();
 				}
 				#else
@@ -165,7 +173,7 @@ namespace Sweet.Jayson
 
 				Expression blockExp = Expression.Block (new[] { instanceRefExp }, expBlockList);
 
-				m_SetDelegate = Expression.Lambda<ByRefAction> (blockExp, 
+				m_SetRefDelegate = Expression.Lambda<ByRefAction> (blockExp, 
 					new ParameterExpression[] { instanceExp, valueExp }).Compile ();
 				#endif
 			}
@@ -194,11 +202,20 @@ namespace Sweet.Jayson
 					m_Set = true;
 					InitializeSet(m_PropInfo);
 				}
-				if (m_SetDelegate != null)
-				{
-					m_SetDelegate(ref instance, value);
-				}
-			}
+ 				#if (NET3500 || NET3000 || NET2000)
+                if (m_IsValueType) {
+                    if (m_SetRefDelegate != null) {
+                        m_SetRefDelegate(ref instance, value);
+                    }
+                } else if (m_SetDelegate != null) {
+                    m_SetDelegate(instance, value);
+                }
+                #else
+                if (m_SetRefDelegate != null) {
+                    m_SetRefDelegate(ref instance, value);
+                }
+                #endif
+            }
 		}
 	}
 

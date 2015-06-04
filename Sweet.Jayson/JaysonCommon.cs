@@ -26,6 +26,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -35,18 +36,6 @@ namespace Sweet.Jayson
 {
 	public static class JaysonCommon
 	{
-		# region ExpressionAssigner<> for .Net3.5
-
-		private static class ExpressionAssigner<T>
-		{
-			public static T Assign(ref T left, T right)
-			{
-				return (left = right);
-			}
-		}
-
-		# endregion ExpressionAssigner<> for .Net3.5
-
 		# region Static Members
 
 		private static int s_IsMono = -1;
@@ -69,25 +58,9 @@ namespace Sweet.Jayson
 		private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 
-		private static readonly Dictionary<Type, MethodInfo> s_ExpressionAssignCache = new Dictionary<Type, MethodInfo>(JaysonConstants.CacheInitialCapacity);
-
 		# endregion Static Members
 
 		# region Helper Methods
-
-		# region .Net3.5 Methods
-
-		public static BinaryExpression ExpressionAssign(Expression left, Expression right)
-		{
-			MethodInfo assign;
-			if (!s_ExpressionAssignCache.TryGetValue (left.Type, out assign)) {
-				assign = typeof(ExpressionAssigner<>).MakeGenericType (left.Type).GetMethod ("Assign");
-				s_ExpressionAssignCache [left.Type] = assign;
-			}
-			return Expression.Add(left, right, assign);
-		}
-
-		# endregion .Net3.5 Methods
 
 		# region DateTime Methods
 
@@ -1395,13 +1368,21 @@ namespace Sweet.Jayson
 						if (s [0] == '!') {
 							return new Guid(Convert.FromBase64String (s.Substring (1)));
 						}
+        				#if (NET3500 || NET3000 || NET2000)
+                        return new Guid(s);
+                        #else
 						return Guid.Parse(s);
+                        #endif
 					}
 					if (value is byte[]) {
 						return new Guid ((byte[])value);
 					}
+                    #if (NET3500 || NET3000 || NET2000)
+                    return new Guid(value.ToString());
+                    #else
 					return Guid.Parse(value.ToString ());
-				}
+                    #endif
+                }
 			case JaysonTypeCode.Char:
 				{
 					converted = true;
@@ -1508,12 +1489,20 @@ namespace Sweet.Jayson
 						if (s [0] == '!') {
 							return (Guid?)(new Guid(Convert.FromBase64String (s.Substring (1))));
 						}
+                        #if (NET3500 || NET3000 || NET2000)
+                        return (Guid?)(new Guid(s));
+                        #else
 						return (Guid?)Guid.Parse(s);
-					}
+                        #endif
+                    }
 					if (value is byte[]) {
 						return (Guid?)(new Guid ((byte[])value));
 					}
+                    #if (NET3500 || NET3000 || NET2000)
+                    return (Guid?)(new Guid(value.ToString()));
+                    #else
 					return (Guid?)Guid.Parse(value.ToString ());
+                    #endif
 				}
 			case JaysonTypeCode.CharNullable:
 				{
@@ -1943,7 +1932,8 @@ namespace Sweet.Jayson
 
 					arrayAccessExp = Expression.ArrayAccess(argsExp, Expression.Constant(i));
 					arrayValueCastExp = !paramType.IsValueType ?
-						Expression.TypeAs (arrayAccessExp, paramType) : Expression.Convert(arrayAccessExp, paramType);
+						Expression.TypeAs (arrayAccessExp, paramType) : 
+						Expression.Convert(arrayAccessExp, paramType);
 
 					variableAssignExp = Expression.Assign(newVariableExp, arrayValueCastExp);
 					bodyExps.Add(variableAssignExp);
@@ -1964,11 +1954,12 @@ namespace Sweet.Jayson
 			var declaringT = methodInfo.DeclaringType;
 			var methodParams = methodInfo.GetParameters();
 
-			var paramExp = Expression.Parameter(typeof (object[]), "args");
+			var argsExp = Expression.Parameter(typeof (object[]), "args");
 			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
 			var inputCastExp = !declaringT.IsValueType ?
-			Expression.TypeAs (inputObjExp, declaringT) : Expression.Convert(inputObjExp, declaringT);
+			    Expression.TypeAs (inputObjExp, declaringT) : 
+                Expression.Convert(inputObjExp, declaringT);
 
 			Expression callExp;
 			if (methodParams.Length == 0) {
@@ -1976,24 +1967,24 @@ namespace Sweet.Jayson
 			} else {
 				var callArguments = new Expression[methodParams.Length];
 
-				Type paramType;
+				Type argType;
 				Expression arrayAccessExp;
 				Expression arrayValueCastExp;
 
 				for (var i = 0; i < methodParams.Length; i++) {
-					paramType = methodParams [i].ParameterType;
+					argType = methodParams [i].ParameterType;
 
-					arrayAccessExp = Expression.ArrayIndex(paramExp, Expression.Constant(i));
-
-					arrayValueCastExp = !paramType.IsValueType ?
-						Expression.TypeAs (arrayAccessExp, paramType) : Expression.Convert (arrayAccessExp, paramType);
+					arrayAccessExp = Expression.ArrayIndex(argsExp, Expression.Constant(i));
+					arrayValueCastExp = !argType.IsValueType ?
+						Expression.TypeAs (arrayAccessExp, argType) : 
+                        Expression.Convert (arrayAccessExp, argType);
 
 					callArguments [i] = arrayValueCastExp;
 				}
-
+				
 				callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
 			}
-			return Expression.Lambda<Action<object, object[]>>(callExp, paramExp).Compile ();            
+			return Expression.Lambda<Action<object, object[]>>(callExp, inputObjExp, argsExp).Compile ();
 		}
 		#endif
 

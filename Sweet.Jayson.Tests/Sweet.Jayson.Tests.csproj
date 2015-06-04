@@ -7,25 +7,30 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Sweet.Jayson.Tests</RootNamespace>
     <AssemblyName>Sweet.Jayson.Tests</AssemblyName>
+    <TargetFrameworkProfile />
+    <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
+    <!--<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>-->
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
+    <OutputPath>bin\Debug\NET$(TargetFrameworkVersion.Replace("v", "").Replace(".", ""))</OutputPath>
     <DefineConstants>DEBUG;NET$(TargetFrameworkVersion.Replace("v", "").Replace(".", "").PadRight(4, '0'));</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <OutputPath>bin\Release\NET$(TargetFrameworkVersion.Replace("v", "").Replace(".", ""))</OutputPath>
     <DefineConstants>NET$(TargetFrameworkVersion.Replace("v", "").Replace(".", "").PadRight(4, '0'));</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

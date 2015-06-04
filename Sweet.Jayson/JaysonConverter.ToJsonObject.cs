@@ -636,12 +636,12 @@ namespace Sweet.Jayson
 					List<object> result = new List<object> (rowCount);
 
 					DataColumn dataColumn;
-					List<Tuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<Tuple<DataColumn, JaysonTypeInfo>> ();
+                    List<JaysonTuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<JaysonTuple<DataColumn, JaysonTypeInfo>>();
 
 					for (int i = 0; i < columnCount; i++) 
 					{
 						dataColumn = columns [i];
-						columnsInfo.Add (new Tuple<DataColumn, JaysonTypeInfo> (dataColumn, 
+                        columnsInfo.Add(new JaysonTuple<DataColumn, JaysonTypeInfo>(dataColumn, 
 							JaysonTypeInfo.GetTypeInfo (dataColumn.DataType)));
 					}
 
@@ -652,7 +652,7 @@ namespace Sweet.Jayson
 					object cellValue;
 
 					List<object> cellList;
-					Tuple<DataColumn, JaysonTypeInfo> columnInfo;
+                    JaysonTuple<DataColumn, JaysonTypeInfo> columnInfo;
 
 					var tableName = dataTable.TableName;
 					if (dataTable.DataSet != null) 

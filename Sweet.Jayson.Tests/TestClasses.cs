@@ -193,8 +193,13 @@ namespace Sweet.Jayson.Tests
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
-                ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
+                #if !(NET4000 || NET3500 || NET3000 || NET2000)
+				ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
+                #else
+				ObjectProperty = new Dictionary<string, object>{ 
+					{"op", new List<object> { "a", 1 } } },
+				#endif
 				#if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
 				#endif
@@ -227,8 +232,13 @@ namespace Sweet.Jayson.Tests
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
+                #if (NET4000 || NET3500 || NET3000 || NET2000)
+                ObjectProperty = new Dictionary<string, object>{ 
+					{"op", new List<object> { "a", 1 } } },
+				#else
                 ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
+				#endif
 				#if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
 				#endif
@@ -266,8 +276,13 @@ namespace Sweet.Jayson.Tests
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
+                #if (NET4000 || NET3500 || NET3000 || NET2000)
+                ObjectProperty = new Dictionary<string, object>{ 
+					{"op", new List<object> { "a", 1 } } },
+				#else
                 ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
+				#endif
                 #if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
                 #endif

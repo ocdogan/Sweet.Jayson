@@ -791,12 +791,12 @@ namespace Sweet.Jayson
                     DataColumnCollection columns = dataTable.Columns;
 
                     int colCount = columns.Count;
-					List<Tuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<Tuple<DataColumn, JaysonTypeInfo>>();
+                    List<JaysonTuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<JaysonTuple<DataColumn, JaysonTypeInfo>>();
 
                     for (int i = 0; i < colCount; i++)
                     {
 						dataColumn = columns[i];
-						columnsInfo.Add(new Tuple<DataColumn, JaysonTypeInfo>(dataColumn, 
+                        columnsInfo.Add(new JaysonTuple<DataColumn, JaysonTypeInfo>(dataColumn, 
 							JaysonTypeInfo.GetTypeInfo(dataColumn.DataType)));
                     }
 
@@ -805,7 +805,7 @@ namespace Sweet.Jayson
                     int rowCount = rows.Count;
 
                     JaysonTypeCode colTypeCode;
-					Tuple<DataColumn, JaysonTypeInfo> columnInfo;
+                    JaysonTuple<DataColumn, JaysonTypeInfo> columnInfo;
 
                     JaysonFormatter formatter = context.Formatter;
                     bool escapeChars = settings.EscapeChars;

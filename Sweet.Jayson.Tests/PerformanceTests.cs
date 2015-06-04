@@ -61,7 +61,8 @@ namespace Sweet.Jayson.Tests
 
 			string s;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
@@ -71,7 +72,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.Parse(s, jaysonDeserializationSettings);
@@ -81,7 +83,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
@@ -111,7 +114,8 @@ namespace Sweet.Jayson.Tests
 
 			string s;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
@@ -121,7 +125,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.Parse(s, jaysonDeserializationSettings);
@@ -131,7 +136,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
@@ -161,7 +167,8 @@ namespace Sweet.Jayson.Tests
 
 			string s;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
@@ -171,7 +178,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.Parse(s, jaysonDeserializationSettings);
@@ -181,7 +189,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
@@ -212,7 +221,8 @@ namespace Sweet.Jayson.Tests
 
 			string s;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			var pResult = Parallel.For (0, 10000, i => {
 				JaysonConverter.ToJsonString (obj, jaysonSerializationSettings);
 			});
@@ -223,7 +233,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			pResult = Parallel.For (0, 10000, i => {
 				JaysonConverter.Parse (s, jaysonDeserializationSettings);
 			});
@@ -234,7 +245,8 @@ namespace Sweet.Jayson.Tests
 
 			s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			pResult = Parallel.For (0, 10000, i => {
 				JaysonConverter.ToObject<TypedContainerDto> (s, jaysonDeserializationSettings);
 			});
@@ -277,7 +289,8 @@ namespace Sweet.Jayson.Tests
             string json = null;
             Stopwatch sw = new Stopwatch();
 
-            sw.Restart();
+			sw.Reset();
+			sw.Start();
             for (int i = 0; i < 10000; i++)
             {
                 json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
@@ -286,8 +299,10 @@ namespace Sweet.Jayson.Tests
             Console.WriteLine("Sweet.JaysonConverter DataTable serialization {0} msec", sw.ElapsedMilliseconds);
 
             json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
-            sw.Restart();
-            for (int i = 0; i < 10000; i++)
+
+			sw.Reset();
+			sw.Start();
+			for (int i = 0; i < 10000; i++)
             {
                 JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
             }
@@ -332,7 +347,8 @@ namespace Sweet.Jayson.Tests
             string json = null;
             Stopwatch sw = new Stopwatch();
 
-            sw.Restart();
+			sw.Reset();
+			sw.Start();
             for (int i = 0; i < 10000; i++)
             {
                 json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
@@ -342,7 +358,8 @@ namespace Sweet.Jayson.Tests
 
             json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
 
-            sw.Restart();
+			sw.Reset();
+			sw.Start();
             for (int i = 0; i < 10000; i++)
             {
                 JaysonConverter.ToObject<DataSet>(json, jaysonDeserializationSettings);
@@ -367,7 +384,8 @@ namespace Sweet.Jayson.Tests
 
 			string json = null;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
@@ -377,7 +395,8 @@ namespace Sweet.Jayson.Tests
 
 			json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
@@ -402,7 +421,8 @@ namespace Sweet.Jayson.Tests
 
 			string json = null;
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
@@ -412,7 +432,8 @@ namespace Sweet.Jayson.Tests
 
 			json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
 
-			sw.Restart();
+			sw.Reset();
+			sw.Start();
 			for (int i = 0; i < 10000; i++)
 			{
 				JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
