@@ -24,6 +24,9 @@
 
 using System;
 using System.Collections;
+#if !(NET3500 || NET3000 || NET2000)
+using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -48,15 +51,27 @@ namespace Sweet.Jayson
 		private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, bool> s_IsGenericList = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+		#if !(NET3500 || NET3000 || NET2000)
+		private static readonly Dictionary<Type, bool> s_IsProducerConsumerCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+		#endif
 
 		private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		#if !(NET3500 || NET3000 || NET2000)
+		private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		#endif
+
+		private static readonly Dictionary<Type, Action<object, object[]>> s_StackPush = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Action<object, object[]>> s_QueueEnqueue = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 
 		private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
 
 		private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
+		#if !(NET3500 || NET3000 || NET2000)
+		private static readonly Dictionary<Type, Type> s_ProducerConsumerCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+		#endif
 
 		# endregion Static Members
 
@@ -1751,6 +1766,17 @@ namespace Sweet.Jayson
 			s_GenericCollectionArgs[objType] = found ? arguments[0] : null;
 		}
 
+		#if !(NET3500 || NET3000 || NET2000)
+		private static void UpdateProducerConsumerCollectionInfo(Type objType)
+		{
+			Type[] arguments;
+			bool found = FindInterface(objType, typeof(IProducerConsumerCollection<>), out arguments);
+
+			s_IsProducerConsumerCollection[objType] = found;
+			s_ProducerConsumerCollectionArgs[objType] = found ? arguments[0] : null;
+		}
+		#endif
+
 		private static void UpdateGenericDictionaryInfo(Type objType)
 		{
 			Type[] arguments;
@@ -1779,6 +1805,19 @@ namespace Sweet.Jayson
 			}
 			return result;
 		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		internal static bool IsProducerConsumerCollection(Type objType)
+		{
+			bool result;
+			if (!s_IsProducerConsumerCollection.TryGetValue(objType, out result))
+			{
+				UpdateProducerConsumerCollectionInfo(objType);
+				s_IsProducerConsumerCollection.TryGetValue(objType, out result);
+			}
+			return result;
+		}
+		#endif
 
 		internal static bool IsGenericDictionary(Type objType)
 		{
@@ -1812,6 +1851,19 @@ namespace Sweet.Jayson
 			}
 			return result;
 		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		internal static Type GetProducerConsumerCollectionArgs(Type objType)
+		{
+			Type result;
+			if (!s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result))
+			{
+				UpdateProducerConsumerCollectionInfo(objType);
+				s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
+			}
+			return result;
+		}
+		#endif
 
 		internal static Type[] GetGenericDictionaryArgs(Type objType)
 		{
@@ -2000,6 +2052,82 @@ namespace Sweet.Jayson
 				{
 					method = methods[i];
 					if (method.Name == "Add" && method.GetParameters().Length == 1)
+					{
+						result = PrepareMethodCall(method);
+						break;
+					}
+				}
+
+				s_ICollectionAdd[objType] = result;
+			}
+			return result;
+		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		internal static Action<object, object[]> GetIProducerConsumerCollectionAddMethod(Type objType)
+		{
+			Action<object, object[]> result;
+			if (!s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result))
+			{
+				if (IsProducerConsumerCollection (objType)) {
+					Type[] argTypes = objType.GetGenericArguments ();
+					if (argTypes != null && argTypes.Length == 1) {
+						Type ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType (new Type[] { argTypes [0] });
+
+						MethodInfo method;
+						MethodInfo[] methods = ipcType.GetMethods ();
+
+						for (int i = methods.Length - 1; i > -1; i--) {
+							method = methods [i];
+							if (method.Name == "TryAdd" && method.GetParameters ().Length == 1) {
+								result = PrepareMethodCall (method);
+								break;
+							}
+						}
+					}
+				}
+
+				s_ICollectionAdd[objType] = result;
+			}
+			return result;
+		}
+		#endif
+
+		internal static Action<object, object[]> GetStackPushMethod(Type objType)
+		{
+			Action<object, object[]> result;
+			if (!s_StackPush.TryGetValue(objType, out result))
+			{
+				MethodInfo method;
+				MethodInfo[] methods = objType.GetMethods();
+
+				for (int i = methods.Length - 1; i > -1; i--)
+				{
+					method = methods[i];
+					if (method.Name == "Push" && method.GetParameters().Length == 1)
+					{
+						result = PrepareMethodCall(method);
+						break;
+					}
+				}
+
+				s_ICollectionAdd[objType] = result;
+			}
+			return result;
+		}
+
+		internal static Action<object, object[]> GetQueueEnqueueMethod(Type objType)
+		{
+			Action<object, object[]> result;
+			if (!s_QueueEnqueue.TryGetValue(objType, out result))
+			{
+				MethodInfo method;
+				MethodInfo[] methods = objType.GetMethods();
+
+				for (int i = methods.Length - 1; i > -1; i--)
+				{
+					method = methods[i];
+					if (method.Name == "Enqueue" && method.GetParameters().Length == 1)
 					{
 						result = PrepareMethodCall(method);
 						break;

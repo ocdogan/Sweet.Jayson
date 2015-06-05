@@ -24,6 +24,9 @@
 
 using System;
 using System.Collections;
+#if !(NET3500 || NET3000 || NET2000)
+using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -1586,15 +1589,13 @@ namespace Sweet.Jayson
                 return;
             }
 
-            if (instance is IList)
-            {
-                int count = obj.Count;
-                IList lResult = (IList)instance;
+			if (instance is IList) {
+				int count = obj.Count;
+				IList lResult = (IList)instance;
 
-                object item;
-                Type argType = JaysonCommon.GetGenericListArgs(info.Type);
-                if (argType != null)
-                {
+				object item;
+				Type argType = JaysonCommon.GetGenericListArgs (info.Type);
+				if (argType != null) {
 #if (NET3500 || NET3000 || NET2000)
                     bool isNullable = JaysonTypeInfo.IsNullable(argType);
 
@@ -1605,10 +1606,9 @@ namespace Sweet.Jayson
                     }
 
 #endif
-                    for (int i = 0; i < count; i++)
-                    {
+					for (int i = 0; i < count; i++) {
 #if !(NET3500 || NET3000 || NET2000)
-                        lResult.Add(ConvertObject(obj[i], argType, context));
+						lResult.Add (ConvertObject (obj [i], argType, context));
 #else
                         if (!isNullable)
                         {
@@ -1627,40 +1627,98 @@ namespace Sweet.Jayson
                             }
                         }
 #endif
-                    }
-                    return;
-                }
+					}
+					return;
+				}
 
-                for (int i = 0; i < count; i++)
-                {
-                    item = obj[i];
-                    if (item is IDictionary<string, object>)
-                    {
-                        item = ConvertDictionary((IDictionary<string, object>)item, typeof(object), context);
-                    }
-                    else if (item is IList<object>)
-                    {
-                        item = ConvertList((IList<object>)item, typeof(object), context);
-                    }
+				for (int i = 0; i < count; i++) {
+					item = obj [i];
+					if (item is IDictionary<string, object>) {
+						item = ConvertDictionary ((IDictionary<string, object>)item, typeof(object), context);
+					} else if (item is IList<object>) {
+						item = ConvertList ((IList<object>)item, typeof(object), context);
+					}
 
-                    lResult.Add(item);
-                }
-            }
+					lResult.Add (item);
+				}
+			} 
             else
             {
                 Type argType = JaysonCommon.GetGenericCollectionArgs(info.Type);
-                if (argType != null)
-                {
-                    Action<object, object[]> methodInfo = JaysonCommon.GetICollectionAddMethod(info.Type);
-                    if (methodInfo != null)
-                    {
-                        int count = obj.Count;
-                        for (int i = 0; i < count; i++)
-                        {
-                            methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
-                        }
-                    }
-                }
+				if (argType != null) {
+					Action<object, object[]> methodInfo = JaysonCommon.GetICollectionAddMethod (info.Type);
+					if (methodInfo != null) {
+						int count = obj.Count;
+						for (int i = 0; i < count; i++) {
+							methodInfo (instance, new object[] { ConvertObject (obj [i], argType, context) });
+						}
+						return;
+					}
+				} 
+
+				if (instance is Stack) {
+					Stack stack = (Stack)instance;
+
+					int count = obj.Count;
+					for (int i = count-1; i > -1; i--)
+					{
+						stack.Push(ConvertObject(obj[i], typeof(object), context));
+					}
+					return;
+				} 
+
+				if (instance is Queue) {
+					Queue queue = (Queue)instance;
+
+					int count = obj.Count;
+					for (int i = 0; i < count; i++)
+					{
+						queue.Enqueue(ConvertObject(obj[i], typeof(object), context));
+					}
+					return;
+				}
+
+				Type[] argTypes = info.GenericArguments;
+
+				if (argTypes != null && argTypes.Length == 1) {
+					Action<object, object[]> methodInfo = JaysonCommon.GetStackPushMethod (info.Type);
+					if (methodInfo != null) {
+						argType = argTypes[0];
+						int count = obj.Count;
+
+						for (int i = count-1; i > -1; i--) {
+							methodInfo (instance, new object[] { ConvertObject (obj [i], argType, context) });
+						}
+						return;
+					}
+
+					methodInfo = JaysonCommon.GetQueueEnqueueMethod (info.Type);
+					if (methodInfo != null) {
+						argType = argTypes[0];
+						int count = obj.Count;
+
+						for (int i = 0; i < count; i++) {
+							methodInfo (instance, new object[] { ConvertObject (obj [i], argType, context) });
+						}
+						return;
+					}
+
+					#if !(NET3500 || NET3000 || NET2000)
+					if (JaysonCommon.IsProducerConsumerCollection (info.Type)) {
+						methodInfo = JaysonCommon.GetIProducerConsumerCollectionAddMethod (info.Type);
+
+						if (methodInfo != null) {
+							argType = argTypes[0];
+							int count = obj.Count;
+
+							for (int i = 0; i < count; i++) {
+								methodInfo (instance, new object[] { ConvertObject (obj [i], argType, context) });
+							}
+							return;
+						}
+					}
+					#endif
+				}
             }
         }
 

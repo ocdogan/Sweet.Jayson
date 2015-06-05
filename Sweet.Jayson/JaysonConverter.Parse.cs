@@ -840,94 +840,92 @@ namespace Sweet.Jayson
             char ch;
             JaysonSerializationToken token = JaysonSerializationToken.Value;
 
-            while (context.Position < length)
-            {
-                ch = str[context.Position++];
-                if (token == JaysonSerializationToken.Comma)
-                {
-                    token = JaysonSerializationToken.Value;
-                    if (ch == ',' || ch == ']' || ch == '}')
-                    {
-                        throw new JaysonException("Invalid Json list.");
-                    }
-                }
+			while (context.Position < length) {
+				ch = str [context.Position++];
+				if (token == JaysonSerializationToken.Comma) {
+					token = JaysonSerializationToken.Value;
+					if (ch == ',' || ch == ']' || ch == '}') {
+						throw new JaysonException ("Invalid Json list.");
+					}
+				}
 
-                switch (ch)
-                {
-                    case '"':
-                        result.Add(ParseString(str, ref context.Position));
-                        break;
-                    case ',':
-                        if (result.Count == 0)
-                        {
-                            throw new JaysonException("Invalid Json list item.");
-                        }
-                        token = JaysonSerializationToken.Comma;
-                        break;
-                    case ']':
-                        if (context.Settings.ArrayType == ArrayDeserializationType.Array)
-                        {
-                            return ((IList<object>)result).ToArray();
-                        }
-                        if (context.Settings.ArrayType == ArrayDeserializationType.ArrayDefined)
-                        {
-                            return ListAsArray(result);
-                        }
-                        return result;
-                    case '{':
-                        context.Position--;
-                        result.Add(ParseDictionary(context));
-                        break;
-                    case 'n':
-                        if (context.Position < length - 4 &&
-                            str[context.Position] == 'u' &&
-                            str[context.Position + 1] == 'l' &&
-                            str[context.Position + 2] == 'l')
-                        {
-                            result.Add(null);
-                            context.Position += 3;
-                            break;
-                        }
-                        throw new JaysonException("Invalid Json list item.");
-                    case 't':
-                        if (context.Position < length - 4 &&
-                            str[context.Position] == 'r' &&
-                            str[context.Position + 1] == 'u' &&
-                            str[context.Position + 2] == 'e')
-                        {
-                            result.Add(true);
-                            context.Position += 3;
-                            break;
-                        }
-                        throw new JaysonException("Invalid Json list item.");
-                    case 'f':
-                        if (context.Position < length - 5 &&
-                            str[context.Position] == 'a' &&
-                            str[context.Position + 1] == 'l' &&
-                            str[context.Position + 2] == 's' &&
-                            str[context.Position + 3] == 'e')
-                        {
-                            result.Add(false);
-                            context.Position += 4;
-                            break;
-                        }
-                        throw new JaysonException("Invalid Json list item.");
-                    case '[':
-                        context.Position--;
-                        result.Add(ParseList(context));
-                        break;
-                    default:
-                        if (!(ch < '0' || ch > '9') || ch == '-')
-                        {
-                            context.Position--;
-                            result.Add(ParseNumber(context, JaysonSerializationToken.Value));
-                            break;
-                        }
-                        if (JaysonCommon.IsWhiteSpace(ch))
-                            continue;
-                        throw new JaysonException("Invalid Json list item.");
-                }
-            }
+				switch (ch) {
+				case '"':
+					result.Add (ParseString (str, ref context.Position));
+					break;
+				case ',':
+					if (result.Count == 0) {
+						throw new JaysonException ("Invalid Json list item.");
+					}
+					token = JaysonSerializationToken.Comma;
+					break;
+				case ']':
+					if (context.Settings.ArrayType == ArrayDeserializationType.Array) {
+						return ((IList<object>)result).ToArray ();
+					}
+					if (context.Settings.ArrayType == ArrayDeserializationType.ArrayDefined) {
+						return ListAsArray (result);
+					}
+					return result;
+				case '{':
+					context.Position--;
+					result.Add (ParseDictionary (context));
+					break;
+				case 'n':
+					{
+						int pos = context.Position;
+						if (pos < length - 3 &&
+						    str [pos] == 'u' &&
+						    str [pos + 1] == 'l' &&
+						    str [pos + 2] == 'l') {
+							result.Add (null);
+							context.Position += 3;
+							break;
+						}
+						throw new JaysonException ("Invalid Json list item.");
+					}
+				case 't':
+					{
+						int pos = context.Position;
+						if (pos < length - 3 &&
+						    str [pos] == 'r' &&
+						    str [pos + 1] == 'u' &&
+						    str [pos + 2] == 'e') {
+							result.Add (true);
+							context.Position += 3;
+							break;
+						}
+						throw new JaysonException ("Invalid Json list item.");
+					}
+				case 'f':
+					{
+						int pos = context.Position;
+						if (pos < length - 4 &&
+						    str [pos] == 'a' &&
+						    str [pos + 1] == 'l' &&
+						    str [pos + 2] == 's' &&
+						    str [pos + 3] == 'e') {
+							result.Add (false);
+							context.Position += 4;
+							break;
+						}
+						throw new JaysonException ("Invalid Json list item.");
+					}
+				case '[':
+					context.Position--;
+					result.Add (ParseList (context));
+					break;
+				default:
+					if (!(ch < '0' || ch > '9') || ch == '-') {
+						context.Position--;
+						result.Add (ParseNumber (context, JaysonSerializationToken.Value));
+						break;
+					}
+					if (JaysonCommon.IsWhiteSpace (ch))
+						continue;
+					throw new JaysonException ("Invalid Json list item.");
+				}
+			}
 
             throw new JaysonException("Invalid Json list.");
         }
@@ -964,128 +962,124 @@ namespace Sweet.Jayson
             JaysonSerializationToken token = JaysonSerializationToken.Key;
             JaysonSerializationToken prevToken = JaysonSerializationToken.Undefined;
 
-            while (context.Position < length)
-            {
-                ch = str[context.Position++];
+			while (context.Position < length) {
+				ch = str [context.Position++];
 
-                switch (token)
-                {
-                    case JaysonSerializationToken.Key:
-                        switch (ch)
-                        {
-                            case '"':
-                                if (prevToken == JaysonSerializationToken.Value)
-                                {
-                                    throw new JaysonException("Invalid Json object key.");
-                                }
+				switch (token) {
+				case JaysonSerializationToken.Key:
+					switch (ch) {
+					case '"':
+						if (prevToken == JaysonSerializationToken.Value) {
+							throw new JaysonException ("Invalid Json object key.");
+						}
 
-                                key = ParseString(str, ref context.Position);
-                                if (key == null)
-                                {
-                                    throw new JaysonException("Invalid Json object key.");
-                                }
+						key = ParseString (str, ref context.Position);
+						if (key == null) {
+							throw new JaysonException ("Invalid Json object key.");
+						}
 
-                                prevToken = token;
-                                token = JaysonSerializationToken.Colon;
-                                continue;
-                            case ',':
-                                if (prevToken != JaysonSerializationToken.Value)
-                                {
-                                    throw new JaysonException("Invalid Json object key.");
-                                }
-                                prevToken = JaysonSerializationToken.Comma;
-                                break;
-                            case '}':
-                                context.ObjectDepth--;
-                                return result;
-                            default:
-                                if (JaysonCommon.IsWhiteSpace(ch))
-                                    continue;
-                                throw new JaysonException("Invalid Json object key.");
-                        }
-                        break;
-                    case JaysonSerializationToken.Colon:
-                        if (ch == ':')
-                        {
-                            prevToken = token;
-                            token = JaysonSerializationToken.Value;
-                            break;
-                        }
-                        if (JaysonCommon.IsWhiteSpace(ch))
-                            continue;
-                        throw new JaysonException("Invalid Json object value.");
-                    case JaysonSerializationToken.Value:
-                        switch (ch)
-                        {
-                            case '"':
-                                result[key] = ParseString(str, ref context.Position);
-                                if (key == "$type")
-                                {
-                                    context.HasTypeInfo = true;
-                                }
-                                break;
-                            case '{':
-                                context.Position--;
-                                result[key] = ParseDictionary(context);
-                                break;
-                            case 'n':
-                                if (context.Position < length - 4 &&
-                                    str[context.Position] == 'u' &&
-                                    str[context.Position + 1] == 'l' &&
-                                    str[context.Position + 2] == 'l')
-                                {
-                                    result[key] = null;
-                                    context.Position += 3;
-                                    break;
-                                }
-                                throw new JaysonException("Invalid Json object value.");
-                            case 't':
-                                if (context.Position < length - 4 &&
-                                    str[context.Position] == 'r' &&
-                                    str[context.Position + 1] == 'u' &&
-                                    str[context.Position + 2] == 'e')
-                                {
-                                    result[key] = true;
-                                    context.Position += 3;
-                                    break;
-                                }
-                                throw new JaysonException("Invalid Json object value.");
-                            case 'f':
-                                if (context.Position < length - 5 &&
-                                    str[context.Position] == 'a' &&
-                                    str[context.Position + 1] == 'l' &&
-                                    str[context.Position + 2] == 's' &&
-                                    str[context.Position + 3] == 'e')
-                                {
-                                    result[key] = false;
-                                    context.Position += 4;
-                                    break;
-                                }
-                                throw new JaysonException("Invalid Json object value.");
-                            case '[':
-                                context.Position--;
-                                result[key] = ParseList(context);
-                                break;
-                            default:
-                                if (!(ch < '0' || ch > '9') || ch == '-')
-                                {
-                                    context.Position--;
-                                    value = ParseNumber(context, JaysonSerializationToken.Value);
+						prevToken = token;
+						token = JaysonSerializationToken.Colon;
+						continue;
+					case ',':
+						if (prevToken != JaysonSerializationToken.Value) {
+							throw new JaysonException ("Invalid Json object key.");
+						}
+						prevToken = JaysonSerializationToken.Comma;
+						break;
+					case '}':
+						context.ObjectDepth--;
+						return result;
+					default:
+						if (JaysonCommon.IsWhiteSpace (ch))
+							continue;
+						throw new JaysonException ("Invalid Json object key.");
+					}
+					break;
+				case JaysonSerializationToken.Colon:
+					if (ch == ':') {
+						prevToken = token;
+						token = JaysonSerializationToken.Value;
+						break;
+					}
+					if (JaysonCommon.IsWhiteSpace (ch))
+						continue;
+					throw new JaysonException ("Invalid Json object value.");
+				case JaysonSerializationToken.Value:
+					switch (ch) {
+					case '"':
+						result [key] = ParseString (str, ref context.Position);
+						if (key == "$type") {
+							context.HasTypeInfo = true;
+						}
+						break;
+					case '{':
+						context.Position--;
+						result [key] = ParseDictionary (context);
+						break;
+					case 'n':
+						{
+							int pos = context.Position;
+							if (pos < length - 3 &&
+							    str [pos] == 'u' &&
+							    str [pos + 1] == 'l' &&
+							    str [pos + 2] == 'l') {
+								result [key] = null;
+								context.Position += 3;
+								break;
+							}
+							throw new JaysonException ("Invalid Json object value.");
+						}
+					case 't':
+						{
+							int pos = context.Position;
+							if (pos < length - 3 &&
+							    str [pos] == 'r' &&
+							    str [pos + 1] == 'u' &&
+							    str [pos + 2] == 'e') {
+								result [key] = true;
+								context.Position += 3;
+								break;
+							}
+							throw new JaysonException ("Invalid Json object value.");
+						}
+					case 'f':
+						{
+							int pos = context.Position;
+							if (pos < length - 4 &&
+							    str [pos] == 'a' &&
+							    str [pos + 1] == 'l' &&
+							    str [pos + 2] == 's' &&
+							    str [pos + 3] == 'e') {
+								result [key] = false;
+								context.Position += 4;
+								break;
+							}
+							throw new JaysonException ("Invalid Json object value.");
+						}
+					case '[':
+						context.Position--;
+						result [key] = ParseList (context);
+						break;
+					default:
+						if (!(ch < '0' || ch > '9') || ch == '-') {
+							context.Position--;
+							value = ParseNumber (context, JaysonSerializationToken.Value);
 
-                                    result[key] = value;
-                                    break;
-                                }
-                                if (JaysonCommon.IsWhiteSpace(ch))
-                                    continue;
-                                throw new JaysonException("Invalid Json object value.");
-                        }
+							result [key] = value;
+							break;
+						}
+						if (JaysonCommon.IsWhiteSpace (ch))
+							continue;
+						throw new JaysonException ("Invalid Json object value.");
+					}
 
-                        key = null;
-                        token = JaysonSerializationToken.Key;
-                        prevToken = JaysonSerializationToken.Value;
-                        break;
-                }
-            }
+					key = null;
+					token = JaysonSerializationToken.Key;
+					prevToken = JaysonSerializationToken.Value;
+					break;
+				}
+			}
 
             throw new JaysonException("Invalid Json object.");
         }

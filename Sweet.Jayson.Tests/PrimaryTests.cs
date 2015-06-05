@@ -24,6 +24,9 @@
 
 using System;
 using System.Collections;
+#if !(NET3500 || NET3000 || NET2000)
+using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -45,6 +48,169 @@ namespace Sweet.Jayson.Tests
     [TestFixture]
     public class PrimaryTests
     {
+		[Test]
+		public static void TestStack1()
+		{
+			var s1 = new Stack ();
+			s1.Push (2);
+			s1.Push (33);
+			s1.Push (12345m);
+			s1.Push (23456m);
+			s1.Push ("abcdefg");
+			s1.Push ("wxyz");
+			s1.Push (true);
+
+			string json = JaysonConverter.ToJsonString(s1);
+			var s2 = JaysonConverter.ToObject<Stack>(json);
+
+			Assert.IsNotNull(s2);
+			Assert.AreEqual(s1.Count, s2.Count);
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+		}
+
+		[Test]
+		public static void TestStack2()
+		{
+			var s1 = new Stack<int> ();
+			s1.Push (2);
+			s1.Push (33);
+			s1.Push (12345);
+			s1.Push (23456);
+
+			string json = JaysonConverter.ToJsonString(s1);
+			var s2 = JaysonConverter.ToObject<Stack<int>>(json);
+
+			Assert.IsNotNull(s2);
+			Assert.AreEqual(s1.Count, s2.Count);
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+			Assert.AreEqual(s1.Pop (), s2.Pop ());
+		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		[Test]
+		public static void TestStack3()
+		{
+			var s1 = new ConcurrentStack<int> ();
+			s1.Push (2);
+			s1.Push (33);
+			s1.Push (12345);
+			s1.Push (23456);
+
+			string json = JaysonConverter.ToJsonString(s1);
+			var s2 = JaysonConverter.ToObject<ConcurrentStack<int>>(json);
+
+			Assert.IsNotNull(s2);
+			Assert.AreEqual(s1.Count, s2.Count);
+
+			int i1, i2;
+			for (int i = s1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (s1.TryPop (out i1), s2.TryPop (out i2));
+				Assert.AreEqual (i1, i2);
+			}
+		}
+		#endif
+
+		[Test]
+		public static void TestQueue1()
+		{
+			var q1 = new Queue ();
+			q1.Enqueue (2);
+			q1.Enqueue (33);
+			q1.Enqueue (12345m);
+			q1.Enqueue (23456m);
+			q1.Enqueue ("abcdefg");
+			q1.Enqueue ("wxyz");
+			q1.Enqueue (true);
+
+			string json = JaysonConverter.ToJsonString(q1);
+			var q2 = JaysonConverter.ToObject<Queue>(json);
+
+			Assert.IsNotNull(q2);
+			Assert.AreEqual(q1.Count, q2.Count);
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+			Assert.AreEqual(q1.Dequeue (), q2.Dequeue ());
+		}
+
+		[Test]
+		public static void TestQueue2()
+		{
+			var q1 = new Queue<int> ();
+			q1.Enqueue (2);
+			q1.Enqueue (33);
+			q1.Enqueue (12345);
+			q1.Enqueue (23456);
+
+			string json = JaysonConverter.ToJsonString(q1);
+			var q2 = JaysonConverter.ToObject<Queue<int>>(json);
+
+			Assert.IsNotNull(q2);
+			Assert.AreEqual(q1.Count, q2.Count);
+			for (int i = q1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (q1.Dequeue (), q2.Dequeue ());
+			}
+		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		[Test]
+		public static void TestQueue3()
+		{
+			var q1 = new ConcurrentQueue<int> ();
+			q1.Enqueue (2);
+			q1.Enqueue (33);
+			q1.Enqueue (12345);
+			q1.Enqueue (23456);
+
+			string json = JaysonConverter.ToJsonString(q1);
+			var q2 = JaysonConverter.ToObject<ConcurrentQueue<int>>(json);
+
+			Assert.IsNotNull(q2);
+			Assert.AreEqual(q1.Count, q2.Count);
+
+			int i1, i2;
+			for (int i = q1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (q1.TryDequeue (out i1), q2.TryDequeue (out i2));
+				Assert.AreEqual (i1, i2);
+			}
+		}
+		#endif
+
+		#if !(NET3500 || NET3000 || NET2000)
+		[Test]
+		public static void TestConcurrentBag()
+		{
+			var b1 = new ConcurrentBag<int> ();
+			b1.Add (2);
+			b1.Add (33);
+			b1.Add (12345);
+			b1.Add (23456);
+
+			string json = JaysonConverter.ToJsonString(b1);
+			var b2 = JaysonConverter.ToObject<ConcurrentBag<int>>(json);
+
+			Assert.IsNotNull(b2);
+			Assert.AreEqual(b1.Count, b2.Count);
+
+			int i1, i2;
+			for (int i = b1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (b1.TryTake (out i1), b2.TryTake (out i2));
+				Assert.AreEqual (i1, i2);
+			}
+		}
+		#endif
+
 		[Test]
 		public static void TestStruct1()
 		{

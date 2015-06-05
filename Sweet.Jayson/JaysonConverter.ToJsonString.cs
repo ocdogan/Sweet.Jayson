@@ -2748,7 +2748,7 @@ namespace Sweet.Jayson
 			}
 			else if (obj is ICollection)
 			{
-				WriteCountedEnumerable(obj, objType, context, ((ICollection)obj).Count > 0);
+				WriteCountedEnumerable(obj, objType, context, ((ICollection)obj).Count == 0);
 			}
 			else
 			{

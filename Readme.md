@@ -25,7 +25,11 @@ Open sourced under [MIT license][2].
 -   Default .Net types (`DateTime`*,* `DateTimeOffset`*,* `TimeSpan`*,*
     `Guid`*,* `ArrayList`*,* `Hashtable`*,* `HashSet` …),
 
--   Default and custom generic .Net types (`List<T>`*,* `Dictionary<T, K>` …),
+-   Default and custom Generic .Net types (`List<T>, Dictionary<T, K>, Stack<T>,
+    Queue<T>` …),
+
+-   Concurrent collection types (`ConcurrentBag<T>, ConcurrentDictionary<T, K>,
+    ConcurrentStack<T>, ConcurrentQueue<T>`),
 
 -   Any dictionary type that has key type different than `typeof(string)` with
     special key value pair (`$k`, `$v`) object (`IDictionary<int, decimal>`*,*
