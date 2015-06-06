@@ -49,6 +49,78 @@ namespace Sweet.Jayson.Tests
     public class PrimaryTests
     {
 		[Test]
+		public static void TestNullList1()
+		{
+			var l1 = new List<object> ();
+			l1.Add (null);
+			l1.Add (33);
+			l1.Add (12345m);
+			l1.Add (23456m);
+			l1.Add ("abcdefg");
+			l1.Add ("wxyz");
+			l1.Add (false);
+			l1.Add (true);
+
+			string json = JaysonConverter.ToJsonString(l1);
+			var l2 = JaysonConverter.ToObject<List<object>>(json);
+
+			Assert.IsNotNull(l2);
+			Assert.AreEqual(l1.Count, l2.Count);
+
+			for (int i = l1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (l1[i], l2[i]);
+			}
+		}
+
+		[Test]
+		public static void TestNullList2()
+		{
+			var l1 = new List<object> ();
+			l1.Add (true);
+			l1.Add (33);
+			l1.Add (12345m);
+			l1.Add (23456m);
+			l1.Add ("abcdefg");
+			l1.Add ("wxyz");
+			l1.Add (false);
+			l1.Add (null);
+
+			string json = JaysonConverter.ToJsonString(l1);
+			var l2 = JaysonConverter.ToObject<List<object>>(json);
+
+			Assert.IsNotNull(l2);
+			Assert.AreEqual(l1.Count, l2.Count);
+
+			for (int i = l1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (l1[i], l2[i]);
+			}
+		}
+
+		[Test]
+		public static void TestNullList3()
+		{
+			var l1 = new List<object> ();
+			l1.Add (false);
+			l1.Add (33);
+			l1.Add (12345m);
+			l1.Add (23456m);
+			l1.Add ("abcdefg");
+			l1.Add ("wxyz");
+			l1.Add (null);
+			l1.Add (false);
+
+			string json = JaysonConverter.ToJsonString(l1);
+			var l2 = JaysonConverter.ToObject<List<object>>(json);
+
+			Assert.IsNotNull(l2);
+			Assert.AreEqual(l1.Count, l2.Count);
+
+			for (int i = l1.Count - 1; i > -1; i--) {
+				Assert.AreEqual (l1[i], l2[i]);
+			}
+		}
+
+		[Test]
 		public static void TestStack1()
 		{
 			var s1 = new Stack ();
