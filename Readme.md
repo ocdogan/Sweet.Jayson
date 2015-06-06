@@ -25,14 +25,14 @@ Open sourced under [MIT license][2].
 -   Default .Net types (`DateTime`*,* `DateTimeOffset`*,* `TimeSpan`*,*
     `Guid`*,* `ArrayList`*,* `Hashtable`*,* `HashSet` …),
 
--   Default and custom Generic .Net types (`List<T>, Dictionary<T, K>, Stack<T>,
-    Queue<T>` …),
+-   Default and custom Generic .Net types (`List<T>`*,* `Dictionary<T,K>`*,*
+    `Stack<T>`*,* `Queue<T>` …),
 
--   Concurrent collection types (`ConcurrentBag<T>, ConcurrentDictionary<T, K>,
-    ConcurrentStack<T>, ConcurrentQueue<T>`),
+-   Concurrent collection types (`ConcurrentBag<T>`*,*
+    `ConcurrentDictionary<T,K>, ConcurrentStack<T>`*,* `ConcurrentQueue<T>`),
 
 -   Any dictionary type that has key type different than `typeof(string)` with
-    special key value pair (`$k`, `$v`) object (`IDictionary<int, decimal>`*,*
+    special key value pair (`$k`, `$v`) object (`IDictionary<int,decimal>`*,*
     `IDictionary, Hashtable` …),
 
 -   `DataTable`*,* `DataSet` (also *custom* `DataSets` and `DataTable`
@@ -119,8 +119,8 @@ or
 -   Changing types in deserialization using
     `System.Runtime.Serialization.SerializationBinder`,
 
--   Changing `Property` and `Field`\* names into any value\* without using
-    custom `Attribute` classes by `JaysonTypeOverride`,
+-   Changing `Property` and `Field` names into any value without using custom
+    `Attribute` classes by `JaysonTypeOverride`,
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var dto1 = TestClasses.GetTypedContainerDto();
@@ -149,7 +149,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
 
 -   Ignoring `Field` and `Properties` over `JaysonTypeOverride`,
 
--   Including or excluding read-only members (`Field & Properties`) into/from
+-   Including or excluding read-only members (`Field` & `Properties`) into/from
     serialization,
 
 -   `Anonymous Type` serialization/deserialization (deserialization is only
@@ -203,7 +203,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
 
 -   Converting `Decimal` values to `Double` or keep them in `Decimal` form,
 
--   Enable/Disable `Anonymous Types`*,* `DynamicObject`*s* and `ExpandoObject`
+-   Enable/Disable `AnonymousTypes`*,* `DynamicObject` and `ExpandoObject`
     *Types,*
 
 -   Enable/Disable *Unicode Character Escaping,*
@@ -212,7 +212,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
     \u0357
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   *Sorting* `Field` and `Property`\* names\* descending,
+-   *Sorting* `Field` and `Property` names descending,
 
 -   Ignoring `Circular References` or raise exception on Circular Reference,
 
@@ -220,8 +220,8 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
 
 -   *Maximum Object Depth* in deserialization,
 
--   Option to work with default types such as `Dictionary<string, object>` or
-    `ExpandoObject`*s*, `List<object>`*,* `ArrayList` or `Array` instead of
+-   Option to work with default types such as `Dictionary<string,object>` or
+    `ExpandoObject`, `List<object>`*,* `ArrayList` or `Array` instead of
     converting the object to a custom .Net type
 
     -   Option to parse *JSON arrays* `[]` conversion between `List<object>`*,*
@@ -265,8 +265,8 @@ new Dictionary<string, object> {
 -   Custom object creation outside the conversion process using
     `JaysonObjectActivator`*,*
 
--   Converting any .Net object to `Dictionary<string, object>` and
-    `List<object>` using `JaysonConverter.ToJsonObject` function
+-   Converting any .Net object to `Dictionary<string,object>` and `List<object>`
+    using `JaysonConverter.ToJsonObject` function
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 public class CustomBaseType
