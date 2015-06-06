@@ -60,13 +60,13 @@ Open sourced under [MIT license][2].
 
 -   Types without default constructor (e.g. `Tuple`),
 
--   Embedding type information with “`$type`*"* notation for exact type
+-   Embedding type information with `"$type"` notation for exact type
     deserialization,
 
--   Embedding global type information with “`$types`*"* notation for exact type
+-   Embedding global type information with `"$types"` notation for exact type
     deserialization and compact output,
 
--   Including or excluding “`null`*"* values into/from output (both in
+-   Including or excluding `"null"` values into/from output (both in
     `Properties` or in `Lists` separately),
 
 -   Serializing `Guid` as byte array (`byte[]`),
@@ -152,7 +152,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
 -   Including or excluding read-only members (`Field` & `Properties`) into/from
     serialization,
 
--   `Anonymous Type` serialization/deserialization (deserialization is only
+-   `AnonymousType` serialization/deserialization (deserialization is only
     possible if the type already exists in the current process),
 
 -   Custom `Number` (`byte`, `short`, `int`, `long`, `float`, `double`,
@@ -165,15 +165,15 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
 *Iso8601*
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Local date: “1972-10-25T16:00:30.345+0300” 
-    UTC date: “1972-10-25T13:00:30.345Z”
+    Local date: "1972-10-25T16:00:30.345+0300" 
+    UTC date: "1972-10-25T13:00:30.345Z"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Microsoft*
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Local date: “/Date(1224043200000+0300)/”
-    UTC date: “/Date(1224043200000)/”
+    Local date: "/Date(1224043200000+0300)/"
+    UTC date: "/Date(1224043200000)/"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *JScript*
