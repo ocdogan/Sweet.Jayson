@@ -31,7 +31,7 @@ Open sourced under [MIT license][2].
 -   Concurrent collection types (`ConcurrentBag<T>`*,*
     `ConcurrentDictionary<T,K>, ConcurrentStack<T>`*,* `ConcurrentQueue<T>`),
 
--   Any dictionary type that has key type different than `typeof(string)` with
+-   Any dictionary type that has key type different than `typeof(string)`, with
     special key value pair (`$k`, `$v`) object (`IDictionary<int,decimal>`*,*
     `IDictionary`*,* `Hashtable` …),
 
