@@ -33,7 +33,7 @@ Open sourced under [MIT license][2].
 
 -   Any dictionary type that has key type different than `typeof(string)` with
     special key value pair (`$k`, `$v`) object (`IDictionary<int,decimal>`*,*
-    `IDictionary, Hashtable` …),
+    `IDictionary`*,* `Hashtable` …),
 
 -   `DataTable`*,* `DataSet` (also *custom* `DataSets` and `DataTable`
     *relations in DataSets*),
@@ -227,7 +227,7 @@ var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializ
     -   Option to parse *JSON arrays* `[]` conversion between `List<object>`*,*
         `ArrayList` or `Array`
 
-    -   Option to parse *JSON objects* `{}` to `Dictionary<string, object>` or
+    -   Option to parse *JSON objects* `{}` to `Dictionary<string,object>` or
         `ExpandoObject`
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
