@@ -1602,9 +1602,8 @@ namespace Sweet.Jayson
 					Action<object, object[]> add = null;
 					if (isNullable)
 					{
-					add = JaysonCommon.GetICollectionAddMethod(info.Type);
+						add = JaysonCommon.GetICollectionAddMethod(info.Type);
 					}
-
 					#endif
 
 					for (int i = 0; i < count; i++) {
@@ -1613,19 +1612,19 @@ namespace Sweet.Jayson
 						#else
 						if (!isNullable)
 						{
-						lResult.Add(ConvertObject(obj[i], argType, context));
+							lResult.Add(ConvertObject(obj[i], argType, context));
 						}
 						else
 						{
-						item = ConvertObject(obj[i], argType, context);
-						if (item == null)
-						{
-						add(lResult, new object[] { null });
-						}
-						else
-						{
-						lResult.Add(item);
-						}
+							item = ConvertObject(obj[i], argType, context);
+							if (item == null)
+							{
+								add(lResult, new object[] { null });
+							}
+							else
+							{
+								lResult.Add(item);
+							}
 						}
 						#endif
 					}

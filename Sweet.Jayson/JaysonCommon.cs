@@ -999,9 +999,9 @@ namespace Sweet.Jayson
 		public static bool IsOnMono()
 		{
 			if (s_IsMono == -1) {
-				s_IsMono = Type.GetType ("Mono.Runtime") != null ? 1 : 0;
+				s_IsMono = Type.GetType ("Mono.Runtime", false) != null ? 1 : 0;
 			}
-			return (s_IsMono == -1);
+			return (s_IsMono == 1);
 		}
 
 		public static object EnumToObject(Type enumType, object value)
