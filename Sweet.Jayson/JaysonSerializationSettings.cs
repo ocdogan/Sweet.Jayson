@@ -83,7 +83,7 @@ namespace Sweet.Jayson
                 {
                     if (typeOverride != null)
                     {
-                        m_TypeOverrides[typeOverride.Type] = typeOverride;
+						m_TypeOverrides[typeOverride.Type] = typeOverride;
                     }
                 }
             }
@@ -117,6 +117,7 @@ namespace Sweet.Jayson
 			destination.RaiseErrorOnCircularRef = RaiseErrorOnCircularRef;
 			destination.RaiseErrorOnMaxObjectDepth = RaiseErrorOnMaxObjectDepth;
 			destination.UseEnumNames = UseEnumNames;
+			destination.UseGlobalTypeNames = UseGlobalTypeNames;
             destination.TypeNameInfo = TypeNameInfo;
 			destination.TypeNames = TypeNames;
 
