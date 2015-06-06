@@ -5,11 +5,11 @@ using System.Runtime.CompilerServices;
 // Change them to the values specific to your project.
 
 [assembly: AssemblyTitle ("Sweet.Jayson")]
-[assembly: AssemblyDescription ("")]
+[assembly: AssemblyDescription("Fast, reliable, easy to use, fully json.org compliant, thread safe C# JSON library for server side and desktop operations")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("")]
-[assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright ("CAAN")]
+[assembly: AssemblyCompany("NotACompany")]
+[assembly: AssemblyProduct("Sweet.Jayson JSON Client Library")]
+[assembly: AssemblyCopyright ("Cagatay Dogan")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 
@@ -17,7 +17,7 @@ using System.Runtime.CompilerServices;
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
-[assembly: AssemblyVersion ("1.0.*")]
+[assembly: AssemblyVersion("1.0.0.1")]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.
@@ -25,3 +25,4 @@ using System.Runtime.CompilerServices;
 //[assembly: AssemblyDelaySign(false)]
 //[assembly: AssemblyKeyFile("")]
 
+[assembly: AssemblyFileVersionAttribute("1.0.0.0")]
