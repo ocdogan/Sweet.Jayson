@@ -57,12 +57,13 @@ namespace Sweet.Jayson
 
 		private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-		#if !(NET3500 || NET3000 || NET2000)
-		private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-		#endif
 
 		private static readonly Dictionary<Type, Action<object, object[]>> s_StackPush = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 		private static readonly Dictionary<Type, Action<object, object[]>> s_QueueEnqueue = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		#if !(NET3500 || NET3000 || NET2000)
+		private static readonly Dictionary<Type, Action<object, object[]>> s_ConcurrentBagAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+		#endif
 
 		private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
 
@@ -552,7 +553,7 @@ namespace Sweet.Jayson
 				}
 
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);				
 					dateTime = ParseUnixEpoch (str);
@@ -611,7 +612,7 @@ namespace Sweet.Jayson
 				}
 
 				if (StartsWith (str, JaysonConstants.MicrosoftDateFormatStart) &&
-				    EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
+					EndsWith (str, JaysonConstants.MicrosoftDateFormatEnd)) {
 					str = str.Substring (JaysonConstants.MicrosoftDateFormatStartLen, 
 						str.Length - JaysonConstants.MicrosoftDateFormatLen);
 					dateTime = ParseUnixEpoch (str);
@@ -954,9 +955,9 @@ namespace Sweet.Jayson
 
 					if (ch == 't' || ch == 'T') {
 						if (pos < length - 3 &&
-						   (str [++pos] == 'r' || str [pos] == 'R') &&
-						   (str [++pos] == 'u' || str [pos] == 'U') &&
-						   (str [++pos] == 'e' || str [pos] == 'E')) {
+							(str [++pos] == 'r' || str [pos] == 'R') &&
+							(str [++pos] == 'u' || str [pos] == 'U') &&
+							(str [++pos] == 'e' || str [pos] == 'E')) {
 							if (++pos < length) {
 								do {
 									if (!IsWhiteSpace (str [pos++])) {
@@ -971,10 +972,10 @@ namespace Sweet.Jayson
 
 					if (ch == 'f' || ch == 'F') {
 						if (pos < length - 4 &&
-						   (str [++pos] == 'a' || str [pos] == 'A') &&
-						   (str [++pos] == 'l' || str [pos] == 'L') &&
-						   (str [++pos] == 's' || str [pos] == 'S') &&
-						   (str [++pos] == 'e' || str [pos] == 'E')) {
+							(str [++pos] == 'a' || str [pos] == 'A') &&
+							(str [++pos] == 'l' || str [pos] == 'L') &&
+							(str [++pos] == 's' || str [pos] == 'S') &&
+							(str [++pos] == 'e' || str [pos] == 'E')) {
 							if (++pos < length) {
 								do {
 									if (!IsWhiteSpace (str [pos++])) {
@@ -1383,21 +1384,21 @@ namespace Sweet.Jayson
 						if (s [0] == '!') {
 							return new Guid(Convert.FromBase64String (s.Substring (1)));
 						}
-        				#if (NET3500 || NET3000 || NET2000)
-                        return new Guid(s);
-                        #else
+						#if (NET3500 || NET3000 || NET2000)
+						return new Guid(s);
+						#else
 						return Guid.Parse(s);
-                        #endif
+						#endif
 					}
 					if (value is byte[]) {
 						return new Guid ((byte[])value);
 					}
-                    #if (NET3500 || NET3000 || NET2000)
-                    return new Guid(value.ToString());
-                    #else
+					#if (NET3500 || NET3000 || NET2000)
+					return new Guid(value.ToString());
+					#else
 					return Guid.Parse(value.ToString ());
-                    #endif
-                }
+					#endif
+				}
 			case JaysonTypeCode.Char:
 				{
 					converted = true;
@@ -1504,20 +1505,20 @@ namespace Sweet.Jayson
 						if (s [0] == '!') {
 							return (Guid?)(new Guid(Convert.FromBase64String (s.Substring (1))));
 						}
-                        #if (NET3500 || NET3000 || NET2000)
-                        return (Guid?)(new Guid(s));
-                        #else
+						#if (NET3500 || NET3000 || NET2000)
+						return (Guid?)(new Guid(s));
+						#else
 						return (Guid?)Guid.Parse(s);
-                        #endif
-                    }
+						#endif
+					}
 					if (value is byte[]) {
 						return (Guid?)(new Guid ((byte[])value));
 					}
-                    #if (NET3500 || NET3000 || NET2000)
-                    return (Guid?)(new Guid(value.ToString()));
-                    #else
+					#if (NET3500 || NET3000 || NET2000)
+					return (Guid?)(new Guid(value.ToString()));
+					#else
 					return (Guid?)Guid.Parse(value.ToString ());
-                    #endif
+					#endif
 				}
 			case JaysonTypeCode.CharNullable:
 				{
@@ -2003,40 +2004,40 @@ namespace Sweet.Jayson
 		#else
 		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
-			var declaringT = methodInfo.DeclaringType;
-			var methodParams = methodInfo.GetParameters();
+		var declaringT = methodInfo.DeclaringType;
+		var methodParams = methodInfo.GetParameters();
 
-			var argsExp = Expression.Parameter(typeof (object[]), "args");
-			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
+		var argsExp = Expression.Parameter(typeof (object[]), "args");
+		var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
-			var inputCastExp = !declaringT.IsValueType ?
-			    Expression.TypeAs (inputObjExp, declaringT) : 
-                Expression.Convert(inputObjExp, declaringT);
+		var inputCastExp = !declaringT.IsValueType ?
+		Expression.TypeAs (inputObjExp, declaringT) : 
+		Expression.Convert(inputObjExp, declaringT);
 
-			Expression callExp;
-			if (methodParams.Length == 0) {
-				callExp = Expression.Call (inputCastExp, methodInfo);
-			} else {
-				var callArguments = new Expression[methodParams.Length];
+		Expression callExp;
+		if (methodParams.Length == 0) {
+		callExp = Expression.Call (inputCastExp, methodInfo);
+		} else {
+		var callArguments = new Expression[methodParams.Length];
 
-				Type argType;
-				Expression arrayAccessExp;
-				Expression arrayValueCastExp;
+		Type argType;
+		Expression arrayAccessExp;
+		Expression arrayValueCastExp;
 
-				for (var i = 0; i < methodParams.Length; i++) {
-					argType = methodParams [i].ParameterType;
+		for (var i = 0; i < methodParams.Length; i++) {
+		argType = methodParams [i].ParameterType;
 
-					arrayAccessExp = Expression.ArrayIndex(argsExp, Expression.Constant(i));
-					arrayValueCastExp = !argType.IsValueType ?
-						Expression.TypeAs (arrayAccessExp, argType) : 
-                        Expression.Convert (arrayAccessExp, argType);
+		arrayAccessExp = Expression.ArrayIndex(argsExp, Expression.Constant(i));
+		arrayValueCastExp = !argType.IsValueType ?
+		Expression.TypeAs (arrayAccessExp, argType) : 
+		Expression.Convert (arrayAccessExp, argType);
 
-					callArguments [i] = arrayValueCastExp;
-				}
-				
-				callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
-			}
-			return Expression.Lambda<Action<object, object[]>>(callExp, inputObjExp, argsExp).Compile ();
+		callArguments [i] = arrayValueCastExp;
+		}
+
+		callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
+		}
+		return Expression.Lambda<Action<object, object[]>>(callExp, inputObjExp, argsExp).Compile ();
 		}
 		#endif
 
@@ -2063,36 +2064,6 @@ namespace Sweet.Jayson
 			return result;
 		}
 
-		#if !(NET3500 || NET3000 || NET2000)
-		internal static Action<object, object[]> GetIProducerConsumerCollectionAddMethod(Type objType)
-		{
-			Action<object, object[]> result;
-			if (!s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result))
-			{
-				if (IsProducerConsumerCollection (objType)) {
-					Type[] argTypes = objType.GetGenericArguments ();
-					if (argTypes != null && argTypes.Length == 1) {
-						Type ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType (new Type[] { argTypes [0] });
-
-						MethodInfo method;
-						MethodInfo[] methods = ipcType.GetMethods ();
-
-						for (int i = methods.Length - 1; i > -1; i--) {
-							method = methods [i];
-							if (method.Name == "TryAdd" && method.GetParameters ().Length == 1) {
-								result = PrepareMethodCall (method);
-								break;
-							}
-						}
-					}
-				}
-
-				s_ICollectionAdd[objType] = result;
-			}
-			return result;
-		}
-		#endif
-
 		internal static Action<object, object[]> GetStackPushMethod(Type objType)
 		{
 			Action<object, object[]> result;
@@ -2111,7 +2082,7 @@ namespace Sweet.Jayson
 					}
 				}
 
-				s_ICollectionAdd[objType] = result;
+				s_StackPush[objType] = result;
 			}
 			return result;
 		}
@@ -2134,10 +2105,67 @@ namespace Sweet.Jayson
 					}
 				}
 
-				s_ICollectionAdd[objType] = result;
+				s_QueueEnqueue[objType] = result;
 			}
 			return result;
 		}
+
+		#if !(NET3500 || NET3000 || NET2000)
+		internal static Action<object, object[]> GetConcurrentBagMethod(Type objType)
+		{
+			Action<object, object[]> result;
+			if (!s_ConcurrentBagAdd.TryGetValue(objType, out result))
+			{
+				MethodInfo method;
+				MethodInfo[] methods = objType.GetMethods();
+
+				for (int i = methods.Length - 1; i > -1; i--)
+				{
+					method = methods[i];
+					if (method.Name == "Add" && method.GetParameters().Length == 1)
+					{
+						result = PrepareMethodCall(method);
+						break;
+					}
+				}
+
+				s_ConcurrentBagAdd[objType] = result;
+			}
+			return result;
+		}
+
+		internal static Action<object, object[]> GetIProducerConsumerCollectionAddMethod(Type objType)
+		{
+			Action<object, object[]> result;
+			if (!s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result))
+			{
+				if (IsProducerConsumerCollection(objType))
+				{
+					Type[] argTypes = objType.GetGenericArguments();
+					if (argTypes != null && argTypes.Length == 1)
+					{
+						Type ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType(new Type[] { argTypes[0] });
+
+						MethodInfo method;
+						MethodInfo[] methods = ipcType.GetMethods();
+
+						for (int i = methods.Length - 1; i > -1; i--)
+						{
+							method = methods[i];
+							if (method.Name == "TryAdd" && method.GetParameters().Length == 1)
+							{
+								result = PrepareMethodCall(method);
+								break;
+							}
+						}
+					}
+				}
+
+				s_IProducerConsumerCollectionAdd[objType] = result;
+			}
+			return result;
+		}
+		#endif
 
 		internal static Action<object, object[]> GetIDictionaryAddMethod(Type objType)
 		{
@@ -2156,7 +2184,7 @@ namespace Sweet.Jayson
 						break;
 					}
 				}
-				s_ICollectionAdd[objType] = result;
+				s_IDictionaryAdd[objType] = result;
 			}
 			return result;
 		}
