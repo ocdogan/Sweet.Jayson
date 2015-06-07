@@ -1113,23 +1113,22 @@ namespace Sweet.Jayson
 
 		public static Type GetType(string typeName, SerializationBinder binder = null)
 		{
-			Type result;
-			if (!s_TypeCache.TryGetValue (typeName, out result)) {
-				if (binder != null)
-				{
-					string[] typeParts = typeName.Split(',');
-					if (typeParts.Length > 1)
-					{
-						result = binder.BindToType(typeParts[0], typeParts[1]);
+			Type result = null;
+			if (!String.IsNullOrEmpty (typeName)) {
+				if (binder != null) {
+					string[] typeParts = typeName.Split (',');
+					if (typeParts.Length > 1) {
+						result = binder.BindToType (typeParts [0], typeParts [1]);
+						if (result != null) {
+							return result;
+						}
 					}
 				}
 
-				if (result == null)
-				{
-					result = Type.GetType(typeName, false);
+				if (!s_TypeCache.TryGetValue (typeName, out result)) {
+					result = Type.GetType (typeName, false);
+					s_TypeCache [typeName] = result;
 				}
-
-				s_TypeCache[typeName] = result;
 			}
 
 			return result;
@@ -1722,7 +1721,6 @@ namespace Sweet.Jayson
 		public static bool IsWhiteSpaceChar(char ch)
 		{
 			return IsWhiteSpace(ch);
-			// return ch == ' ' || (ch >= '\x0009' && ch <= '\x000d') || ch == '\x00a0' || ch == '\x0085';
 		}
 
 		public static bool IsWhiteSpace(int ch)
@@ -1924,14 +1922,16 @@ namespace Sweet.Jayson
 				paramAccessorExp = Expression.ArrayIndex(paramExp, Expression.Constant (i));
 				#endif
 				paramCastExp = !paramType.IsValueType ?
-					Expression.TypeAs(paramAccessorExp, paramType) : Expression.Convert(paramAccessorExp, paramType);
+					Expression.TypeAs(paramAccessorExp, paramType) : 
+					Expression.Convert(paramAccessorExp, paramType);
 
 				argsExp[i] = paramCastExp;
 			}                  
 
 			// Make a NewExpression that calls the ctor with the args we just created
 			NewExpression newExp = Expression.New(ctor, argsExp);                  
-			Expression returnExp = !declaringT.IsValueType ? (Expression)newExp :
+			Expression returnExp = !declaringT.IsValueType ? 
+				(Expression)newExp :
 				Expression.Convert (newExp, typeof(object));
 
 			// Create a lambda with the New Expression as body and our param object[] as arg
@@ -2004,40 +2004,40 @@ namespace Sweet.Jayson
 		#else
 		public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
 		{
-		var declaringT = methodInfo.DeclaringType;
-		var methodParams = methodInfo.GetParameters();
+			var declaringT = methodInfo.DeclaringType;
+			var methodParams = methodInfo.GetParameters();
 
-		var argsExp = Expression.Parameter(typeof (object[]), "args");
-		var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
+			var argsExp = Expression.Parameter(typeof (object[]), "args");
+			var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
 
-		var inputCastExp = !declaringT.IsValueType ?
-		Expression.TypeAs (inputObjExp, declaringT) : 
-		Expression.Convert(inputObjExp, declaringT);
+			var inputCastExp = !declaringT.IsValueType ?
+				Expression.TypeAs (inputObjExp, declaringT) : 
+				Expression.Convert(inputObjExp, declaringT);
 
-		Expression callExp;
-		if (methodParams.Length == 0) {
-		callExp = Expression.Call (inputCastExp, methodInfo);
-		} else {
-		var callArguments = new Expression[methodParams.Length];
+			Expression callExp;
+			if (methodParams.Length == 0) {
+				callExp = Expression.Call (inputCastExp, methodInfo);
+			} else {
+				var callArguments = new Expression[methodParams.Length];
 
-		Type argType;
-		Expression arrayAccessExp;
-		Expression arrayValueCastExp;
+				Type argType;
+				Expression arrayAccessExp;
+				Expression arrayValueCastExp;
 
-		for (var i = 0; i < methodParams.Length; i++) {
-		argType = methodParams [i].ParameterType;
+				for (var i = 0; i < methodParams.Length; i++) {
+					argType = methodParams [i].ParameterType;
 
-		arrayAccessExp = Expression.ArrayIndex(argsExp, Expression.Constant(i));
-		arrayValueCastExp = !argType.IsValueType ?
-		Expression.TypeAs (arrayAccessExp, argType) : 
-		Expression.Convert (arrayAccessExp, argType);
+					arrayAccessExp = Expression.ArrayIndex(argsExp, Expression.Constant(i));
+					arrayValueCastExp = !argType.IsValueType ?
+						Expression.TypeAs (arrayAccessExp, argType) : 
+						Expression.Convert (arrayAccessExp, argType);
 
-		callArguments [i] = arrayValueCastExp;
-		}
+					callArguments [i] = arrayValueCastExp;
+				}
 
-		callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
-		}
-		return Expression.Lambda<Action<object, object[]>>(callExp, inputObjExp, argsExp).Compile ();
+				callExp = Expression.Call (inputCastExp, methodInfo, callArguments);
+			}
+			return Expression.Lambda<Action<object, object[]>>(callExp, inputObjExp, argsExp).Compile ();
 		}
 		#endif
 

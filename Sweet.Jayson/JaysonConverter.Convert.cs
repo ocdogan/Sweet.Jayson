@@ -1681,7 +1681,9 @@ namespace Sweet.Jayson
 				Type[] argTypes = info.GenericArguments;
 
 				if (argTypes != null && argTypes.Length == 1) {
-					Action<object, object[]> methodInfo = JaysonCommon.GetStackPushMethod (info.Type);
+					Action<object, object[]> methodInfo;
+
+					methodInfo = JaysonCommon.GetStackPushMethod (info.Type);
 					if (methodInfo != null) {
 						argType = argTypes[0];
 						int count = obj.Count;
