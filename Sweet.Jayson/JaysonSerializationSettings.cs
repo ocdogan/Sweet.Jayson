@@ -29,7 +29,7 @@ namespace Sweet.Jayson
 {
 	# region JaysonSerializationSettings
 
-	public class JaysonSerializationSettings : ICloneable
+	public sealed class JaysonSerializationSettings : ICloneable
 	{
 		public static readonly JaysonSerializationSettings Default = new JaysonSerializationSettings();
 		private static readonly JaysonSerializationSettings Initial = new JaysonSerializationSettings ();

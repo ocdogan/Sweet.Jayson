@@ -31,7 +31,7 @@ namespace Sweet.Jayson
 {
 	# region JaysonCtorInfo
 
-	internal class JaysonCtorInfo
+	internal sealed class JaysonCtorInfo
 	{
 		private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
 

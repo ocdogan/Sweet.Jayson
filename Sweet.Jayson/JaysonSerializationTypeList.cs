@@ -28,7 +28,7 @@ using System.Linq;
 
 namespace Sweet.Jayson
 {
-	public class JaysonSerializationTypeList
+	public sealed class JaysonSerializationTypeList
 	{
 		# region Field Members
 

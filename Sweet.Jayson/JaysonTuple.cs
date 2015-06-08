@@ -79,7 +79,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1> : IComparable
+	public sealed class JaysonTuple<T1> : IComparable
     {
         private readonly T1 m_Item1;
 
@@ -134,7 +134,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2> : IComparable
+	public sealed class JaysonTuple<T1, T2> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;
@@ -197,7 +197,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2, T3> : IComparable
+	public sealed class JaysonTuple<T1, T2, T3> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;
@@ -270,7 +270,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2, T3, T4> : IComparable
+	public sealed class JaysonTuple<T1, T2, T3, T4> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;
@@ -353,7 +353,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2, T3, T4, T5> : IComparable
+	public sealed class JaysonTuple<T1, T2, T3, T4, T5> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;
@@ -447,7 +447,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2, T3, T4, T5, T6> : IComparable
+	public sealed class JaysonTuple<T1, T2, T3, T4, T5, T6> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;
@@ -550,7 +550,7 @@ namespace Sweet.Jayson
     }
 
     [Serializable]
-    public class JaysonTuple<T1, T2, T3, T4, T5, T6, T7> : IComparable
+	public sealed class JaysonTuple<T1, T2, T3, T4, T5, T6, T7> : IComparable
     {
         private readonly T1 m_Item1;
         private readonly T2 m_Item2;

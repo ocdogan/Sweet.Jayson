@@ -26,7 +26,7 @@ using System;
 
 namespace Sweet.Jayson
 {
-    public class JaysonTypeOverride<T, K> : JaysonTypeOverride
+	public sealed class JaysonTypeOverride<T, K> : JaysonTypeOverride
     {
         public JaysonTypeOverride()
             : base(typeof(T), typeof(K))
