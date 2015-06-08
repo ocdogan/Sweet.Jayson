@@ -736,7 +736,7 @@ namespace Sweet.Jayson
 					context.Builder.Append (JaysonConstants.Indentation[context.ObjectDepth]);
 				}
 
-				context.Builder.Append("null");
+				context.Builder.Append(JaysonConstants.Null);
 				return false; // isFirst
 			}
 
@@ -845,7 +845,7 @@ namespace Sweet.Jayson
 
 	                                if (cellValue == null || cellValue == DBNull.Value)
 	                                {
-	                                    builder.Append("null");
+										builder.Append(JaysonConstants.Null);
 	                                }
 	                                else
 	                                {
@@ -962,7 +962,7 @@ namespace Sweet.Jayson
 
 					column = columns [i];
 					if (column.ColumnName == null) {
-						builder.Append ("null");
+						builder.Append (JaysonConstants.Null);
 					} else {
 						formatter.Format (column.ColumnName, builder);
 					}
@@ -2244,11 +2244,11 @@ namespace Sweet.Jayson
 						if (formatting) {
 							builder.Append (JaysonConstants.Indentation[objectDepth]);
 						}
-						builder.Append ("null");
+						builder.Append (JaysonConstants.Null);
 					} else if (formatting) {
 						builder.Append (',');
 						builder.Append (JaysonConstants.Indentation[objectDepth]);
-						builder.Append ("null");
+						builder.Append (JaysonConstants.Null);
 					} else {
 						builder.Append (",null");
 					}
@@ -2315,12 +2315,12 @@ namespace Sweet.Jayson
 								if (formatting) {
 									builder.Append (JaysonConstants.Indentation[objectDepth]);
 								}
-								builder.Append ("null");
+								builder.Append (JaysonConstants.Null);
 							} else {
 								if (formatting) {
 									builder.Append (',');
 									builder.Append (JaysonConstants.Indentation[objectDepth]);
-									builder.Append ("null");
+									builder.Append (JaysonConstants.Null);
 								} else {
 									builder.Append (",null");
 								}
@@ -2782,7 +2782,7 @@ namespace Sweet.Jayson
 			{
 				if (!context.Settings.IgnoreNullValues)
 				{
-					context.Builder.Append("null");
+					context.Builder.Append(JaysonConstants.Null);
 				}
 				return;
 			}
@@ -2837,7 +2837,7 @@ namespace Sweet.Jayson
                 {
                     if (!context.Settings.IgnoreNullValues)
                     {
-                        context.Builder.Append("null");
+						context.Builder.Append(JaysonConstants.Null);
                     }
                     return;
                 }
@@ -2851,7 +2851,7 @@ namespace Sweet.Jayson
 					}
 					if (!context.Settings.IgnoreNullValues)
 					{
-						context.Builder.Append("null");
+						context.Builder.Append(JaysonConstants.Null);
 					}
 					return;
 				}
@@ -2878,7 +2878,7 @@ namespace Sweet.Jayson
                     {
                         if (!settings.IgnoreNullValues)
                         {
-                            context.Builder.Append("null");
+							context.Builder.Append(JaysonConstants.Null);
                         }
                         else
                         {
@@ -2914,7 +2914,7 @@ namespace Sweet.Jayson
 					if (!settings.IgnoreDynamicObjects) {
 						WriteDynamicObject((DynamicObject)obj, context);
 					} else if (!settings.IgnoreNullValues) {
-						context.Builder.Append("null");
+						context.Builder.Append(JaysonConstants.Null);
 					} else {
 						context.Builder.Append('{');
 						context.Builder.Append('}');
@@ -2957,7 +2957,7 @@ namespace Sweet.Jayson
                 {
                     if (!settings.IgnoreNullValues)
                     {
-                        context.Builder.Append("null");
+						context.Builder.Append(JaysonConstants.Null);
                     }
                     else
                     {

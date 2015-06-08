@@ -45,6 +45,14 @@ namespace Sweet.Jayson
 		internal const string MicrosoftDateFormatStart = "/Date(";
 		internal const string MicrosoftDateFormatEnd = ")/";
 
+		internal const string Null = "null";
+
+		internal const string IntMinValue = "-2147483648";
+		internal const string LongMinValue = "-9223372036854775808";
+
+		internal const string JScriptDateZero = "new Date(0)";
+		internal const string MicrosoftDateZero = "\"/Date(0)/\"";
+
 		# endregion Constants
 
 		# region Static Members

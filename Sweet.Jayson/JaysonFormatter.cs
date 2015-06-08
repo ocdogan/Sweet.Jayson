@@ -34,17 +34,20 @@ namespace Sweet.Jayson
 	{
 		# region Static Readonly Members
 
+		private const int Char255 = 255;
+		private const int IntStringLen = 11;
+		private const int LongStringLen = 20;
+
+		private const string DefaultDateTimeFormat = "yyyy-MM-ddTHH:mm:ss%K";
+
 		// always use dot separator for doubles
 		private static readonly CultureInfo FormatingCulture = CultureInfo.InvariantCulture;
 
 		private static readonly char[] EscapedChars = new char[] { '\\', '/', '\b', '\f', '\n', '\r', '\t' };
 		private static readonly int EscapedCharsEndPosition = EscapedChars.Length - 1;
 
-		private static readonly int ZeroBase = (int)'0';
 		private static readonly int ABase = 'A' - 10;
-		private static readonly int IntStringLen = 11;
-		private static readonly int LongStringLen = 20;
-		private static readonly int Char255 = 255;
+		private static readonly int ZeroBase = (int)'0';
 		private static readonly long IntMinBarrier = (long)int.MinValue;
 		private static readonly long IntMaxBarrier = (long)int.MaxValue;
 
@@ -216,11 +219,11 @@ namespace Sweet.Jayson
 					{
 						if (DateFormatType == JaysonDateFormatType.Microsoft)
 						{
-							builder.Append("\"/Date(0)/\"");
+							builder.Append(JaysonConstants.MicrosoftDateZero);
 						}
 						else
 						{
-							builder.Append("new Date(0)");
+							builder.Append(JaysonConstants.JScriptDateZero);
 						}
 					}
 					else
@@ -336,15 +339,7 @@ namespace Sweet.Jayson
 			{
 			case JaysonDateFormatType.Iso8601:
 				{
-					char[] chArr;
-					if (kind == DateTimeKind.Utc)
-					{
-						chArr = new char[19];
-					}
-					else
-					{
-						chArr = new char[23];
-					}
+					char[] chArr = (kind == DateTimeKind.Utc) ? new char[19] : new char[23];
 
 					int index = 0;
 					chArr[index++] = '"';
@@ -401,11 +396,11 @@ namespace Sweet.Jayson
 					{
 						if (DateFormatType == JaysonDateFormatType.Microsoft)
 						{
-							builder.Append("\"/Date(0)/\"");
+							builder.Append(JaysonConstants.MicrosoftDateZero);
 						}
 						else
 						{
-							builder.Append("new Date(0)");
+							builder.Append(JaysonConstants.JScriptDateZero);
 						}
 					}
 					else
@@ -499,7 +494,7 @@ namespace Sweet.Jayson
 		{
 			if (obj == null)
 			{
-				builder.Append("null");
+				builder.Append(JaysonConstants.Null);
 				return;
 			}
 
@@ -772,7 +767,7 @@ namespace Sweet.Jayson
 		{
 			if (obj == null)
 			{
-				return "null";
+				return JaysonConstants.Null;
 			}
 
 			JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(objType);
@@ -942,7 +937,7 @@ namespace Sweet.Jayson
 		{
 			if (obj == null)
 			{
-				builder.Append("null");
+				builder.Append(JaysonConstants.Null);
 				return;
 			}
 			Format(obj, obj.GetType(), builder);
@@ -1158,7 +1153,7 @@ namespace Sweet.Jayson
 		{
 			if (str == null)
 			{
-				builder.Append("null");
+				builder.Append(JaysonConstants.Null);
 				return;
 			}
 
@@ -1186,7 +1181,7 @@ namespace Sweet.Jayson
 		{
 			if (str == null)
 			{
-				builder.Append("null");
+				builder.Append(JaysonConstants.Null);
 				return;
 			}
 
@@ -1205,7 +1200,6 @@ namespace Sweet.Jayson
 			else
 			{
 				EncodeUnicodeStringInternal(str, builder, 0, escapeUnicodeChars);
-				//EncodeUnicodeString(str, builder, escapeUnicodeChars);
 			}
 			builder.Append('"');
 		}
@@ -1217,7 +1211,7 @@ namespace Sweet.Jayson
 			{
 				if (value == int.MinValue)
 				{
-					builder.Append("-2147483648");
+					builder.Append(JaysonConstants.IntMinValue);
 					return;
 				}
 
@@ -1257,7 +1251,7 @@ namespace Sweet.Jayson
 			{
 				if (value == int.MinValue)
 				{
-					return "-2147483648";
+					return JaysonConstants.IntMinValue;
 				}
 
 				value = -value;
@@ -1295,7 +1289,7 @@ namespace Sweet.Jayson
 			{
 				if (value == long.MinValue)
 				{
-					builder.Append("-9223372036854775808");
+					builder.Append(JaysonConstants.LongMinValue);
 					return;
 				}
 
@@ -1339,7 +1333,7 @@ namespace Sweet.Jayson
 			{
 				if (value == long.MinValue)
 				{
-					return "-9223372036854775808";
+					return JaysonConstants.LongMinValue;
 				}
 
 				value = -value;
@@ -1400,7 +1394,7 @@ namespace Sweet.Jayson
 			// Do not change the check order
 			if (objType == typeof(DateTime))
 			{
-				return ((DateTime)obj).ToString("yyyy-MM-ddTHH:mm:ss%K", FormatingCulture);
+				return ((DateTime)obj).ToString(DefaultDateTimeFormat, FormatingCulture);
 			}
 
 			// Do not change the check order
@@ -1467,7 +1461,7 @@ namespace Sweet.Jayson
 			// Do not change the check order
 			if (objType == typeof(DateTime?))
 			{
-				return ((DateTime?)obj).Value.ToString("yyyy-MM-ddTHH:mm:ss%K", FormatingCulture);
+				return ((DateTime?)obj).Value.ToString(DefaultDateTimeFormat, FormatingCulture);
 			}
 
 			// Do not change the check order
