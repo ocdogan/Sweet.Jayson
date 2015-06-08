@@ -218,16 +218,16 @@ namespace Sweet.Jayson
 			case JaysonDateTimeZoneType.ConvertToLocal:
 				{
 					if (timeSpan == TimeSpan.Zero) {
-						return JaysonCommon.ToLocalTime(dateTime);
+						return ToLocalTime(dateTime);
 					}
-					return JaysonCommon.ToLocalTime (dateTime.Subtract (timeSpan));
+					return ToLocalTime (dateTime.Subtract (timeSpan));
 				}
 			default:
 				{
 					if (timeSpan == TimeSpan.Zero) {
 						return dateTime;
 					}
-					return JaysonCommon.ToLocalTime (dateTime.Subtract (timeSpan));
+					return ToLocalTime (dateTime.Subtract (timeSpan));
 				}
 			}
 		}
@@ -259,7 +259,7 @@ namespace Sweet.Jayson
 			}
 
 			if (length < 10) {
-				throw new JaysonException ("Invalid ISO8601 date format.");
+				throw new JaysonException (JaysonError.InvalidISO8601DateFormat);
 			}
 
 			DateTimeKind kind = DateTimeKind.Unspecified;
@@ -400,7 +400,7 @@ namespace Sweet.Jayson
 
 				dateTime = new DateTime (year, month, day, hour, minute, second, millisecond, kind);
 			} catch (Exception) {
-				throw new JaysonException ("Invalid ISO8601 date format.");
+				throw new JaysonException (JaysonError.InvalidISO8601DateFormat);
 			}
 		}
 
@@ -441,7 +441,7 @@ namespace Sweet.Jayson
 				{
 					if (l == 0 && IsWhiteSpace(ch))
 						continue;
-					throw new JaysonException("Invalid Unix Epoch date format.");
+					throw new JaysonException(JaysonError.InvalidJsonDateFormat);
 				}
 
 				l *= 10;
@@ -450,17 +450,17 @@ namespace Sweet.Jayson
 
 			if (timeZonePos == -1)
 			{
-				DateTime dt1 = JaysonCommon.FromUnixTimeMsec(l);
+				DateTime dt1 = FromUnixTimeMsec(l);
 				if (dt1 > JaysonConstants.DateTimeUnixEpochMaxValue)
 				{
-					throw new JaysonException("Invalid Unix Epoch date format.");
+					throw new JaysonException(JaysonError.InvalidJsonDateFormat);
 				}
 				return dt1;
 			}
 
 			if (timeZonePos > length - 5)
 			{
-				throw new JaysonException("Invalid Unix Epoch date format.");
+				throw new JaysonException(JaysonError.InvalidJsonDateFormat);
 			}
 
 			TimeSpan tz = new TimeSpan(10 * (str[timeZonePos + 1] - '0') + (str[timeZonePos + 2] - '0'),
@@ -471,10 +471,10 @@ namespace Sweet.Jayson
 				tz = new TimeSpan(-tz.Ticks);
 			}
 
-			DateTime dt2 = JaysonCommon.FromUnixTimeMsec(l, tz);
+			DateTime dt2 = FromUnixTimeMsec(l, tz);
 			if (dt2 > JaysonConstants.DateTimeUnixEpochMaxValue)
 			{
-				throw new JaysonException("Invalid Unix Epoch date format.");
+				throw new JaysonException(JaysonError.InvalidJsonDateFormat);
 			}
 			return dt2;
 		}
@@ -569,7 +569,7 @@ namespace Sweet.Jayson
 
 					if (!DateTime.TryParseExact (str, dateFormat, JaysonConstants.InvariantCulture, 
 						dtStyle, out dateTime)) {
-						throw new JaysonException ("Invalid date format.");
+						throw new JaysonException (JaysonError.InvalidDateFormat);
 					}
 				}
 			} else {
@@ -628,7 +628,7 @@ namespace Sweet.Jayson
 
 					if (!DateTime.TryParseExact (str, dateFormats, JaysonConstants.InvariantCulture, 
 						dtStyle, out dateTime)) {
-						throw new JaysonException ("Invalid date format.");
+						throw new JaysonException (JaysonError.InvalidDateFormat);
 					}
 				}
 			} else {
@@ -961,13 +961,13 @@ namespace Sweet.Jayson
 							if (++pos < length) {
 								do {
 									if (!IsWhiteSpace (str [pos++])) {
-										throw new JaysonException ("Invalid boolean string.");
+										throw new JaysonException (JaysonError.InvalidBooleanString);
 									}
 								} while (pos < length);
 							}
 							return true;
 						}
-						throw new JaysonException ("Invalid boolean string.");
+						throw new JaysonException (JaysonError.InvalidBooleanString);
 					}
 
 					if (ch == 'f' || ch == 'F') {
@@ -979,19 +979,19 @@ namespace Sweet.Jayson
 							if (++pos < length) {
 								do {
 									if (!IsWhiteSpace (str [pos++])) {
-										throw new JaysonException ("Invalid boolean string.");
+										throw new JaysonException (JaysonError.InvalidBooleanString);
 									}
 								} while (pos < length);
 							}
 							return false;
 						}
-						throw new JaysonException ("Invalid boolean string.");
+						throw new JaysonException (JaysonError.InvalidBooleanString);
 					}
 
-					throw new JaysonException ("Invalid boolean string.");
+					throw new JaysonException (JaysonError.InvalidBooleanString);
 				}
 			}
-			throw new JaysonException ("Invalid boolean string.");
+			throw new JaysonException (JaysonError.InvalidBooleanString);
 		}
 
 		# endregion String Methods
@@ -1107,7 +1107,7 @@ namespace Sweet.Jayson
 					return Enum.ToObject(enumType, (long)((float?)value).Value);
 				}
 			default:
-				throw new JaysonException("Argument must be Enum base type or Enum");
+				throw new JaysonException(JaysonError.ArgumentMustBeEnum);
 			}
 		}
 

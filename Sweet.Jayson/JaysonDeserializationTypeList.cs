@@ -52,12 +52,12 @@ namespace Sweet.Jayson
 		private static int ParseId(string sid)
 		{
 			if (sid == null) {
-				throw new JaysonException("Invalid number.");
+				throw new JaysonException(JaysonError.InvalidNumber);
 			}
 
 			int length = sid.Length;
 			if (length == 0) {
-				throw new JaysonException("Invalid number.");
+				throw new JaysonException(JaysonError.InvalidNumber);
 			}
 
 			char ch;
@@ -66,7 +66,7 @@ namespace Sweet.Jayson
 				ch = sid[0];
 				if (ch < '0' || ch > '9')
 				{
-					throw new JaysonException("Invalid number.");
+					throw new JaysonException(JaysonError.InvalidNumber);
 				}
 				return (int)(ch - '0');
 			}
@@ -83,7 +83,7 @@ namespace Sweet.Jayson
 					continue;
 				}
 
-				throw new JaysonException("Invalid number.");
+				throw new JaysonException(JaysonError.InvalidNumber);
 			}
 			return value;
 		}
@@ -98,7 +98,7 @@ namespace Sweet.Jayson
 				foreach (var tKvp in types) {
 					typeName = tKvp.Value as string;
 					if (String.IsNullOrEmpty (typeName)) {
-						throw new JaysonException("Invalid type name.");
+						throw new JaysonException(JaysonError.InvalidTypeName);
 					}
 
 					id = ParseId(tKvp.Key);

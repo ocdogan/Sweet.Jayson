@@ -391,7 +391,7 @@ namespace Sweet.Jayson
             {
                 if (context.Settings.RaiseErrorOnMaxObjectDepth)
                 {
-                    throw new JaysonException(String.Format("Maximum object depth {0} exceeded.",
+					throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
                         context.Settings.MaxObjectDepth));
                 }
                 return false;
@@ -405,7 +405,7 @@ namespace Sweet.Jayson
 			{
 				if (raiseError)
 				{
-					throw new JaysonException(String.Format("Maximum object depth {0} exceeded.",
+					throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
 						maxDepth));
 				}
 				return false;
@@ -2847,7 +2847,7 @@ namespace Sweet.Jayson
 				{
 					if (context.Settings.RaiseErrorOnCircularRef) 
 					{
-						throw new JaysonException ("Circular reference on " + objType.Name);
+						throw new JaysonException (JaysonError.CircularReferenceOn + objType.Name);
 					}
 					if (!context.Settings.IgnoreNullValues)
 					{

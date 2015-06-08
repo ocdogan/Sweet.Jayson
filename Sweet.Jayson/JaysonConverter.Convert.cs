@@ -1039,7 +1039,7 @@ namespace Sweet.Jayson
 						}
 						else if (raiseErrorOnMissingMember)
 						{
-							throw new JaysonException("Missing member: " + entry.Key);
+							throw new JaysonException(JaysonError.MissingMember + entry.Key);
 						}
 					}
 				}
@@ -1124,7 +1124,7 @@ namespace Sweet.Jayson
 				{
 					if (raiseErrorOnMissingMember)
 					{
-						throw new JaysonException("Missing members");
+						throw new JaysonException(JaysonError.MissingMembers);
 					}
 					return;
 				}
@@ -1175,7 +1175,7 @@ namespace Sweet.Jayson
 						}
 						else if (raiseErrorOnMissingMember)
 						{
-							throw new JaysonException("Missing member: " + entry.Key);
+							throw new JaysonException(JaysonError.MissingMember + entry.Key);
 						}
 					}
 				}
@@ -2538,7 +2538,7 @@ namespace Sweet.Jayson
 		{
 			if (String.IsNullOrEmpty(str))
 			{
-				throw new JaysonException("Empty string.");
+				throw new JaysonException(JaysonError.EmptyString);
 			}
 
 			if (settings == null)
@@ -2717,7 +2717,7 @@ namespace Sweet.Jayson
 			}
 			#endif
 
-			throw new JaysonException("Unable to cast result to expected type.");
+			throw new JaysonException(JaysonError.UnableToCastResult);
 		}
 
 		#if !(NET3500 || NET3000 || NET2000)

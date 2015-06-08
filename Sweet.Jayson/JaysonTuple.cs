@@ -112,7 +112,7 @@ namespace Sweet.Jayson
 
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+				throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             return Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -169,7 +169,7 @@ namespace Sweet.Jayson
             JaysonTuple<T1, T2> objTuple = obj as JaysonTuple<T1, T2>;
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+				throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -236,7 +236,7 @@ namespace Sweet.Jayson
             JaysonTuple<T1, T2, T3> objTuple = obj as JaysonTuple<T1, T2, T3>;
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+                throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -313,7 +313,7 @@ namespace Sweet.Jayson
             JaysonTuple<T1, T2, T3, T4> objTuple = obj as JaysonTuple<T1, T2, T3, T4>;
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+                throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -401,7 +401,7 @@ namespace Sweet.Jayson
 
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+                throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -498,7 +498,7 @@ namespace Sweet.Jayson
             JaysonTuple<T1, T2, T3, T4, T5, T6> objTuple = obj as JaysonTuple<T1, T2, T3, T4, T5, T6>;
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+                throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);
@@ -605,7 +605,7 @@ namespace Sweet.Jayson
             JaysonTuple<T1, T2, T3, T4, T5, T6, T7> objTuple = obj as JaysonTuple<T1, T2, T3, T4, T5, T6, T7>;
             if (objTuple == null)
             {
-                throw new ArgumentException(String.Format("Given type is incorrect format to compare '{0}' with.", GetType().ToString()), "obj");
+                throw new ArgumentException(String.Format(JaysonError.GivenTypeIsIncorrect, GetType().ToString()), "obj");
             }
 
             int c = Comparer<Object>.Default.Compare(m_Item1, objTuple.m_Item1);

@@ -1011,7 +1011,7 @@ namespace Sweet.Jayson
 					{
 						if (context.Settings.RaiseErrorOnCircularRef) 
 						{
-							throw new JaysonException ("Circular reference on " + info.Type.Name);
+							throw new JaysonException (JaysonError.CircularReferenceOn + info.Type.Name);
 						}
 						return null;
 					}

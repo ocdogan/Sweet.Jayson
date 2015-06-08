@@ -69,7 +69,7 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    throw new JaysonException("Invalid unicode escaped character.");
+					throw new JaysonException(JaysonError.InvalidUnicodeEscapedChar);
                 }
 
                 result *= 16;
@@ -84,7 +84,7 @@ namespace Sweet.Jayson
             int length = str.Length;
             if (pos > length - 1)
             {
-                throw new JaysonException("Invalid string termination.");
+				throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             if (str[pos] == '"')
@@ -94,7 +94,7 @@ namespace Sweet.Jayson
 
             if (pos == length - 1)
             {
-                throw new JaysonException("Invalid string termination.");
+				throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             char ch;
@@ -123,7 +123,7 @@ namespace Sweet.Jayson
 
                 if (pos > length - 1)
                 {
-                    throw new JaysonException("Invalid character in string.");
+					throw new JaysonException(JaysonError.InvalidCharInString);
                 }
 
                 len = pos - start;
@@ -169,7 +169,7 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        throw new JaysonException("Invalid unicode string.");
+						throw new JaysonException(JaysonError.InvalidUnicodeString);
                     case '/':
                         start = ++pos;
                         charStore.Append('/');
@@ -183,13 +183,13 @@ namespace Sweet.Jayson
                         charStore.Append('\f');
                         break;
                     default:
-                        throw new JaysonException("Invalid unicode character.");
+						throw new JaysonException(JaysonError.InvalidUnicodeChar);
                 }
             } while (pos < length);
 
             if (!terminated)
             {
-                throw new JaysonException("Invalid string termination.");
+				throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             len = pos - start;
@@ -224,7 +224,7 @@ namespace Sweet.Jayson
                 ++pos;
                 if (pos >= end)
                 {
-                    throw new JaysonException("Invalid floating number.");
+					throw new JaysonException(JaysonError.InvalidFlotingNumber);
                 }
                 sign = -1;
             }
@@ -259,7 +259,7 @@ namespace Sweet.Jayson
                         if (ch == 'E' || ch == 'e')
                             break;
 
-                        throw new JaysonException("Invalid floating number.");
+						throw new JaysonException(JaysonError.InvalidFlotingNumber);
                     }
 
                     result += (ch - '0') * exp;
@@ -272,7 +272,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-                    throw new JaysonException("Invalid floating number.");
+					throw new JaysonException(JaysonError.InvalidFlotingNumber);
                 }
 
                 int eValue = 0;
@@ -283,7 +283,7 @@ namespace Sweet.Jayson
                     ch = str[pos];
                     if (ch < '0' || ch > '9')
                     {
-                        throw new JaysonException("Invalid floating number.");
+						throw new JaysonException(JaysonError.InvalidFlotingNumber);
                     }
 
                     eValue = (eValue * 10) + (int)(ch - '0');
@@ -342,7 +342,7 @@ namespace Sweet.Jayson
 
                 if (pos >= end)
                 {
-                    throw new JaysonException("Invalid floating number.");
+					throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
             }
 
@@ -363,7 +363,7 @@ namespace Sweet.Jayson
                 {
                     if (decimalPosition != end)
                     {
-                        throw new JaysonException("Invalid decimal number.");
+						throw new JaysonException(JaysonError.InvalidDecimalNumber);
                     }
                     decimalPosition = pos + 1;
                     continue;
@@ -374,7 +374,7 @@ namespace Sweet.Jayson
                     break;
                 }
 
-                throw new JaysonException("Invalid decimal number.");
+				throw new JaysonException(JaysonError.InvalidDecimalNumber);
             }
 
             int scale = pos - decimalPosition;
@@ -385,7 +385,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-                    throw new JaysonException("Invalid decimal number.");
+					throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
 
                 bool eNegative = (str[++pos] == '-');
@@ -399,7 +399,7 @@ namespace Sweet.Jayson
                         continue;
                     }
 
-                    throw new JaysonException("Invalid decimal number.");
+					throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
 
                 if (eValue > 0)
@@ -455,7 +455,7 @@ namespace Sweet.Jayson
                 ch = str[start];
                 if (ch < '0' || ch > '9')
                 {
-                    throw new JaysonException("Invalid number.");
+					throw new JaysonException(JaysonError.InvalidNumber);
                 }
                 return (long)(ch - '0');
             }
@@ -487,7 +487,7 @@ namespace Sweet.Jayson
                     break;
                 }
 
-                throw new JaysonException("Invalid number.");
+				throw new JaysonException(JaysonError.InvalidNumber);
             }
 
             // scientific part
@@ -495,7 +495,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-                    throw new JaysonException("Invalid number.");
+					throw new JaysonException(JaysonError.InvalidNumber);
                 }
 
                 int eValue = 0;
@@ -506,7 +506,7 @@ namespace Sweet.Jayson
                     ch = str[pos];
                     if (ch < '0' || ch > '9')
                     {
-                        throw new JaysonException("Invalid number.");
+						throw new JaysonException(JaysonError.InvalidNumber);
                     }
 
                     eValue = (eValue * 10) + (int)(ch - '0');
@@ -563,7 +563,7 @@ namespace Sweet.Jayson
                 }
                 else if (ch < '0' || ch > '9')
                 {
-                    throw new JaysonException("Invalid number character.");
+					throw new JaysonException(JaysonError.InvalidNumberChar);
                 }
 
 				int digitCount = 0;
@@ -593,7 +593,7 @@ namespace Sweet.Jayson
                     {
                         if (numType != JaysonNumberType.Long)
                         {
-                            throw new JaysonException("Invalid number character.");
+							throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
@@ -608,7 +608,7 @@ namespace Sweet.Jayson
                     {
                         if (numType == JaysonNumberType.Decimal)
                         {
-                            throw new JaysonException("Invalid number character.");
+							throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
@@ -623,7 +623,7 @@ namespace Sweet.Jayson
                     {
                         if (numType != JaysonNumberType.Decimal)
                         {
-                            throw new JaysonException("Invalid number character.");
+							throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
@@ -636,7 +636,7 @@ namespace Sweet.Jayson
                         break;
                     }
 
-                    throw new JaysonException("Invalid number character.");
+					throw new JaysonException(JaysonError.InvalidNumberChar);
                 } while (context.Position < length);
 
                 int len = context.Position - start;
@@ -647,7 +647,7 @@ namespace Sweet.Jayson
                         decimal d;
                         if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.InvariantCulture, out d))
                         {
-                            throw new JaysonException("Invalid decimal number.");
+							throw new JaysonException(JaysonError.InvalidDecimalNumber);
                         }
 
                         if ((numStyle == NumberStyles.None || numStyle == NumberStyles.AllowTrailingSign) &&
@@ -705,7 +705,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            throw new JaysonException("Invalid number.");
+            throw new JaysonException(JaysonError.InvalidNumber);
         }
 
         # endregion Parse Number
@@ -717,7 +717,7 @@ namespace Sweet.Jayson
             if (context.Settings.MaxObjectDepth > 0 &&
                 context.ObjectDepth > context.Settings.MaxObjectDepth)
             {
-                throw new JaysonException(String.Format("Maximum object depth {0} exceeded.",
+				throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
                     context.Settings.MaxObjectDepth));
             }
         }
@@ -726,7 +726,7 @@ namespace Sweet.Jayson
         {
             if (context.Position >= context.Length - 1)
             {
-                throw new JaysonException("Invalid Json.");
+				throw new JaysonException(JaysonError.InvalidJson);
             }
 
             int ch = (int)context.Text[context.Position];
@@ -753,10 +753,10 @@ namespace Sweet.Jayson
                             if (JaysonCommon.IsWhiteSpace(ch))
                                 continue;
                         }
-                        throw new JaysonException("Invalid Json.");
+						throw new JaysonException(JaysonError.InvalidJson);
                     } while (true);
                 }
-                throw new JaysonException("Invalid Json.");
+				throw new JaysonException(JaysonError.InvalidJson);
             }
         }
 
@@ -845,7 +845,7 @@ namespace Sweet.Jayson
 				if (token == JaysonSerializationToken.Comma) {
 					token = JaysonSerializationToken.Value;
 					if (ch == ',' || ch == ']' || ch == '}') {
-						throw new JaysonException ("Invalid Json list.");
+						throw new JaysonException (JaysonError.InvalidJsonList);
 					}
 				}
 
@@ -855,7 +855,7 @@ namespace Sweet.Jayson
 					break;
 				case ',':
 					if (result.Count == 0) {
-						throw new JaysonException ("Invalid Json list item.");
+						throw new JaysonException (JaysonError.InvalidJsonListItem);
 					}
 					token = JaysonSerializationToken.Comma;
 					break;
@@ -882,7 +882,7 @@ namespace Sweet.Jayson
 							context.Position += 3;
 							break;
 						}
-						throw new JaysonException ("Invalid Json list item.");
+						throw new JaysonException (JaysonError.InvalidJsonListItem);
 					}
 				case 't':
 					{
@@ -895,7 +895,7 @@ namespace Sweet.Jayson
 							context.Position += 3;
 							break;
 						}
-						throw new JaysonException ("Invalid Json list item.");
+						throw new JaysonException (JaysonError.InvalidJsonListItem);
 					}
 				case 'f':
 					{
@@ -909,7 +909,7 @@ namespace Sweet.Jayson
 							context.Position += 4;
 							break;
 						}
-						throw new JaysonException ("Invalid Json list item.");
+						throw new JaysonException (JaysonError.InvalidJsonListItem);
 					}
 				case '[':
 					context.Position--;
@@ -923,11 +923,11 @@ namespace Sweet.Jayson
 					}
 					if (JaysonCommon.IsWhiteSpace (ch))
 						continue;
-					throw new JaysonException ("Invalid Json list item.");
+					throw new JaysonException (JaysonError.InvalidJsonListItem);
 				}
 			}
 
-            throw new JaysonException("Invalid Json list.");
+			throw new JaysonException(JaysonError.InvalidJsonList);
         }
 
         # endregion Parse List
@@ -970,12 +970,12 @@ namespace Sweet.Jayson
 					switch (ch) {
 					case '"':
 						if (prevToken == JaysonSerializationToken.Value) {
-							throw new JaysonException ("Invalid Json object key.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
 						}
 
 						key = ParseString (str, ref context.Position);
 						if (key == null) {
-							throw new JaysonException ("Invalid Json object key.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
 						}
 
 						prevToken = token;
@@ -983,7 +983,7 @@ namespace Sweet.Jayson
 						continue;
 					case ',':
 						if (prevToken != JaysonSerializationToken.Value) {
-							throw new JaysonException ("Invalid Json object key.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
 						}
 						prevToken = JaysonSerializationToken.Comma;
 						break;
@@ -993,7 +993,7 @@ namespace Sweet.Jayson
 					default:
 						if (JaysonCommon.IsWhiteSpace (ch))
 							continue;
-						throw new JaysonException ("Invalid Json object key.");
+						throw new JaysonException (JaysonError.InvalidJsonObjectKey);
 					}
 					break;
 				case JaysonSerializationToken.Colon:
@@ -1004,7 +1004,7 @@ namespace Sweet.Jayson
 					}
 					if (JaysonCommon.IsWhiteSpace (ch))
 						continue;
-					throw new JaysonException ("Invalid Json object value.");
+					throw new JaysonException (JaysonError.InvalidJsonObjectValue);
 				case JaysonSerializationToken.Value:
 					switch (ch) {
 					case '"':
@@ -1028,7 +1028,7 @@ namespace Sweet.Jayson
 								context.Position += 3;
 								break;
 							}
-							throw new JaysonException ("Invalid Json object value.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
 						}
 					case 't':
 						{
@@ -1041,7 +1041,7 @@ namespace Sweet.Jayson
 								context.Position += 3;
 								break;
 							}
-							throw new JaysonException ("Invalid Json object value.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
 						}
 					case 'f':
 						{
@@ -1055,7 +1055,7 @@ namespace Sweet.Jayson
 								context.Position += 4;
 								break;
 							}
-							throw new JaysonException ("Invalid Json object value.");
+							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
 						}
 					case '[':
 						context.Position--;
@@ -1071,7 +1071,7 @@ namespace Sweet.Jayson
 						}
 						if (JaysonCommon.IsWhiteSpace (ch))
 							continue;
-						throw new JaysonException ("Invalid Json object value.");
+						throw new JaysonException (JaysonError.InvalidJsonObjectValue);
 					}
 
 					key = null;
@@ -1081,7 +1081,7 @@ namespace Sweet.Jayson
 				}
 			}
 
-            throw new JaysonException("Invalid Json object.");
+			throw new JaysonException(JaysonError.InvalidJsonObject);
         }
 
         # endregion Parse Dictionary
@@ -1090,7 +1090,7 @@ namespace Sweet.Jayson
         {
             if (String.IsNullOrEmpty(str))
             {
-                throw new JaysonException("Empty string.");
+				throw new JaysonException(JaysonError.EmptyString);
             }
 
             return Parse(new JaysonDeserializationContext
@@ -1114,7 +1114,7 @@ namespace Sweet.Jayson
 
             if (context.Position >= length - 1)
             {
-                throw new JaysonException("Invalid Json text.");
+				throw new JaysonException(JaysonError.InvalidJson);
             }
 
             char ch = str[context.Position];
@@ -1142,7 +1142,7 @@ namespace Sweet.Jayson
                         {
                             return true;
                         }
-                        throw new JaysonException("Invalid Json text.");
+						throw new JaysonException(JaysonError.InvalidJson);
                     }
                 case 'f':
                     {
@@ -1155,7 +1155,7 @@ namespace Sweet.Jayson
                         {
                             return false;
                         }
-                        throw new JaysonException("Invalid Json text.");
+						throw new JaysonException(JaysonError.InvalidJson);
                     }
                 case 'n':
                     {
@@ -1167,7 +1167,7 @@ namespace Sweet.Jayson
                         {
                             return null;
                         }
-                        throw new JaysonException("Invalid Json text.");
+						throw new JaysonException(JaysonError.InvalidJson);
                     }
                 default:
                     if (!(ch < '0' || ch > '9') || ch == '-')
@@ -1176,7 +1176,7 @@ namespace Sweet.Jayson
 
                         return value;
                     }
-                    throw new JaysonException("Invalid Json text.");
+					throw new JaysonException(JaysonError.InvalidJson);
             }
         }
 
