@@ -628,7 +628,7 @@ namespace Sweet.Jayson
 					}
 					else
 					{
-						builder.Append(((Guid)obj).ToString("D").ToUpper());
+						builder.Append(JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D")));
 					}
 					builder.Append('"');
 					break;
@@ -740,7 +740,7 @@ namespace Sweet.Jayson
 					}
 					else
 					{
-						builder.Append(((Guid?)obj).Value.ToString("D").ToUpper());
+						builder.Append(JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D")));
 					}
 					builder.Append('"');
 					break;
@@ -812,7 +812,7 @@ namespace Sweet.Jayson
 				{
 					return "\"!" + Convert.ToBase64String(((Guid)obj).ToByteArray()) + "\"";
 				}
-				return "\"" + ((Guid)obj).ToString("D").ToUpper() + "\"";
+				return "\"" + JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D")) + "\"";
 			case JaysonTypeCode.IntNullable:
 				return Format(((int?)obj).Value);
 			case JaysonTypeCode.BoolNullable:
@@ -917,7 +917,7 @@ namespace Sweet.Jayson
 				{
 					return "\"!" + Convert.ToBase64String(((Guid?)obj).Value.ToByteArray()) + "\"";
 				}
-				return "\"" + ((Guid?)obj).Value.ToString("D").ToUpper() + "\"";
+				return "\"" + JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D")) + "\"";
 			case JaysonTypeCode.DateTimeOffset:
 				return "\"" + ((DateTimeOffset)obj).ToString(FormatingCulture) + "\"";
 			case JaysonTypeCode.DateTimeOffsetNullable:
@@ -1282,6 +1282,7 @@ namespace Sweet.Jayson
 		{
 			if (value >= IntMinBarrier && value <= IntMaxBarrier) {
 				Format ((int)value, builder);
+				return;
 			}
 
 			bool minus = (value < 0L);
@@ -1557,13 +1558,13 @@ namespace Sweet.Jayson
 			// Do not change the check order
 			if (objType == typeof(Guid))
 			{
-				return ((Guid)obj).ToString("D").ToUpper();
+				return JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D"));
 			}
 
 			// Do not change the check order
 			if (objType == typeof(Guid?))
 			{
-				return ((Guid?)obj).Value.ToString("D").ToUpper();
+				return JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D"));
 			}
 
 			// Do not change the check order
