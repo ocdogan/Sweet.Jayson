@@ -1177,11 +1177,10 @@ namespace Sweet.Jayson
 			var info = JaysonTypeInfo.GetTypeInfo (toPrimitiveType);
 
 			// Do not change the type check order
-			converted = false;
+			converted = true;
 			switch (info.JTypeCode) {
 			case JaysonTypeCode.Int:
 				{
-					converted = true;
 					if (value is int) {
 						return value;
 					}
@@ -1199,7 +1198,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Bool:
 				{
-					converted = true;
 					if (value is bool) {
 						return value;
 					}
@@ -1217,7 +1215,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Long:
 				{
-					converted = true;
 					if (value is long) {
 						return value;
 					}
@@ -1235,7 +1232,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Double:
 				{
-					converted = true;
 					if (value == null) {
 						return 0d;
 					}
@@ -1250,12 +1246,10 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.DateTime:
 				{
-					converted = true;
 					return TryConvertDateTime (value, JaysonDateTimeZoneType.KeepAsIs);
 				}
 			case JaysonTypeCode.Short:
 				{
-					converted = true;
 					if (value == null) {
 						return (short)0;
 					}
@@ -1270,7 +1264,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.IntNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (int?)value;
 					}
@@ -1285,7 +1278,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.BoolNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (bool?)value;
 					}
@@ -1300,7 +1292,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.LongNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (long?)value;
 					}
@@ -1315,7 +1306,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.DoubleNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (double?)value;
 					}
@@ -1330,7 +1320,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.DateTimeNullable:
 				{
-					converted = true;
 					DateTime dt = TryConvertDateTime (value, JaysonDateTimeZoneType.KeepAsIs);
 					if (dt == default(DateTime)) {
 						return null;
@@ -1339,7 +1328,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.ShortNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (short?)value;
 					}
@@ -1355,7 +1343,6 @@ namespace Sweet.Jayson
 
 			case JaysonTypeCode.Float:
 				{
-					converted = true;
 					if (value == null) {
 						return 0f;
 					}
@@ -1370,7 +1357,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Decimal:
 				{
-					converted = true;
 					if (value is decimal) {
 						return value;
 					}
@@ -1391,7 +1377,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Byte:
 				{
-					converted = true;
 					if (value == null) {
 						return (byte)0;
 					}
@@ -1406,7 +1391,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Guid:
 				{
-					converted = true;
 					if (value is Guid) {
 						return value;
 					}
@@ -1438,7 +1422,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.Char:
 				{
-					converted = true;
 					if (value == null) {
 						return (char)0;
 					}
@@ -1453,7 +1436,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.TimeSpan:
 				{
-					converted = true;
 					if (value is TimeSpan) {
 						return value;
 					}
@@ -1473,10 +1455,8 @@ namespace Sweet.Jayson
 					}
 					return new TimeSpan (Convert.ToInt64 (value));
 				}
-
 			case JaysonTypeCode.FloatNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (float?)value;
 					}
@@ -1491,7 +1471,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.DecimalNullable:
 				{
-					converted = true;
 					if (value is decimal) {
 						return (decimal?)((decimal)value);
 					}
@@ -1512,7 +1491,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.ByteNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (byte?)value;
 					}
@@ -1527,7 +1505,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.GuidNullable:
 				{
-					converted = true;
 					if (value is Guid) {
 						return (Guid?)((Guid)value);
 					}
@@ -1559,7 +1536,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.CharNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (char?)null;
 					}
@@ -1574,7 +1550,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.TimeSpanNullable:
 				{
-					converted = true;
 					if (value is TimeSpan) {
 						return (TimeSpan?)((TimeSpan)value);
 					}
@@ -1596,7 +1571,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.UInt:
 				{
-					converted = true;
 					if (value == null) {
 						return (uint)0;
 					}
@@ -1611,7 +1585,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.ULong:
 				{
-					converted = true;
 					if (value == null) {
 						return (ulong)0;
 					}
@@ -1626,7 +1599,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.UShort:
 				{
-					converted = true;
 					if (value == null) {
 						return (ushort)0;
 					}
@@ -1641,7 +1613,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.SByte:
 				{
-					converted = true;
 					if (value == null) {
 						return (sbyte)0;
 					}
@@ -1656,7 +1627,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.UIntNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (uint?)value;
 					}
@@ -1671,7 +1641,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.ULongNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (ulong?)value;
 					}
@@ -1686,7 +1655,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.UShortNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (ushort?)value;
 					}
@@ -1701,7 +1669,6 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.SByteNullable:
 				{
-					converted = true;
 					if (value == null) {
 						return (sbyte?)value;
 					}
@@ -1720,7 +1687,8 @@ namespace Sweet.Jayson
 				}
 			case JaysonTypeCode.DateTimeOffsetNullable:
 				{
-					if (value == null) {
+                    if (value == null)
+                    {
 						return (DateTimeOffset?)value;
 					}
 					DateTimeOffset dto = TryConvertDateTimeOffset (value, out converted);
@@ -1729,30 +1697,35 @@ namespace Sweet.Jayson
 					}
 					return dto;
 				}
+            default:
+                converted = false;
+			    if (info.Enum) {
+                    converted = true;
+                    if (value == null)
+                    {
+					    return Enum.ToObject (toPrimitiveType, 0L);
+				    }
+
+				    if (value is long) {
+					    return Enum.ToObject (toPrimitiveType, (long)value);
+				    }
+				    if (value is int) {
+					    return Enum.ToObject (toPrimitiveType, (long)((int)value));
+				    }
+
+				    if (value is string) {
+					    string s = (string)value;
+					    if (s.Length == 0) {
+						    return Enum.ToObject (toPrimitiveType, 0L);
+					    }
+					    return JaysonEnumCache.Parse (s, toPrimitiveType);
+				    }
+
+				    return Enum.ToObject (toPrimitiveType, Convert.ToInt64 (value));
+			    }
+                break;
 			}
 
-			if (info.Enum) {
-				if (value == null) {
-					return Enum.ToObject (toPrimitiveType, 0L);
-				}
-
-				if (value is long) {
-					return Enum.ToObject (toPrimitiveType, (long)value);
-				}
-				if (value is int) {
-					return Enum.ToObject (toPrimitiveType, (long)((int)value));
-				}
-
-				if (value is string) {
-					string s = (string)value;
-					if (s.Length == 0) {
-						return Enum.ToObject (toPrimitiveType, 0L);
-					}
-					return JaysonEnumCache.Parse (s, toPrimitiveType);
-				}
-
-				return Enum.ToObject (toPrimitiveType, Convert.ToInt64 (value));
-			}
 			return value;
 		}
 
