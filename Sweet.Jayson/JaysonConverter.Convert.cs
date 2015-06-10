@@ -214,7 +214,8 @@ namespace Sweet.Jayson
 				{
 					if (ekvp.Key != "$type")
 					{
-						extendedProperties.Add(ekvp.Key, ConvertObject(ekvp.Value, typeof(object), context));
+						extendedProperties.Add(ConvertObject(ekvp.Key, typeof(object), context), 
+							ConvertObject(ekvp.Value, typeof(object), context));
 					}
 				}
 			}
@@ -1055,9 +1056,6 @@ namespace Sweet.Jayson
 				Action<object, object[]> addMethod = JaysonCommon.GetIDictionaryAddMethod(instanceType);
 				if (addMethod != null)
 				{
-					bool changeValue = genArgs[1] != typeof(object);
-					bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
-
 					object key;
 					object value;
 
@@ -1079,8 +1077,8 @@ namespace Sweet.Jayson
 								{
 									kvp = (IDictionary<string, object>)kvList[i];
 
-									key = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
-									value = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+									key = ConvertObject(kvp["$k"], keyType, context);
+									value = ConvertObject(kvp["$v"], valType, context);
 
 									addMethod(instance, new object[] { key, value });
 								}
@@ -1095,8 +1093,8 @@ namespace Sweet.Jayson
 					{
 						if (!hasStype || entry.Key != "$type")
 						{
-							key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
-							value = changeValue ? ConvertObject(entry.Value, valType, context) : entry.Value;
+							key = ConvertObject(entry.Key, keyType, context);
+							value = ConvertObject(entry.Value, valType, context);
 
 							addMethod(instance, new object[] { key, value });
 						}
@@ -1368,9 +1366,6 @@ namespace Sweet.Jayson
 			{
 				bool hasStype = obj.ContainsKey("$type");
 
-				bool changeValue = hasStype || (genArgs[1] != typeof(object));
-				bool changeKey = !(genArgs[0] == typeof(object) || genArgs[0] == typeof(string));
-
 				Type keyType = genArgs[0];
 				Type valType = genArgs[1];
 
@@ -1389,8 +1384,8 @@ namespace Sweet.Jayson
 							{
 								kvp = (IDictionary<string, object>)kvList[i];
 
-								keyObj = !changeKey ? kvp["$k"] : ConvertObject(kvp["$k"], keyType, context);
-								instance[keyObj] = !changeValue ? kvp["$v"] : ConvertObject(kvp["$v"], valType, context);
+								keyObj = ConvertObject(kvp["$k"], keyType, context);
+								instance[keyObj] = ConvertObject(kvp["$v"], valType, context);
 							}
 						}
 					}
@@ -1401,8 +1396,8 @@ namespace Sweet.Jayson
 				{
 					if (!hasStype || entry.Key != "$type")
 					{
-						key = changeKey ? ConvertObject(entry.Key, keyType, context) : entry.Key;
-						instance[key] = !changeValue ? entry.Value : ConvertObject(entry.Value, valType, context);
+						key = ConvertObject(entry.Key, keyType, context);
+						instance[key] = ConvertObject(entry.Value, valType, context);
 					}
 				}
 				return;
@@ -1431,13 +1426,15 @@ namespace Sweet.Jayson
 				return;
 			}
 
+			object keyObj2;
 			bool hasStype2 = obj.ContainsKey("$type");
 
 			foreach (var entry in obj)
 			{
 				if (!hasStype2 || entry.Key != "$type")
 				{
-					instance[entry.Key] = ConvertObject(entry.Value, typeof(object), context);
+					keyObj2 = ConvertObject(entry.Key, typeof(object), context);
+					instance[keyObj2] = ConvertObject(entry.Value, typeof(object), context);
 				}
 			}
 		}
