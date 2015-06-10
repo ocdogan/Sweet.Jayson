@@ -49,6 +49,42 @@ namespace Sweet.Jayson.Tests
 	public class PrimaryTests
 	{
 		[Test]
+		public static void TestA1()
+		{
+			var a1 = TestClasses.GetA ();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+			var a2 = JaysonConverter.ToObject<A>(json, jaysonDeserializationSettings);
+
+			Assert.IsNotNull(a2);
+			Assert.AreEqual (a1.D1, a2.D1);
+			Assert.AreEqual (a1.D2, a2.D2);
+
+			Assert.AreEqual (a1.D3.Count, a2.D3.Count);
+			foreach (var kvp in a1.D3) {
+				Assert.True (a2.D3.ContainsKey (kvp.Key));
+				Assert.AreEqual (kvp.Value, a2.D3[kvp.Key]);
+			}
+
+			Assert.AreEqual (a1.E1, a2.E1);
+			Assert.AreEqual (a1.I1, a2.I1);
+			Assert.AreEqual (a1.L1, a2.L1);
+
+			Assert.AreEqual (a1.L2.Count, a2.L2.Count);
+			for (int i = 0; i < a1.L2.Count; i++) {
+				Assert.AreEqual (a1.L2 [i], a2.L2 [i]);
+			}
+
+			Assert.AreEqual (a1.O1, a2.O1);
+			Assert.AreEqual (a1.O2, a2.O2);
+		}
+
+		[Test]
 		public static void TestNullList1()
 		{
 			var l1 = new List<object> ();

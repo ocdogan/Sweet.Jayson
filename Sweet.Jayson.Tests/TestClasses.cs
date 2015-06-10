@@ -184,6 +184,25 @@ namespace Sweet.Jayson.Tests
             return c;
         }
 
+		public static A GetA()
+		{
+			return new A {
+				D1 = 12345.67890m,
+				D2 = 23456.78901,
+				D3 = new Dictionary<object, object> {
+					{ 1, 2m },
+					{ "a", "b" },
+					{ true, false }
+				},
+				E1 = MyEnum.EnumB | MyEnum.EnumC,
+				I1 = 123456789,
+				L1 = 12345678909876543,
+				L2 = new List<int?> { 1, null, 2, null },
+				O1 = true,
+				O2 = "yes"
+			};
+		}
+
         public static object GetTypedContainerDto()
         {
             return new TypedContainerDto
