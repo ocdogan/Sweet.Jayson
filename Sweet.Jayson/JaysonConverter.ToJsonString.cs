@@ -518,9 +518,9 @@ namespace Sweet.Jayson
 
 				JaysonTypeNameSerialization jtns = settings.TypeNames;
 
-				if (jtns != JaysonTypeNameSerialization.None && 
-					(jtns == JaysonTypeNameSerialization.All ||
-						(expectedValueType != null && (valueType != expectedValueType)) ||
+				if (jtns != JaysonTypeNameSerialization.None &&
+					(expectedValueType == null || valueType != expectedValueType) &&
+                    ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
 						(jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
 						(jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
 				{
@@ -636,11 +636,11 @@ namespace Sweet.Jayson
 
                 JaysonTypeNameSerialization jtns = settings.TypeNames;
 
-                if (jtns != JaysonTypeNameSerialization.None && 
-                    (jtns == JaysonTypeNameSerialization.All ||
-                    (expectedValueType != null && (valueType != expectedValueType)) ||
-                    (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
-                    (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
+				if (jtns != JaysonTypeNameSerialization.None &&
+					(expectedValueType == null || valueType != expectedValueType) &&
+					((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
+						(jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
+						(jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
                 {
 					bool typeWritten = false;
                     context.ObjectDepth++;
@@ -2800,11 +2800,12 @@ namespace Sweet.Jayson
 
 				JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
 
-                if (jtns != JaysonTypeNameSerialization.None && 
-                    (jtns == JaysonTypeNameSerialization.All ||
-                    (expectedObjType != null && (objType != expectedObjType)) ||
-                    (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
-                    (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc))) {
+                if (jtns != JaysonTypeNameSerialization.None &&
+					(expectedObjType == null || objType != expectedObjType) &&
+                    ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
+                    	(jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
+                    	(jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc))) 
+				{
 					StringBuilder builder = context.Builder;
 
 					bool typeWritten = false;
