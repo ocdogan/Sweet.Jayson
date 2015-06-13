@@ -49,42 +49,102 @@ namespace Sweet.Jayson.Tests
 	public class PrimaryTests
 	{
 		[Test]
-		public static void TestA1()
+        public static void TestUseKVModelForJsonObjects1()
 		{
 			var a1 = TestClasses.GetA ();
 
 			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = false;
+
+			string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+
+            Assert.IsTrue(!json.Contains("$kv"));
+		}
+
+		[Test]
+		public static void TestUseKVModelForJsonObjects2()
+		{
+			var a1 = TestClasses.GetA ();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = false;
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 
 			string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
 			var a2 = JaysonConverter.ToObject<A>(json, jaysonDeserializationSettings);
 
+			Assert.IsTrue(!json.Contains("$kv"));
+
 			Assert.IsNotNull(a2);
-			Assert.AreEqual (a1.D1, a2.D1);
-			Assert.AreEqual (a1.D2, a2.D2);
+			Assert.AreEqual(a1.D1, a2.D1);
+			Assert.AreEqual(a1.D2, a2.D2);
 
-			Assert.AreEqual (a1.D3.Count, a2.D3.Count);
-			foreach (var kvp in a1.D3) {
-				Assert.True (a2.D3.ContainsKey (kvp.Key));
-				Assert.AreEqual (kvp.Value, a2.D3[kvp.Key]);
+			Assert.AreEqual(a1.D3.Count, a2.D3.Count);
+			foreach (var kvp in a1.D3)
+			{
+				Assert.IsTrue(a2.D3.ContainsKey(kvp.Key.ToString ()));
+				Assert.AreEqual(kvp.Value, a2.D3[kvp.Key.ToString ()]);
 			}
 
-			Assert.AreEqual (a1.E1, a2.E1);
-			Assert.AreEqual (a1.I1, a2.I1);
-			Assert.AreEqual (a1.L1, a2.L1);
+			Assert.AreEqual(a1.E1, a2.E1);
+			Assert.AreEqual(a1.I1, a2.I1);
+			Assert.AreEqual(a1.L1, a2.L1);
 
-			Assert.AreEqual (a1.L2.Count, a2.L2.Count);
-			for (int i = 0; i < a1.L2.Count; i++) {
-				Assert.AreEqual (a1.L2 [i], a2.L2 [i]);
+			Assert.AreEqual(a1.L2.Count, a2.L2.Count);
+			for (int i = 0; i < a1.L2.Count; i++)
+			{
+				Assert.AreEqual(a1.L2[i], a2.L2[i]);
 			}
 
-			Assert.AreEqual (a1.O1, a2.O1);
-			Assert.AreEqual (a1.O2, a2.O2);
+			Assert.AreEqual(a1.O1, a2.O1);
+			Assert.AreEqual(a1.O2, a2.O2);
 		}
 
-		[Test]
+        [Test]
+        public static void TestA1()
+        {
+            var a1 = TestClasses.GetA();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+            string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+            var a2 = JaysonConverter.ToObject<A>(json, jaysonDeserializationSettings);
+
+            Assert.IsTrue(json.Contains("$kv"));
+
+            Assert.IsNotNull(a2);
+            Assert.AreEqual(a1.D1, a2.D1);
+            Assert.AreEqual(a1.D2, a2.D2);
+
+            Assert.AreEqual(a1.D3.Count, a2.D3.Count);
+            foreach (var kvp in a1.D3)
+            {
+                Assert.IsTrue(a2.D3.ContainsKey(kvp.Key));
+                Assert.AreEqual(kvp.Value, a2.D3[kvp.Key]);
+            }
+
+            Assert.AreEqual(a1.E1, a2.E1);
+            Assert.AreEqual(a1.I1, a2.I1);
+            Assert.AreEqual(a1.L1, a2.L1);
+
+            Assert.AreEqual(a1.L2.Count, a2.L2.Count);
+            for (int i = 0; i < a1.L2.Count; i++)
+            {
+                Assert.AreEqual(a1.L2[i], a2.L2[i]);
+            }
+
+            Assert.AreEqual(a1.O1, a2.O1);
+            Assert.AreEqual(a1.O2, a2.O2);
+        }
+        
+        [Test]
 		public static void TestNullList1()
 		{
 			var l1 = new List<object> ();
@@ -861,7 +921,9 @@ namespace Sweet.Jayson.Tests
 				Assert.AreEqual (dto1.Date2, dto2.Date2);
 				Assert.AreEqual (dto1.Date3, dto2.Date3);
 				Assert.AreEqual (dto1.Destination, dto2.Destination);
+    			#if !(NET3500 || NET3000 || NET2000)
 				Assert.AreEqual (dto1.DynamicProperty, dto2.DynamicProperty);
+                #endif
 				Assert.AreEqual (dto1.IntArray2D, dto2.IntArray2D);
 
 				if (dto1.Object2DArray == null) {
@@ -1012,6 +1074,10 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull (list2);
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual (list1[i], list2[i]);
+			}
 		}
 
 		[Test]
@@ -1034,6 +1100,10 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull (list2);
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual (list1[i], list2[i]);
+			}
 		}
 
 		[Test]
@@ -1059,6 +1129,10 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(list2);
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual (list1[i], list2[i]);
+			}
 		}
 
 		[Test]
@@ -1090,6 +1164,10 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(list2);
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual (list1[i], list2[i]);
+			}
 		}
 
 		[Test]
@@ -1124,6 +1202,13 @@ namespace Sweet.Jayson.Tests
 			Assert.IsNotNull(list2);
 			#if !(NET3500 || NET3000 || NET2000)
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				foreach (var kvp in list1[i]) {
+					Assert.IsTrue (list2[i].ContainsKey(kvp.Key.ToLowerInvariant ()));
+					Assert.AreEqual (kvp.Value, list2[i][kvp.Key.ToLowerInvariant ()]);
+				}
+			}
 			#endif
 		}
 
@@ -1159,6 +1244,13 @@ namespace Sweet.Jayson.Tests
 			Assert.IsNotNull(list2);
 			#if !(NET3500 || NET3000 || NET2000)
 			Assert.AreEqual(list1.Count, list2.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				foreach (var kvp in list1[i]) {
+					Assert.IsTrue (list2[i].ContainsKey(kvp.Key.ToLowerInvariant ()));
+					Assert.AreEqual (kvp.Value, list2[i][kvp.Key.ToLowerInvariant ()]);
+				}
+			}
 			#endif
 		}
 
@@ -1218,6 +1310,10 @@ namespace Sweet.Jayson.Tests
 	
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			foreach (var key in dictionary1.Keys) {
+				Assert.AreEqual (dictionary1[key], dictionary2[key]);
+			}
 		}
 
 		[Test]
@@ -1243,6 +1339,10 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			foreach (var key in dictionary1.Keys) {
+				Assert.AreEqual (dictionary1[key], dictionary2[key.ToLowerInvariant ()]);
+			}
 		}
 
 		[Test]
@@ -1268,14 +1368,19 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			foreach (var key in dictionary1.Keys) {
+				Assert.AreEqual (dictionary1[key], dictionary2[key.ToLowerInvariant ()]);
+			}
 		}
+
 		[Test]
 		public static void TestDictionaryTK5()
 		{
 			Dictionary<string, List<int>> dictionary1 = new Dictionary<string, List<int>> { 
-				{ "1", new List<int> { 2 } }, 
-				{ "3", new List<int> { 4 } }, 
-				{ "5", new List<int> { 6 } }, 
+				{ "1", new List<int> { 2, 4, 6, 8 } }, 
+				{ "3", new List<int> { 4, 6, 8 } }, 
+				{ "5", new List<int> { 6, 8 } }, 
 				{ "7", new List<int> { 8 } } 
 			};
 
@@ -1294,15 +1399,24 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			List<int> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
 		public static void TestDictionaryTK6()
 		{
 			Dictionary<string, List<int>> dictionary1 = new Dictionary<string, List<int>> { 
-				{ "1", new List<int> { 2 } }, 
-				{ "3", new List<int> { 4 } }, 
-				{ "5", new List<int> { 6 } }, 
+				{ "1", new List<int> { 2, 4, 6, 8 } }, 
+				{ "3", new List<int> { 4, 6, 8 } }, 
+				{ "5", new List<int> { 6, 8 } }, 
 				{ "7", new List<int> { 8 } } 
 			};
 
@@ -1321,6 +1435,15 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			List<int> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1346,6 +1469,15 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			List<int[]> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key.ToLowerInvariant ()];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1371,6 +1503,15 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			List<int[,]> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key.ToLowerInvariant ()];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1396,6 +1537,15 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			IList<int[,]> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key.ToLowerInvariant ()];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1421,6 +1571,15 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			IList<int[,]> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2 [kvp.Key];
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1446,6 +1605,17 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(dictionary2);
 			Assert.AreEqual(dictionary1.Count, dictionary2.Count);
+
+			IList<int[,]> list2;
+			foreach (var kvp in dictionary1) {
+				list2 = dictionary2.FirstOrDefault (kvp2 => kvp2.Key[0].ToString ().ToLowerInvariant () ==
+					kvp.Key[0].ToString ().ToLowerInvariant ()).Value;
+
+				Assert.AreEqual (kvp.Value.Count, list2.Count);
+				for (int i = 0; i < kvp.Value.Count; i++) {
+					Assert.AreEqual (kvp.Value [i], list2 [i]);
+				}
+			}
 		}
 
 		[Test]
@@ -1467,6 +1637,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1488,6 +1659,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1509,6 +1681,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1530,6 +1703,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1551,6 +1725,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1572,6 +1747,7 @@ namespace Sweet.Jayson.Tests
 			int[,] intArray2D2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D, intArray2D2);
 		}
 
 		[Test]
@@ -1593,6 +1769,11 @@ namespace Sweet.Jayson.Tests
 			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D.Count, intArray2D2.Count);
+
+			for (int i = 0; i < intArray2D.Count; i++) {
+				Assert.AreEqual (intArray2D [i], intArray2D2 [i]);
+			}
 		}
 
 		[Test]
@@ -1614,6 +1795,11 @@ namespace Sweet.Jayson.Tests
 			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D.Count, intArray2D2.Count);
+
+			for (int i = 0; i < intArray2D.Count; i++) {
+				Assert.AreEqual (intArray2D [i], intArray2D2 [i]);
+			}
 		}
 
 		[Test]
@@ -1635,6 +1821,11 @@ namespace Sweet.Jayson.Tests
 			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D.Count, intArray2D2.Count);
+
+			for (int i = 0; i < intArray2D.Count; i++) {
+				Assert.AreEqual (intArray2D [i], intArray2D2 [i]);
+			}
 		}
 
 		[Test]
@@ -1656,6 +1847,11 @@ namespace Sweet.Jayson.Tests
 			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D.Count, intArray2D2.Count);
+
+			for (int i = 0; i < intArray2D.Count; i++) {
+				Assert.AreEqual (intArray2D [i], intArray2D2 [i]);
+			}
 		}
 
 		[Test]
@@ -1677,6 +1873,11 @@ namespace Sweet.Jayson.Tests
 			List<int[,]> intArray2D2 = JaysonConverter.ToObject<List<int[,]>>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull (intArray2D2);
+			Assert.AreEqual (intArray2D.Count, intArray2D2.Count);
+
+			for (int i = 0; i < intArray2D.Count; i++) {
+				Assert.AreEqual (intArray2D [i], intArray2D2 [i]);
+			}
 		}
 
 		[Test]
@@ -1849,7 +2050,7 @@ namespace Sweet.Jayson.Tests
 		[Test]
 		public static void TestInterfaceDeserializationUsingObjectActivator()
 		{
-			var dto = TestClasses.GetTypedContainerNoDto();
+			var dto1 = TestClasses.GetTypedContainerNoDto();
 
 			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
 			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
@@ -1859,7 +2060,6 @@ namespace Sweet.Jayson.Tests
 
 			jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
 			jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-
 
 			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
 			jaysonDeserializationSettings.CaseSensitive = false;
@@ -1881,12 +2081,13 @@ namespace Sweet.Jayson.Tests
 				return null;
 			};
 
-			string json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
+			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			JaysonConverter.Parse(json, jaysonDeserializationSettings);
-			object result = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
+			ITypedContainerNoDto dto2 = JaysonConverter.ToObject<ITypedContainerNoDto>(json, jaysonDeserializationSettings);
 
-			Assert.IsNotNull(result);
-			Assert.IsTrue(result is ITypedContainerNoDto);
+			Assert.IsNotNull(dto2);
+
+			CompareTypedContainerNoDtos((ITypedContainerNoDto)dto1, dto2);
 		}
 
 		[Test]
@@ -1907,9 +2108,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime?>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("25\\/10\\/1972 12:45:32.000Z"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("25\\/10\\/1972 12:45:32.000Z"));
+			Assert.IsNotNull(date2);
+			Assert.IsTrue(date2 is DateTime);
 			Assert.AreEqual(date1, (DateTime)date2);
 		}
 
@@ -1927,9 +2128,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32Z"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32Z"));
+			Assert.IsNotNull(date2);
+			Assert.IsTrue(date2 is DateTime);
 			Assert.AreEqual(date1, (DateTime)date2);
 		}
 
@@ -1947,9 +2148,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
+			Assert.IsNotNull(date2);
+			Assert.IsTrue (date2 is DateTime);
 			Assert.AreEqual(date1, (DateTime)date2);
 		}
 
@@ -1967,9 +2168,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
+			Assert.IsNotNull(date2);
+			Assert.IsTrue (date2 is DateTime);
 			Assert.AreEqual(date1, (DateTime)date2);
 		}
 
@@ -1991,10 +2192,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-			Assert.True(json.Contains("/Date("));
-			Assert.NotNull(dto2);
-			Assert.NotNull(dto2.Value);
-			Assert.IsAssignableFrom<DateTime>(dto2.Value);
+			Assert.IsTrue(json.Contains("/Date("));
+			Assert.IsNotNull(dto2);
+			Assert.IsNotNull(dto2.Value);
+			Assert.IsTrue (dto2.Value is DateTime);
 			Assert.AreEqual(date1, (DateTime)dto2.Value);
 		}
 
@@ -2016,10 +2217,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-			Assert.True(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
-			Assert.NotNull(dto2);
-			Assert.NotNull(dto2.Value);
-			Assert.IsAssignableFrom<DateTime>(dto2.Value);
+			Assert.IsTrue(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
+			Assert.IsNotNull(dto2);
+			Assert.IsNotNull(dto2.Value);
+			Assert.IsTrue (dto2.Value is DateTime);
 			Assert.AreEqual(date1, (DateTime)dto2.Value);
 		}
 
@@ -2041,10 +2242,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-			Assert.True(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
-			Assert.NotNull(dto2);
-			Assert.NotNull(dto2.Value);
-			Assert.IsAssignableFrom<DateTime>(dto2.Value);
+			Assert.IsTrue(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
+			Assert.IsNotNull(dto2);
+			Assert.IsNotNull(dto2.Value);
+			Assert.IsTrue (dto2.Value is DateTime);
 			Assert.AreEqual(date1, (DateTime)dto2.Value);
 		}
 
@@ -2065,9 +2266,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+			Assert.IsNotNull(date2);
 			Assert.AreEqual(date2.Kind, DateTimeKind.Utc);
 		}
 
@@ -2088,9 +2288,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+			Assert.IsNotNull(date2);
 			Assert.AreEqual(date2.Kind, DateTimeKind.Local);
 		}
 
@@ -2111,9 +2310,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
 			var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("1972-10-25T12:45:32"));
-			Assert.NotNull(date2);
-			Assert.IsAssignableFrom<DateTime>(date2);
+			Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+			Assert.IsNotNull(date2);
 			Assert.AreEqual(date1, date2);
 			Assert.AreEqual(date2.Kind, DateTimeKind.Local);
 		}
@@ -2130,9 +2328,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
 			var dcml2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains(".Decimal"));
-			Assert.NotNull(dcml2);
-			Assert.IsAssignableFrom<decimal>(dcml2);
+			Assert.IsTrue(json.Contains(".Decimal"));
+			Assert.IsNotNull(dcml2);
+			Assert.IsTrue (dcml2 is decimal);
 			Assert.AreEqual(dcml1, (decimal)dcml2);
 		}
 
@@ -2148,10 +2346,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
 			var dcml2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json == "12345.67890123456789");
-			Assert.NotNull(dcml2);
-			Assert.IsAssignableFrom<decimal>(dcml2);
-			Assert.True(dcml1 == (decimal)dcml2);
+			Assert.IsTrue(json == "12345.67890123456789");
+			Assert.IsNotNull(dcml2);
+			Assert.IsTrue (dcml2 is decimal);
+			Assert.IsTrue(dcml1 == (decimal)dcml2);
 		}
 
 		[Test]
@@ -2170,10 +2368,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 			var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-			Assert.True(json.Contains(".Decimal"));
-			Assert.NotNull(dto2);
-			Assert.NotNull(dto2.Value);
-			Assert.IsAssignableFrom<Decimal>(dto2.Value);
+			Assert.IsTrue(json.Contains(".Decimal"));
+			Assert.IsNotNull(dto2);
+			Assert.IsNotNull(dto2.Value);
+			Assert.IsTrue (dto2.Value is decimal);
 			Assert.AreEqual(dcml1, (Decimal)dto2.Value);
 		}
 
@@ -2195,10 +2393,23 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(list2);
-			Assert.IsAssignableFrom<List<object>>(list2);
-			Assert.AreEqual(list1.Count, ((List<object>)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue (list2 is List<object>);
+
+			var list22 = (List<object>)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count - 1; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
+
+			Assert.IsTrue (list22[list22.Count-1] is VerySimpleJsonValue);
+
+			var vsjv1 = (VerySimpleJsonValue)list22 [list22.Count - 1];
+			Assert.IsTrue (vsjv1.Value is VerySimpleJsonValue);
+
+			var vsjv2 = (VerySimpleJsonValue)vsjv1.Value;
+			Assert.IsTrue (vsjv2.Value is bool && (bool)vsjv2.Value);
 		}
 
 		[Test]
@@ -2219,10 +2430,23 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(list2);
-			Assert.IsAssignableFrom<List<object>>(list2);
-			Assert.AreEqual(list1.Count, ((IList<object>)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue (list2 is List<object>);
+
+			var list22 = (List<object>)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count - 1; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
+
+			Assert.IsTrue (list22[list22.Count-1] is IDictionary<string, object>);
+
+			var vsjv1 = (IDictionary<string, object>)list22 [list22.Count - 1];
+			Assert.IsTrue (vsjv1["Value"] is IDictionary<string, object>);
+
+			var vsjv2 = (IDictionary<string, object>)vsjv1["Value"];
+			Assert.IsTrue (vsjv2["Value"] is bool && (bool)vsjv2["Value"]);
 		}
 
 		[Test]
@@ -2243,10 +2467,23 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(list2);
-			Assert.IsAssignableFrom<ArrayList>(list2);
-			Assert.AreEqual(list1.Count, ((IList)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue (list2 is ArrayList);
+
+			var list22 = (ArrayList)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count - 1; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
+
+			Assert.IsTrue (list22[list22.Count-1] is VerySimpleJsonValue);
+
+			var vsjv1 = (VerySimpleJsonValue)list22 [list22.Count - 1];
+			Assert.IsTrue (vsjv1.Value is VerySimpleJsonValue);
+
+			var vsjv2 = (VerySimpleJsonValue)vsjv1.Value;
+			Assert.IsTrue (vsjv2.Value is bool && (bool)vsjv2.Value);
 		}
 
 		[Test]
@@ -2270,11 +2507,24 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(list2);
-			Assert.IsAssignableFrom<object[]>(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Count, ((IList)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue (list2 is object[]);
+			Assert.IsTrue (list2.GetType ().IsArray);
+
+			var list22 = (Array)list2;
+			Assert.AreEqual(list1.Count, list22.Length);
+
+			for (int i = 0; i < list1.Count - 1; i++) {
+				Assert.AreEqual(list1[i], list22.GetValue (i));
+			}
+
+			Assert.IsTrue (list22.GetValue (list22.Length - 1) is IDictionary<string, object>);
+
+			var vsjv1 = (IDictionary<string, object>)list22.GetValue (list22.Length - 1);
+			Assert.IsTrue (vsjv1["Value"] is IDictionary<string, object>);
+
+			var vsjv2 = (IDictionary<string, object>)vsjv1["Value"];
+			Assert.IsTrue (vsjv2["Value"] is bool && (bool)vsjv2["Value"]);
 		}
 
 		[Test]
@@ -2292,10 +2542,15 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("1") && json.Contains("2"));
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Count, ((IList)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
+
+			var list22 = (IList)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
 		}
 
 		[Test]
@@ -2313,10 +2568,15 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("1") && json.Contains("2"));
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Count, ((IList)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
+
+			var list22 = (IList)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
 		}
 
 		[Test]
@@ -2334,10 +2594,15 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Length, ((IList)list2).Count);
-			Assert.AreEqual(((IList)list2).Count, 0);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
+
+			var list22 = (IList)list2;
+			Assert.AreEqual(list1.Length, list22.Count);
+
+			for (int i = 0; i < list1.Length; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
 		}
 
 		[Test]
@@ -2355,10 +2620,9 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Length, list2.Length);
-			Assert.AreEqual(list2.Length, 0);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2376,10 +2640,11 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
-			Assert.AreEqual(list1.Length, ((IList)list2).Count);
-			Assert.AreEqual(((IList)list2).Count, 0);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
+
+			var list22 = (IList)list2;
+			Assert.AreEqual(list1, list22);
 		}
 
 		[Test]
@@ -2397,10 +2662,11 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 			Assert.AreEqual(list2.Length, 0);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2418,11 +2684,11 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((IList)list2).Count);
 			Assert.AreEqual(((IList)list2).Count, 1);
-			Assert.True(((IList)list2)[0].GetType ().IsArray);
+			Assert.IsTrue(((IList)list2)[0].GetType ().IsArray);
 			Assert.AreEqual(((IList)((IList)list2)[0]).Count, 0);
 		}
 
@@ -2441,11 +2707,12 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 			Assert.AreEqual(list2.Length, 1);
 			Assert.AreEqual(list2[0].Length, 0);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2463,9 +2730,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2483,12 +2751,13 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 			Assert.AreEqual(list2.Rank, 2);
 			Assert.AreEqual(list2.GetLength (0), 0);
 			Assert.AreEqual(list2.GetLength (1), 0);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2506,9 +2775,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2526,13 +2796,14 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 			Assert.AreEqual(list2.Rank, 3);
 			Assert.AreEqual(list2.GetLength (0), 0);
 			Assert.AreEqual(list2.GetLength (1), 0);
 			Assert.AreEqual(list2.GetLength (2), 0);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2550,9 +2821,10 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((IList)list2).Count);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2570,14 +2842,15 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,,,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 			Assert.AreEqual(list2.Rank, 4);
 			Assert.AreEqual(list2.GetLength (0), 0);
 			Assert.AreEqual(list2.GetLength (1), 0);
 			Assert.AreEqual(list2.GetLength (2), 0);
 			Assert.AreEqual(list2.GetLength (3), 0);
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2604,8 +2877,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((IList)list2).Count);
 
 			Assert.AreEqual(((IList)list2).Count, 3);
@@ -2639,8 +2912,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][][]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 
 			Assert.AreEqual(list2.Length, 3);
@@ -2652,6 +2925,8 @@ namespace Sweet.Jayson.Tests
 			Assert.AreEqual(list2[0][0].Length, 0);
 			Assert.AreEqual(list2[0][1].Length, 0);
 			Assert.AreEqual(list2[2][0].Length, 0);
+
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2669,8 +2944,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, ((Array)list2).Length);
 
 			Assert.AreEqual(((Array)list2).Rank, 3);
@@ -2695,8 +2970,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 
 			Assert.AreEqual(list2.Rank, 3);
@@ -2704,6 +2979,8 @@ namespace Sweet.Jayson.Tests
 			Assert.AreEqual(list2.GetLength (0), 3);
 			Assert.AreEqual(list2.GetLength (1), 0);
 			Assert.AreEqual(list2.GetLength (2), 0);
+
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2726,8 +3003,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 
 			Assert.AreEqual(list2.Length, 4);
@@ -2783,8 +3060,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,][]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
 
 			Assert.AreEqual(list2[0,0][0], 1);
@@ -2814,8 +3091,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 
 			Assert.AreEqual(list1.Length, list2.Length);
 
@@ -2855,8 +3132,8 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[,][]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 
 			Assert.AreEqual(list2.Rank, 2);
 
@@ -2920,9 +3197,11 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject<int[][][,]>(json, jaysonDeserializationSettings);
 
-			Assert.NotNull(list2);
-			Assert.True(list2.GetType().IsArray);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue(list2.GetType().IsArray);
 			Assert.AreEqual(list1.Length, list2.Length);
+
+			Assert.AreEqual(list1, list2);
 		}
 
 		[Test]
@@ -2944,10 +3223,23 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
 			var list2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(list2);
-			Assert.IsAssignableFrom<ReadOnlyCollection<object>>(list2);
-			Assert.AreEqual(list1.Count, ((IList<object>)list2).Count);
+			Assert.IsNotNull(list2);
+			Assert.IsTrue (list2 is ReadOnlyCollection<object>);
+
+			var list22 = (ReadOnlyCollection<object>)list2;
+			Assert.AreEqual(list1.Count, list22.Count);
+
+			for (int i = 0; i < list1.Count - 1; i++) {
+				Assert.AreEqual(list1[i], list22[i]);
+			}
+
+			Assert.IsTrue (list22[list22.Count-1] is VerySimpleJsonValue);
+
+			var vsjv1 = (VerySimpleJsonValue)list22 [list22.Count - 1];
+			Assert.IsTrue (vsjv1.Value is VerySimpleJsonValue);
+
+			var vsjv2 = (VerySimpleJsonValue)vsjv1.Value;
+			Assert.IsTrue (vsjv2.Value is bool && (bool)vsjv2.Value);
 		}
 
 		#if !(NET4000 || NET3500 || NET3000 || NET2000)
@@ -2977,10 +3269,27 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dict1, jaysonSerializationSettings);
 			var dict2 = JaysonConverter.ToObject(json);
 
-			Assert.True(json.Contains("Hello") && json.Contains("World"));
-			Assert.NotNull(dict2);
-			Assert.IsAssignableFrom<ReadOnlyDictionary<object, object>>(dict2);
-			Assert.AreEqual(dict1.Count, ((ReadOnlyDictionary<object, object>)dict2).Count);
+			Assert.IsNotNull(dict2);
+			Assert.IsTrue(dict2 is ReadOnlyDictionary<object, object>);
+
+			var dict22 = (ReadOnlyDictionary<object, object>)dict2;
+			Assert.AreEqual(dict1.Count, dict22.Count);
+
+			foreach (var kvp in dict1) {
+				Assert.IsTrue (dict22.ContainsKey (kvp.Key));
+
+				if (!kvp.Key.Equals ((int?)13579)) {
+					Assert.AreEqual (kvp.Value, dict22[kvp.Key]);
+				} else {
+					Assert.IsTrue (dict22[kvp.Key] is VerySimpleJsonValue);
+
+					var vsjv1 = (VerySimpleJsonValue)dict22 [kvp.Key];
+					Assert.IsTrue (vsjv1.Value is VerySimpleJsonValue);
+
+					var vsjv2 = (VerySimpleJsonValue)vsjv1.Value;
+					Assert.IsTrue (vsjv2.Value is bool && (bool)vsjv2.Value);
+				}
+			}
 		}
 		#endif
 
@@ -2996,9 +3305,15 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(dto1, new JaysonSerializationSettings());
 			var obj = JaysonConverter.Parse(json);
 
-			Assert.NotNull(obj);
-			Assert.True(typeof(IDictionary<string, object>).IsAssignableFrom(obj.GetType()));
-			Assert.AreEqual(((IDictionary<string, object>)obj).Count, 2);
+			Assert.IsNotNull(obj);
+			Assert.IsTrue(obj is IDictionary<string, object>);
+
+			var dict2 = (IDictionary<string, object>)obj;
+			Assert.AreEqual(dict2.Count, 2);
+			Assert.IsTrue(dict2.ContainsKey ("Value1"));
+			Assert.IsTrue(dict2["Value1"].Equals ("Hello"));
+			Assert.IsTrue(dict2.ContainsKey ("Value2"));
+			Assert.IsTrue(dict2["Value2"].Equals ("World"));
 		}
 
 		[Test]
@@ -3017,7 +3332,7 @@ namespace Sweet.Jayson.Tests
 
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-			Assert.True(json.Contains("\"Value1\":\"Hello\"") &&
+			Assert.IsTrue(json.Contains("\"Value1\":\"Hello\"") &&
 				json.Contains("\"Value2\":\"World\""));
 		}
 
@@ -3037,7 +3352,7 @@ namespace Sweet.Jayson.Tests
 
 			string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-			Assert.True(json.Contains("\"Value1\": \"Hello\"") &&
+			Assert.IsTrue(json.Contains("\"Value1\": \"Hello\"") &&
 				json.Contains("\"Value2\": \"World\""));
 		}
 
@@ -3136,7 +3451,7 @@ namespace Sweet.Jayson.Tests
 
 			string json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
 
-			Assert.True(json.Contains("My DataTable 1") && json.Contains("myTableNamespace"));
+			Assert.IsTrue(json.Contains("My DataTable 1") && json.Contains("myTableNamespace"));
 		}
 
 		[Test]
@@ -3172,7 +3487,7 @@ namespace Sweet.Jayson.Tests
 
 			string json = JaysonConverter.ToJsonString(ds, jaysonSerializationSettings);
 
-			Assert.True(json.Contains("My DataSet") && json.Contains("My DataTable 1") &&
+			Assert.IsTrue(json.Contains("My DataSet") && json.Contains("My DataTable 1") &&
 				json.Contains("myTableNamespace"));
 		}
 
@@ -3200,7 +3515,7 @@ namespace Sweet.Jayson.Tests
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
-					Value3 = "World 1"
+					Value3 = "World 2"
 				}});
 
 			dt1.Rows [0] [4] = Encoding.UTF8.GetBytes ("Hello World 1");
@@ -3222,8 +3537,31 @@ namespace Sweet.Jayson.Tests
 			DataTable dt2 = JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull(dt2);
-			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
+
 			Assert.AreEqual(dt1.Columns.Count, dt2.Columns.Count);
+			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
+
+			Assert.AreEqual(dt1.Columns[0].ExtendedProperties.Count, dt2.Columns[0].ExtendedProperties.Count);
+			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[1], 2m);
+			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[3], 4m);
+			Assert.AreEqual(dt1.ExtendedProperties.Count, dt2.ExtendedProperties.Count);
+			Assert.AreEqual(dt2.ExtendedProperties[5], 6m);
+			Assert.AreEqual(dt2.ExtendedProperties[7], 8m);
+
+			Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
+			Assert.AreEqual((bool)dt2.Rows[0][1], true);
+			Assert.AreEqual(dt2.Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+			Assert.IsTrue(dt2.Rows[0][3] is SimpleObj);
+			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
+			Assert.AreEqual(((byte[])dt2.Rows[0][4])[0], Encoding.UTF8.GetBytes ("Hello World 1")[0]);
+			Assert.AreEqual(dt2.Rows[1][0], "row2");
+			Assert.AreEqual((bool)dt2.Rows[1][1], false);
+			Assert.AreEqual(dt2.Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+			Assert.IsTrue(dt2.Rows[1][3] is SimpleObjDerivative);
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value2, "My");
+			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value3, "World 2");
 		}
 
 		[Test]
@@ -3274,6 +3612,8 @@ namespace Sweet.Jayson.Tests
 			Assert.IsNotNull(dt2);
 
 			Assert.AreEqual(dt1.Columns.Count, dt2.Columns.Count);
+			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
+
 			Assert.AreEqual(dt1.Columns[0].ExtendedProperties.Count, dt2.Columns[0].ExtendedProperties.Count);
 			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[1], 2m);
 			Assert.AreEqual(dt2.Columns[0].ExtendedProperties[3], 4m);
@@ -3281,18 +3621,17 @@ namespace Sweet.Jayson.Tests
 			Assert.AreEqual(dt2.ExtendedProperties[5], 6m);
 			Assert.AreEqual(dt2.ExtendedProperties[7], 8m);
 
-			Assert.AreEqual(dt1.Rows.Count, dt2.Rows.Count);
 			Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
 			Assert.AreEqual((bool)dt2.Rows[0][1], true);
 			Assert.AreEqual(dt2.Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
-			Assert.True(dt2.Rows[0][3] is SimpleObj);
+			Assert.IsTrue(dt2.Rows[0][3] is SimpleObj);
 			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
 			Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
 			Assert.AreEqual(((byte[])dt2.Rows[0][4])[0], Encoding.UTF8.GetBytes ("Hello World 1")[0]);
 			Assert.AreEqual(dt2.Rows[1][0], "row2");
 			Assert.AreEqual((bool)dt2.Rows[1][1], false);
 			Assert.AreEqual(dt2.Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
-			Assert.True(dt2.Rows[1][3] is SimpleObjDerivative);
+			Assert.IsTrue(dt2.Rows[1][3] is SimpleObjDerivative);
 			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");
 			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value2, "My");
 			Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value3, "World 2");
@@ -3342,10 +3681,11 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
 			DataSet ds2 = JaysonConverter.ToObject<DataSet>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("My DataSet") && json.Contains("My DataTable 1") &&
+			Assert.IsTrue(json.Contains("My DataSet") && json.Contains("My DataTable 1") &&
 				json.Contains("myTableNamespace"));
 
 			Assert.IsNotNull(ds2);
+
 			Assert.AreEqual(ds1.Tables.Count, ds2.Tables.Count);
 
 			Assert.AreEqual(ds1.Tables[0].Columns.Count, ds2.Tables[0].Columns.Count);
@@ -3360,13 +3700,13 @@ namespace Sweet.Jayson.Tests
 			Assert.AreEqual(ds2.Tables[0].Rows[0][0], DBNull.Value);
 			Assert.AreEqual(ds2.Tables[0].Rows[0][1], true);
 			Assert.AreEqual(ds2.Tables[0].Rows[0][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
-			Assert.True(ds2.Tables[0].Rows[0][3] is SimpleObj);
+			Assert.IsTrue(ds2.Tables[0].Rows[0][3] is SimpleObj);
 			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value1, "Hello");
 			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value2, "World 1");
 			Assert.AreEqual(ds2.Tables[0].Rows[1][0], "row2");
 			Assert.AreEqual(ds2.Tables[0].Rows[1][1], false);
 			Assert.AreEqual(ds2.Tables[0].Rows[1][2], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
-			Assert.True(ds2.Tables[0].Rows[1][3] is SimpleObjDerivative);
+			Assert.IsTrue(ds2.Tables[0].Rows[1][3] is SimpleObjDerivative);
 			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value1, "Hello");
 			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value2, "My");
 			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value3, "World 2");
@@ -3439,7 +3779,7 @@ namespace Sweet.Jayson.Tests
 			string json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
 			DataSet ds2 = JaysonConverter.ToObject<DataSet>(json, jaysonDeserializationSettings);
 
-			Assert.True(json.Contains("My DataSet") &&
+			Assert.IsTrue(json.Contains("My DataSet") &&
 				json.Contains("My DataTable 1") && json.Contains("myTableNamespace1") &&
 				json.Contains("My DataTable 2") && json.Contains("myTableNamespace2"));
 
@@ -3448,6 +3788,66 @@ namespace Sweet.Jayson.Tests
 			Assert.IsNotNull(ds2.Tables["My DataTable 1", "myTableNamespace1"]);
 			Assert.IsNotNull(ds2.Tables["My DataTable 2", "myTableNamespace2"]);
 			Assert.IsNotNull(ds2.Relations["dr1"]);
+			Assert.AreEqual(ds2.ExtendedProperties["x4"], true);
+
+			Assert.AreEqual(ds1.Tables[0].Columns.Count, ds2.Tables[0].Columns.Count);
+			Assert.AreEqual(ds1.Tables[0].Columns[0].ExtendedProperties.Count, ds2.Tables[0].Columns[0].ExtendedProperties.Count);
+			Assert.AreEqual(ds2.Tables[0].Columns[0].ExtendedProperties["x1"], "X1");
+			Assert.AreEqual(ds1.Tables[0].ExtendedProperties.Count, ds2.Tables[0].ExtendedProperties.Count);
+			Assert.AreEqual(ds2.Tables[0].ExtendedProperties["x2"], 2);
+
+			Assert.AreEqual(ds1.Tables[0].Rows.Count, ds2.Tables[0].Rows.Count);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][0], 0);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][1], DBNull.Value);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][2], true);
+			Assert.AreEqual(ds2.Tables[0].Rows[0][3], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+			Assert.IsTrue(ds2.Tables[0].Rows[0][4] is SimpleObj);
+			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][4]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][4]).Value2, "World 1");
+			Assert.AreEqual(ds2.Tables[0].Rows[1][0], 1);
+			Assert.AreEqual(ds2.Tables[0].Rows[1][1], "row2");
+			Assert.AreEqual(ds2.Tables[0].Rows[1][2], false);
+			Assert.AreEqual(ds2.Tables[0].Rows[1][3], new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+			Assert.IsTrue(ds2.Tables[0].Rows[1][4] is SimpleObjDerivative);
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][4]).Value1, "Hello");
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][4]).Value2, "My");
+			Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][4]).Value3, "World 2");
+
+			Assert.AreEqual(ds1.Tables[1].Columns.Count, ds2.Tables[1].Columns.Count);
+			Assert.AreEqual(ds1.Tables[1].ExtendedProperties.Count, ds2.Tables[1].ExtendedProperties.Count);
+			Assert.AreEqual(ds2.Tables[1].ExtendedProperties["x3"], 3);
+
+			Assert.AreEqual(ds1.Tables[1].Rows.Count, ds2.Tables[1].Rows.Count);
+			Assert.AreEqual(ds2.Tables[1].Rows[0][0], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[0][1], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[0][2], "string1");
+			Assert.AreEqual(ds2.Tables[1].Rows[1][0], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[1][1], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[1][2], "string2");
+			Assert.AreEqual(ds2.Tables[1].Rows[2][0], 2L);
+			Assert.AreEqual(ds2.Tables[1].Rows[2][1], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[2][2], "string3");
+			Assert.AreEqual(ds2.Tables[1].Rows[3][0], 3L);
+			Assert.AreEqual(ds2.Tables[1].Rows[3][1], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[3][2], "string4");
+			Assert.AreEqual(ds2.Tables[1].Rows[4][0], 4L);
+			Assert.AreEqual(ds2.Tables[1].Rows[4][1], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[4][2], "string5");
+			Assert.AreEqual(ds2.Tables[1].Rows[5][0], 5L);
+			Assert.AreEqual(ds2.Tables[1].Rows[5][1], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[5][2], "string6");
+			Assert.AreEqual(ds2.Tables[1].Rows[6][0], 6L);
+			Assert.AreEqual(ds2.Tables[1].Rows[6][1], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[6][2], "string7");
+			Assert.AreEqual(ds2.Tables[1].Rows[7][0], 7L);
+			Assert.AreEqual(ds2.Tables[1].Rows[7][1], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[7][2], "string8");
+			Assert.AreEqual(ds2.Tables[1].Rows[8][0], 8L);
+			Assert.AreEqual(ds2.Tables[1].Rows[8][1], 0L);
+			Assert.AreEqual(ds2.Tables[1].Rows[8][2], "string9");
+			Assert.AreEqual(ds2.Tables[1].Rows[9][0], 9L);
+			Assert.AreEqual(ds2.Tables[1].Rows[9][1], 1L);
+			Assert.AreEqual(ds2.Tables[1].Rows[9][2], "string10");
 		}
 
 		[Test]
@@ -3489,8 +3889,39 @@ namespace Sweet.Jayson.Tests
 			DataSet ds3 = JaysonConverter.ToObject<CustomDataSet1>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull(ds2);
+			Assert.IsNotNull(ds3);
+
 			Assert.AreEqual(ds1.Tables.Count, ds2.Tables.Count);
 			Assert.AreEqual(ds1.Tables.Count, ds3.Tables.Count);
+
+			Assert.AreEqual(ds2.Tables[0].Columns[0].ExtendedProperties["x1"], "X1");
+			Assert.AreEqual(ds3.Tables[0].Columns[0].ExtendedProperties["x1"], "X1");
+
+			Assert.AreEqual(ds2.Tables[0].ExtendedProperties["x2"], 2);
+			Assert.AreEqual(ds3.Tables[0].ExtendedProperties["x2"], 2);
+
+			Assert.AreEqual(ds2.Tables[1].ExtendedProperties["x3"], 3);
+			Assert.AreEqual(ds3.Tables[1].ExtendedProperties["x3"], 3);
+
+			Assert.AreEqual(ds2.ExtendedProperties["x4"], true);
+			Assert.AreEqual(ds3.ExtendedProperties["x4"], true);
+
+			for (int i = 0; i < ds1.Tables.Count; i++) {
+				Assert.AreEqual(ds1.Tables[i].TableName, ds2.Tables[i].TableName);
+				Assert.AreEqual(ds1.Tables[i].Rows.Count, ds2.Tables[i].Rows.Count);
+				Assert.AreEqual(ds1.Tables[i].Columns.Count, ds2.Tables[i].Columns.Count);
+
+				Assert.AreEqual(ds1.Tables[i].TableName, ds3.Tables[i].TableName);
+				Assert.AreEqual(ds1.Tables[i].Rows.Count, ds3.Tables[i].Rows.Count);
+				Assert.AreEqual(ds1.Tables[i].Columns.Count, ds3.Tables[i].Columns.Count);
+
+				for (int j = 0; j < ds1.Tables[i].Rows.Count; j++) {
+					for (int k = 0; k < ds1.Tables [i].Columns.Count; k++) {
+						Assert.AreEqual(ds1.Tables[i].Rows[j][k], ds2.Tables[i].Rows[j][k]);
+						Assert.AreEqual(ds1.Tables[i].Rows[j][k], ds3.Tables[i].Rows[j][k]);
+					}
+				}
+			}
 		}
 
 		[Test]
@@ -3532,8 +3963,39 @@ namespace Sweet.Jayson.Tests
 			DataSet ds3 = JaysonConverter.ToObject<CustomDataSet1>(json, jaysonDeserializationSettings);
 
 			Assert.IsNotNull(ds2);
+			Assert.IsNotNull(ds3);
+
 			Assert.AreEqual(ds1.Tables.Count, ds2.Tables.Count);
 			Assert.AreEqual(ds1.Tables.Count, ds3.Tables.Count);
+
+			Assert.AreEqual(ds2.Tables[0].Columns[0].ExtendedProperties["x1"], "X1");
+			Assert.AreEqual(ds3.Tables[0].Columns[0].ExtendedProperties["x1"], "X1");
+
+			Assert.AreEqual(ds2.Tables[0].ExtendedProperties["x2"], 2);
+			Assert.AreEqual(ds3.Tables[0].ExtendedProperties["x2"], 2);
+
+			Assert.AreEqual(ds2.Tables[1].ExtendedProperties["x3"], 3);
+			Assert.AreEqual(ds3.Tables[1].ExtendedProperties["x3"], 3);
+
+			Assert.AreEqual(ds2.ExtendedProperties["x4"], true);
+			Assert.AreEqual(ds3.ExtendedProperties["x4"], true);
+
+			for (int i = 0; i < ds1.Tables.Count; i++) {
+				Assert.AreEqual(ds1.Tables[i].TableName, ds2.Tables[i].TableName);
+				Assert.AreEqual(ds1.Tables[i].Rows.Count, ds2.Tables[i].Rows.Count);
+				Assert.AreEqual(ds1.Tables[i].Columns.Count, ds2.Tables[i].Columns.Count);
+
+				Assert.AreEqual(ds1.Tables[i].TableName, ds3.Tables[i].TableName);
+				Assert.AreEqual(ds1.Tables[i].Rows.Count, ds3.Tables[i].Rows.Count);
+				Assert.AreEqual(ds1.Tables[i].Columns.Count, ds3.Tables[i].Columns.Count);
+
+				for (int j = 0; j < ds1.Tables[i].Rows.Count; j++) {
+					for (int k = 0; k < ds1.Tables [i].Columns.Count; k++) {
+						Assert.AreEqual(ds1.Tables[i].Rows[j][k], ds2.Tables[i].Rows[j][k]);
+						Assert.AreEqual(ds1.Tables[i].Rows[j][k], ds3.Tables[i].Rows[j][k]);
+					}
+				}
+			}
 		}
 
 		[Test]
@@ -3600,7 +4062,7 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(hset2);
 			Assert.AreEqual(hset2.Count, 6);
-			Assert.True(hset2.SetEquals(hset1));
+			Assert.IsTrue(hset2.SetEquals(hset1));
 		}
 
 		[Test]
@@ -3631,7 +4093,7 @@ namespace Sweet.Jayson.Tests
 
 			Assert.IsNotNull(hset2);
 			Assert.AreEqual(hset2.Count, 6);
-			Assert.True(hset2.SetEquals(hset1));
+			Assert.IsTrue(hset2.SetEquals(hset1));
 		}
 
 		[Test]
