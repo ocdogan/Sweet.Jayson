@@ -62,6 +62,7 @@ namespace Sweet.Jayson
 		public bool RaiseErrorOnMaxObjectDepth = true;
 		public bool UseEnumNames = true;
 		public bool UseGlobalTypeNames = false;
+        public bool UseKVModelForJsonObjects = true;
 
 		public int MaxObjectDepth;
 
@@ -118,6 +119,7 @@ namespace Sweet.Jayson
 			destination.RaiseErrorOnMaxObjectDepth = RaiseErrorOnMaxObjectDepth;
 			destination.UseEnumNames = UseEnumNames;
 			destination.UseGlobalTypeNames = UseGlobalTypeNames;
+            destination.UseKVModelForJsonObjects = UseKVModelForJsonObjects;
             destination.TypeNameInfo = TypeNameInfo;
 			destination.TypeNames = TypeNames;
 

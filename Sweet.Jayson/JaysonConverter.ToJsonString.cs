@@ -2896,15 +2896,19 @@ namespace Sweet.Jayson
 
 				if (obj is IDictionary)
 				{
-                    var genericArgs = info.GenericArguments;
-                    if (genericArgs != null && genericArgs.Length > 0) {
-                        if (genericArgs[0] == typeof(string)) {
-                            WriteDictionaryStringKey((IDictionary)obj, context);
-                        } else {
-                            WriteDictionaryObject((IDictionary)obj, genericArgs[0], genericArgs[1], context);
-                        }
+                    if (!settings.UseKVModelForJsonObjects) {
+                        WriteDictionaryStringKey((IDictionary)obj, context);
                     } else {
-                        WriteDictionaryObject((IDictionary)obj, null, null, context);
+                        var genericArgs = info.GenericArguments;
+                        if (genericArgs != null && genericArgs.Length > 0) {
+                            if (genericArgs[0] == typeof(string)) {
+                                WriteDictionaryStringKey((IDictionary)obj, context);
+                            } else {
+                                WriteDictionaryObject((IDictionary)obj, genericArgs[0], genericArgs[1], context);
+                            }
+                        } else {
+                            WriteDictionaryObject((IDictionary)obj, null, null, context);
+                        }
                     }
 					return;
 				}
