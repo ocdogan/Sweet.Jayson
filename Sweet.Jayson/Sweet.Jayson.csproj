@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JaysonOrderedDictionary.cs" />
     <Compile Include="JaysonTuple.cs" />
     <Compile Include="JaysonTypeOverrideTK.cs" />
     <Compile Include="JaysonTypeOverride.cs" />

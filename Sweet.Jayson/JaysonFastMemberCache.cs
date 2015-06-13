@@ -43,14 +43,14 @@ namespace Sweet.Jayson
 
 		private static readonly object s_TypeMembersLock = new object();
 
-		private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeMembers =
+        private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
-		private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeAllFieldMembers =
+        private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeAllFieldMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
 
-		private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeInvariantMembers =
+        private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeInvariantMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
-		private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeInvariantAllFieldMembers =
+        private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeInvariantAllFieldMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
 
 		# endregion Static Members
@@ -69,8 +69,8 @@ namespace Sweet.Jayson
 		private static void FillMembers(Type objType, out IDictionary<string, IJaysonFastMember> members,
 			out IDictionary<string, IJaysonFastMember> membersInvariant)
 		{
-			members = new Dictionary<string, IJaysonFastMember>(5);
-			membersInvariant = new Dictionary<string, IJaysonFastMember>(5);
+            members = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
+            membersInvariant = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
 
 			IJaysonFastMember member;
 
@@ -160,8 +160,8 @@ namespace Sweet.Jayson
 		private static void FillAllFieldMembers(Type objType, out IDictionary<string, IJaysonFastMember> members, 
 			out IDictionary<string, IJaysonFastMember> membersInvariant)
 		{
-			members = new Dictionary<string, IJaysonFastMember>(5);
-			membersInvariant = new Dictionary<string, IJaysonFastMember>(5);
+            members = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
+            membersInvariant = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
 
 			FieldInfo[] fis = objType.GetFields(BindingFlags.Instance | BindingFlags.Public |
 				BindingFlags.NonPublic);
