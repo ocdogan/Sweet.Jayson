@@ -92,8 +92,13 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDictionary(IDictionary obj, JaysonSerializationContext context)
 		{
-            var genericArgs = JaysonTypeInfo.GetGenericArguments(obj.GetType());
-            if ((genericArgs != null) && (genericArgs.Length > 0) && (genericArgs[0] == typeof(string)))
+			bool useStringKey = !context.Settings.UseKVModelForJsonObjects;
+			if (!useStringKey) {
+				var genericArgs = JaysonTypeInfo.GetGenericArguments (obj.GetType ());
+				useStringKey = (genericArgs != null) && (genericArgs.Length > 0) && (genericArgs [0] == typeof(string));
+			}
+
+			if (useStringKey)
             {
                 if (obj.Count == 0)
                 {
