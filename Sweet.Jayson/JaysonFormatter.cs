@@ -952,7 +952,7 @@ namespace Sweet.Jayson
 			char[] chArr = new char[8];
 			if (value == 0)
 			{
-				if (len > 0)
+				if (len > 1)
 				{
 					for (int i = 0; i < len; i++)
 					{
