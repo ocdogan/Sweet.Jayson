@@ -49,6 +49,114 @@ namespace Sweet.Jayson.Tests
 	public class PrimaryTests
 	{
 		[Test]
+		public static void TestToJsonObjectUseKVModelForJsonObjects1()
+		{
+			var a1 = TestClasses.GetA ();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = false;
+
+			var jsonObj = JaysonConverter.ToJsonObject(a1, jaysonSerializationSettings);
+
+			Assert.IsTrue(jsonObj is IDictionary<string, object>);
+
+			var a2 = (IDictionary<string, object>)jsonObj;
+
+			foreach (var pi in a1.GetType ().GetProperties ()) {
+				if (pi.Name == "L2") {
+					var l21 = pi.GetValue (a1) as IList;
+					var l22 = a2 ["L2"] as IList;
+
+					Assert.IsNotNull (l21);
+					Assert.IsNotNull (l22);
+					Assert.AreEqual (l21.Count, l22.Count);
+
+					for (int i = 0; i < l21.Count; i++) {
+						Assert.AreEqual (l21[i], l22[i]);
+					}
+				} else {
+					Assert.AreEqual (pi.GetValue (a1), a2 [pi.Name]);
+				}
+			}
+
+			foreach (var fi in a1.GetType ().GetFields ()) {
+				if (fi.Name == "D3") {
+					var d31 = fi.GetValue (a1) as IDictionary<object, object>;
+					var d32 = a2 ["D3"] as IDictionary<string, object>;
+
+					Assert.IsNotNull (d31);
+					Assert.IsNotNull (d32);
+					Assert.AreEqual (d31.Count, d32.Count);
+
+					foreach (var kvp in d31) {
+						Assert.IsTrue (d32.ContainsKey (kvp.Key.ToString ()));
+						Assert.AreEqual (kvp.Value, d32[kvp.Key.ToString ()]);
+					}
+				} else {
+					Assert.AreEqual (fi.GetValue (a1), a2 [fi.Name]);
+				}
+			}
+		}
+
+		[Test]
+		public static void TestToJsonObjectUseKVModelForJsonObjects2()
+		{
+			var a1 = TestClasses.GetA ();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+			var jsonObj = JaysonConverter.ToJsonObject(a1, jaysonSerializationSettings);
+
+			Assert.IsTrue(jsonObj is IDictionary<string, object>);
+
+			var a2 = (IDictionary<string, object>)jsonObj;
+
+			foreach (var pi in a1.GetType ().GetProperties ()) {
+				if (pi.Name == "L2") {
+					var l21 = pi.GetValue (a1) as IList;
+					var l22 = a2 ["L2"] as IList;
+
+					Assert.IsNotNull (l21);
+					Assert.IsNotNull (l22);
+					Assert.AreEqual (l21.Count, l22.Count);
+
+					for (int i = 0; i < l21.Count; i++) {
+						Assert.AreEqual (l21[i], l22[i]);
+					}
+				} else {
+					Assert.AreEqual (pi.GetValue (a1), a2 [pi.Name]);
+				}
+			}
+
+			foreach (var fi in a1.GetType ().GetFields ()) {
+				if (fi.Name == "D3") {
+					var d31 = fi.GetValue (a1) as IDictionary<object, object>;
+					var d32 = a2 ["D3"] as IDictionary<string, object>;
+
+					Assert.IsNotNull (d31);
+					Assert.IsNotNull (d32);
+
+					Assert.AreEqual (d32.Count, 1);
+					Assert.IsTrue (d32.ContainsKey ("$kv"));
+
+					var kv = d32["$kv"] as List<object>;
+					Assert.IsNotNull (kv);
+					Assert.AreEqual (d31.Count, kv.Count);
+
+					foreach (var kvp in d31) {
+						Assert.IsNotNull (kv.FirstOrDefault (item => (item as IDictionary<string, object>)["$k"].Equals (kvp.Key) &&
+							(item as IDictionary<string, object>)["$v"].Equals (kvp.Value)));
+					}
+				} else {
+					Assert.AreEqual (fi.GetValue (a1), a2 [fi.Name]);
+				}
+			}
+		}
+
+		[Test]
         public static void TestUseKVModelForJsonObjects1()
 		{
 			var a1 = TestClasses.GetA ();
