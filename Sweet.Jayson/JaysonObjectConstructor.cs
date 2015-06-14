@@ -72,7 +72,7 @@ namespace Sweet.Jayson
                         }
                         else if (info.Enum) {
 							function = () => Enum.ToObject(objType, 0L);
-                        }                            
+                        }
 						else if (info.DefaultJConstructor) {
                             Expression newExp = Expression.New (objType);
                             newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
