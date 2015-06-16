@@ -252,7 +252,120 @@ namespace Sweet.Jayson.Tests
             Assert.AreEqual(a1.O2, a2.O2);
         }
         
-        [Test]
+		[Test]
+		public static void TestA2()
+		{
+			var a1 = TestClasses.GetA2();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.UseObjectReferencing = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+			var a2 = JaysonConverter.ToObject<A>(json, jaysonDeserializationSettings);
+
+			Assert.IsTrue(json.Contains("$kv"));
+
+			Assert.IsNotNull(a2);
+			Assert.AreEqual(a1.D1, a2.D1);
+			Assert.AreEqual(a1.D2, a2.D2);
+
+			Assert.IsNotNull(a2.D3);
+			Assert.AreEqual(a1.D3.Count, a2.D3.Count);
+
+			Assert.IsTrue (a2.D3.ContainsKey ("#self"));
+			Assert.IsTrue (ReferenceEquals (a2.D3, a2.D3 ["#self"]));
+
+			Assert.IsTrue (a2.D3.ContainsKey ("#list"));
+			Assert.IsTrue (a2.D3["#list"] is IList);
+			Assert.AreEqual (((IList)a2.D3["#list"]).Count, 1);
+			Assert.IsTrue (ReferenceEquals(a2.D3, ((IList)a2.D3 ["#list"])[0]));
+
+			foreach (var kvp in a1.D3)
+			{
+				if (!(kvp.Key.Equals ("#self") || kvp.Key.Equals ("#list"))) {
+					Assert.IsTrue (a2.D3.ContainsKey (kvp.Key));
+					Assert.AreEqual (kvp.Value, a2.D3 [kvp.Key]);
+				}
+			}
+
+			Assert.AreEqual(a1.E1, a2.E1);
+			Assert.AreEqual(a1.I1, a2.I1);
+			Assert.AreEqual(a1.L1, a2.L1);
+
+			Assert.AreEqual(a1.L2.Count, a2.L2.Count);
+			for (int i = 0; i < a1.L2.Count; i++)
+			{
+				Assert.AreEqual(a1.L2[i], a2.L2[i]);
+			}
+
+			Assert.AreEqual(a1.O1, a2.O1);
+
+			Assert.IsNotNull(a2.O2);
+			Assert.IsTrue (ReferenceEquals (a2.O2, a2.D3));
+		}
+
+		[Test]
+		public static void TestA3()
+		{
+			var a1 = TestClasses.GetA3();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.Formatting = true;
+			jaysonSerializationSettings.UseObjectReferencing = true;
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+			var a2 = JaysonConverter.ToObject<A>(json, jaysonDeserializationSettings);
+
+			Assert.IsTrue(!json.Contains("$kv"));
+
+			Assert.IsNotNull(a2);
+			Assert.AreEqual(a1.D1, a2.D1);
+			Assert.AreEqual(a1.D2, a2.D2);
+
+			Assert.IsNull(a2.D3);
+			Assert.IsNotNull(a2.D4);
+			Assert.AreEqual(a1.D4.Count, a2.D4.Count);
+
+			Assert.IsTrue (a2.D4.ContainsKey ("#self"));
+			Assert.IsTrue (ReferenceEquals (a2.D4, a2.D4 ["#self"]));
+
+			Assert.IsTrue (a2.D4.ContainsKey ("#list"));
+			Assert.IsTrue (a2.D4["#list"] is IList);
+			Assert.AreEqual (((IList)a2.D4["#list"]).Count, 1);
+			Assert.IsTrue (ReferenceEquals(a2.D4, ((IList)a2.D4 ["#list"])[0]));
+
+			foreach (var kvp in a1.D4)
+			{
+				if (!(kvp.Key.Equals ("#self") || kvp.Key.Equals ("#list"))) {
+					Assert.IsTrue (a2.D4.ContainsKey (kvp.Key));
+					Assert.AreEqual (kvp.Value, a2.D4[kvp.Key]);
+				}
+			}
+
+			Assert.AreEqual(a1.E1, a2.E1);
+			Assert.AreEqual(a1.I1, a2.I1);
+			Assert.AreEqual(a1.L1, a2.L1);
+
+			Assert.AreEqual(a1.L2.Count, a2.L2.Count);
+			for (int i = 0; i < a1.L2.Count; i++)
+			{
+				Assert.AreEqual(a1.L2[i], a2.L2[i]);
+			}
+
+			Assert.AreEqual(a1.O1, a2.O1);
+
+			Assert.IsNotNull(a2.O2);
+			Assert.IsTrue (ReferenceEquals (a2.O2, a2.D4));
+		}
+
+		[Test]
 		public static void TestNullList1()
 		{
 			var l1 = new List<object> ();

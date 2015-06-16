@@ -134,7 +134,7 @@ namespace Sweet.Jayson.Tests
                 L4 = new DBNull[4],
                 L5 = new ArrayList(),
                 D3 = new Dictionary<object, object>(),
-                D4 = new Hashtable(),
+                D5 = new Hashtable(),
                 O2 = new { Z = 'C', W = new { V = 4 } },
 #if !(NET3500 || NET3000 || NET2000)
                 O1 = dObj1,
@@ -151,9 +151,9 @@ namespace Sweet.Jayson.Tests
 
             c.A2 = c;
 
-            c.D4.Add("d41", 131);
-            c.D4.Add(true, 132);
-            c.D4.Add(133.0, 134);
+            c.D5.Add("d41", 131);
+            c.D5.Add(true, 132);
+            c.D5.Add(133.0, 134);
 
             c.L2.Add(7);
             c.L2.Add(null);
@@ -203,7 +203,55 @@ namespace Sweet.Jayson.Tests
 			};
 		}
 
-        public static object GetTypedContainerDto()
+		public static A GetA2()
+		{
+			var d = new Dictionary<object, object> {
+				{ 1, 2m },
+				{ "a", "b" },
+				{ true, false }
+			};
+
+			d ["#self"] = d;
+			d ["#list"] = new List<object> { d };
+
+			return new A {
+				D1 = 12345.67890m,
+				D2 = 23456.78901,
+				D3 = d,
+				E1 = MyEnum.EnumB | MyEnum.EnumC,
+				I1 = 123456789,
+				L1 = 12345678909876543,
+				L2 = new List<int?> { 1, null, 2, null },
+				O1 = true,
+				O2 = d
+			};
+		}
+
+		public static A GetA3()
+		{
+			var d = new Dictionary<string, object> {
+				{ "1", 2m },
+				{ "a", "b" },
+				{ "true", false }
+			};
+
+			d ["#self"] = d;
+			d ["#list"] = new List<object> { d };
+
+			return new A {
+				D1 = 12345.67890m,
+				D2 = 23456.78901,
+				D4 = d,
+				E1 = MyEnum.EnumB | MyEnum.EnumC,
+				I1 = 123456789,
+				L1 = 12345678909876543,
+				L2 = new List<int?> { 1, null, 2, null },
+				O1 = true,
+				O2 = d
+			};
+		}
+
+		public static object GetTypedContainerDto()
         {
             return new TypedContainerDto
             {
@@ -436,6 +484,7 @@ namespace Sweet.Jayson.Tests
         public decimal? D1;
         public double D2 { get; set; }
         public Dictionary<object, object> D3;
+		public Dictionary<string, object> D4 { get; set; }
 
         public MyEnum E1 { get; set; }
 
@@ -463,7 +512,7 @@ namespace Sweet.Jayson.Tests
         public A A2 { get; set; }
         public ArrayList L5;
 
-        public Hashtable D4;
+        public Hashtable D5;
 
         public object O4 { get; set; }
     }
