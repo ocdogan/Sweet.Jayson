@@ -24,51 +24,55 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using System.Linq;
+using System.Threading;
 
 namespace Sweet.Jayson
 {
-	# region JaysonSerializationContext
+    internal class JaysonSerializationReferenceMap : IDisposable
+    {
+        private int m_Ids = 0;
+        private Dictionary<object, int> m_ObjectMap = new Dictionary<object, int>();
 
-	internal sealed class JaysonSerializationContext : IDisposable
-	{
-		public readonly StringBuilder Builder;
-		public readonly Func<string, object, object> Filter;
-		public readonly JaysonFormatter Formatter;
-		public readonly JaysonSerializationTypeList GlobalTypes;
-		public readonly JaysonSerializationSettings Settings;
-		public readonly JaysonStackList Stack;
-        public readonly JaysonSerializationReferenceMap ReferenceMap = new JaysonSerializationReferenceMap();
+        public int GetObjectId(object obj)
+        {
+            int id = 0;
+            if (obj != null && !m_ObjectMap.TryGetValue(obj, out id)) {
+                id = Interlocked.Increment(ref m_Ids);
+                m_ObjectMap[obj] = id;
+            }
+            return id;
+        }
 
-		public int ObjectDepth;
-		public Type CurrentType;
-		public JaysonObjectType ObjectType;
+        public int GetObjectId(object obj, out bool alreadyExists)
+        {
+            int id = 0;
+            alreadyExists = false;
+            if (obj != null)
+            {
+                alreadyExists = m_ObjectMap.TryGetValue(obj, out id);
+                if (!alreadyExists)
+                {
+                    id = Interlocked.Increment(ref m_Ids);
+                    m_ObjectMap[obj] = id;
+                }
+            }
+            return id;
+        }
 
-		public bool SkipCurrentType;
-
-		public JaysonSerializationContext(JaysonSerializationSettings settings, JaysonStackList stack,
-			Func<string, object, object> filter, JaysonFormatter formatter = null, 
-			StringBuilder builder = null, Type currentType = null,
-			JaysonObjectType objectType = JaysonObjectType.Object,
-			JaysonSerializationTypeList globalTypes = null)
-		{
-			Builder = builder;
-			Filter = filter;
-			Formatter = formatter;
-			GlobalTypes = globalTypes;
-			Settings = settings;
-			Stack = stack;
-
-			CurrentType = currentType;
-			ObjectType = objectType;
-		}
+        public bool TryGetObjectId(object obj, out int id)
+        {
+            id = 0;
+            if (obj != null)
+            {
+                return m_ObjectMap.TryGetValue(obj, out id);
+            }
+            return false;
+        }
 
         public void Dispose()
         {
-            ReferenceMap.Dispose();
+            m_ObjectMap.Clear();
         }
-	}
-
-	# endregion JaysonSerializationContext
+    }
 }

@@ -42,15 +42,39 @@ namespace Sweet.Jayson
 	{
 		# region ToJsonObject
 
-        private static Dictionary<string, object> AsDictionaryObjectKey(IDictionary obj, JaysonSerializationContext context)
+		private static Dictionary<string, object> AsObjectRefence(int id, JaysonSerializationContext context)
+		{
+			return new Dictionary<string, object> { 
+				{ "$ref", id } 
+			};
+		}
+
+		private static Dictionary<string, object> AsObjectRefence(object obj, JaysonSerializationContext context)
+		{
+			return new Dictionary<string, object> { 
+				{ "$ref", context.ReferenceMap.GetObjectId(obj) } 
+			};
+		}
+
+		private static Dictionary<string, object> AsDictionaryObjectKey(IDictionary obj, JaysonSerializationContext context)
         {
             if (obj.Count == 0)
             {
-                return new Dictionary<string, object>();
+				if (context.Settings.UseObjectReferencing) {
+					return new Dictionary<string, object> { 
+						{ "$id", context.ReferenceMap.GetObjectId (obj) }
+					};
+				}
+				return new Dictionary<string, object> ();
             }
 
             List<object> kvList = new List<object>(obj.Count);
+
             Dictionary<string, object> result = new Dictionary<string, object>();
+
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
 
             result["$kv"] = kvList;
 
@@ -102,10 +126,19 @@ namespace Sweet.Jayson
             {
                 if (obj.Count == 0)
                 {
-                    return new Dictionary<string, object>();
+					if (context.Settings.UseObjectReferencing) {
+						return new Dictionary<string, object> { 
+							{ "$id", context.ReferenceMap.GetObjectId (obj) }
+						};
+					}
+					return new Dictionary<string, object> ();
                 }
 
                 Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+				if (context.Settings.UseObjectReferencing) {
+					result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+				}
 
                 string key;
                 object value;
@@ -147,10 +180,19 @@ namespace Sweet.Jayson
 		{
 			if (obj.Count == 0)
 			{
-				return new Dictionary<string, object>();
+				if (context.Settings.UseObjectReferencing) {
+					return new Dictionary<string, object> { 
+						{ "$id", context.ReferenceMap.GetObjectId (obj) }
+					};
+				}
+				return new Dictionary<string, object> ();
 			}
 
 			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
 
 			string key;
 			object value;
@@ -186,10 +228,19 @@ namespace Sweet.Jayson
         {
             if (obj.Count == 0)
             {
-                return new Dictionary<string, object>();
+				if (context.Settings.UseObjectReferencing) {
+					return new Dictionary<string, object> { 
+						{ "$id", context.ReferenceMap.GetObjectId (obj) }
+					};
+				}
+				return new Dictionary<string, object> ();
             }
 
             Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
 
             object value;
 
@@ -226,6 +277,10 @@ namespace Sweet.Jayson
 			bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
 			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
 
 			Func<string, object, object> filter = context.Filter;
 			bool canFilter = (filter != null);
@@ -297,6 +352,10 @@ namespace Sweet.Jayson
 		{
 			Dictionary<string, object> result = new Dictionary<string, object> (JaysonConstants.DictionaryCapacity);
 
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
+
 			var members = JaysonFastMemberCache.GetMembers (objType);
 			if (members.Count > 0) 
 			{
@@ -344,10 +403,19 @@ namespace Sweet.Jayson
 		{
 			if (obj.Count == 0)
 			{
-				return new Dictionary<string, object>();
+				if (context.Settings.UseObjectReferencing) {
+					return new Dictionary<string, object> { 
+						{ "$id", context.ReferenceMap.GetObjectId (obj) }
+					};
+				}
+				return new Dictionary<string, object> ();
 			}
 
 			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
 
 			string key;
 			object value;
@@ -489,6 +557,10 @@ namespace Sweet.Jayson
 
 						Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
+						if (context.Settings.UseObjectReferencing) {
+							result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+						}
+
 						Func<string, object, object> filter = context.Filter;
 						bool canFilter = (filter != null);
 
@@ -525,6 +597,11 @@ namespace Sweet.Jayson
 					else if (dType == JaysonDictionaryType.IGenericDictionary)
 					{
 						Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+						if (context.Settings.UseObjectReferencing) {
+							result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+						}
+
 						IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(entryType);
 
 						IJaysonFastMember keyFm;
@@ -791,6 +868,10 @@ namespace Sweet.Jayson
         {
             Dictionary<string, object> result = new Dictionary<string, object>(10);
 
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (dataTable));
+			}
+
             if (dataTable.CaseSensitive)
             {
                 result.Add("CaseSensitive", dataTable.CaseSensitive);
@@ -938,6 +1019,10 @@ namespace Sweet.Jayson
         {
             Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
+			if (context.Settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (dataSet));
+			}
+
             if (dataSet.CaseSensitive)
             {
                 result.Add("CaseSensitive", dataSet.CaseSensitive);
@@ -1014,6 +1099,11 @@ namespace Sweet.Jayson
 					stack = context.Stack;
 					if (stack.Contains(obj))
 					{
+						if (context.Settings.UseObjectReferencing)
+						{
+							return AsObjectRefence(obj, context);
+						}
+
 						if (context.Settings.RaiseErrorOnCircularRef) 
 						{
 							throw new JaysonException (JaysonError.CircularReferenceOn + info.Type.Name);
@@ -1022,6 +1112,15 @@ namespace Sweet.Jayson
 					}
 
 					stack.Push(obj);
+
+					if (context.Settings.UseObjectReferencing)
+					{
+						int id;
+						if (context.ReferenceMap.TryGetObjectId(obj, out id))
+						{
+							return AsObjectRefence(id, context);
+						}
+					}
 				}
 
 				try
@@ -1105,10 +1204,12 @@ namespace Sweet.Jayson
 			JaysonStackList stack = JaysonStackList.Get();
 			try
 			{
-				return ToJsonObject(obj, new JaysonSerializationContext(filter: filter,
+                using (var context = new JaysonSerializationContext(filter: filter,
 					settings: settings ?? JaysonSerializationSettings.Default,
 					stack: stack
-				));
+				)) {
+			    	return ToJsonObject(obj, context);
+                }
 			}
 			finally
 			{

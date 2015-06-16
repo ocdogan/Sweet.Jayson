@@ -24,51 +24,35 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using System.Linq;
+using System.Threading;
 
 namespace Sweet.Jayson
 {
-	# region JaysonSerializationContext
+    internal class JaysonDeserializationReferenceMap : IDisposable
+    {
+        private Dictionary<int, object> m_IdMap = new Dictionary<int, object>();
 
-	internal sealed class JaysonSerializationContext : IDisposable
-	{
-		public readonly StringBuilder Builder;
-		public readonly Func<string, object, object> Filter;
-		public readonly JaysonFormatter Formatter;
-		public readonly JaysonSerializationTypeList GlobalTypes;
-		public readonly JaysonSerializationSettings Settings;
-		public readonly JaysonStackList Stack;
-        public readonly JaysonSerializationReferenceMap ReferenceMap = new JaysonSerializationReferenceMap();
-
-		public int ObjectDepth;
-		public Type CurrentType;
-		public JaysonObjectType ObjectType;
-
-		public bool SkipCurrentType;
-
-		public JaysonSerializationContext(JaysonSerializationSettings settings, JaysonStackList stack,
-			Func<string, object, object> filter, JaysonFormatter formatter = null, 
-			StringBuilder builder = null, Type currentType = null,
-			JaysonObjectType objectType = JaysonObjectType.Object,
-			JaysonSerializationTypeList globalTypes = null)
-		{
-			Builder = builder;
-			Filter = filter;
-			Formatter = formatter;
-			GlobalTypes = globalTypes;
-			Settings = settings;
-			Stack = stack;
-
-			CurrentType = currentType;
-			ObjectType = objectType;
-		}
+        public object this[int id]
+        {
+            get
+            {
+                object obj;
+                m_IdMap.TryGetValue(id, out obj);
+                return obj;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    m_IdMap[id] = value;
+                }
+            }
+        }
 
         public void Dispose()
         {
-            ReferenceMap.Dispose();
+            m_IdMap.Clear();
         }
-	}
-
-	# endregion JaysonSerializationContext
+    }
 }

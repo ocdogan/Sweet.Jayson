@@ -1093,12 +1093,14 @@ namespace Sweet.Jayson
 				throw new JaysonException(JaysonError.EmptyString);
             }
 
-            return Parse(new JaysonDeserializationContext
+            using (var context = new JaysonDeserializationContext
             {
                 Text = str,
                 Length = str.Length,
                 Settings = settings ?? JaysonDeserializationSettings.Default
-            });
+            }) {
+                return Parse(context);
+            }
         }
 
         private static object Parse(JaysonDeserializationContext context)

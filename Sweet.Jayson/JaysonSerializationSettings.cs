@@ -63,6 +63,7 @@ namespace Sweet.Jayson
 		public bool UseEnumNames = true;
 		public bool UseGlobalTypeNames = false;
         public bool UseKVModelForJsonObjects = true;
+        public bool UseObjectReferencing = false;
 
 		public int MaxObjectDepth;
 
@@ -120,6 +121,7 @@ namespace Sweet.Jayson
 			destination.UseEnumNames = UseEnumNames;
 			destination.UseGlobalTypeNames = UseGlobalTypeNames;
             destination.UseKVModelForJsonObjects = UseKVModelForJsonObjects;
+            destination.UseObjectReferencing = UseObjectReferencing;
             destination.TypeNameInfo = TypeNameInfo;
 			destination.TypeNames = TypeNames;
 
