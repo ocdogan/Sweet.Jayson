@@ -65,7 +65,7 @@ namespace Sweet.Jayson.Tests
 
 			foreach (var pi in a1.GetType ().GetProperties ()) {
 				if (pi.Name == "L2") {
-					var l21 = pi.GetValue (a1) as IList;
+					var l21 = pi.GetValue (a1, new object[0]) as IList;
 					var l22 = a2 ["L2"] as IList;
 
 					Assert.IsNotNull (l21);
@@ -76,7 +76,10 @@ namespace Sweet.Jayson.Tests
 						Assert.AreEqual (l21[i], l22[i]);
 					}
 				} else {
-					Assert.AreEqual (pi.GetValue (a1), a2 [pi.Name]);
+                    var val = pi.GetValue(a1, new object[0]);
+                    if (val != null && a2.ContainsKey(pi.Name)) {
+                        Assert.AreEqual(val, a2[pi.Name]);
+                    }
 				}
 			}
 
@@ -94,7 +97,10 @@ namespace Sweet.Jayson.Tests
 						Assert.AreEqual (kvp.Value, d32[kvp.Key.ToString ()]);
 					}
 				} else {
-					Assert.AreEqual (fi.GetValue (a1), a2 [fi.Name]);
+                    var val = fi.GetValue(a1);
+                    if (val != null && a2.ContainsKey(fi.Name)) {
+                        Assert.AreEqual(val, a2[fi.Name]);
+                    }
 				}
 			}
 		}
@@ -116,7 +122,7 @@ namespace Sweet.Jayson.Tests
 
 			foreach (var pi in a1.GetType ().GetProperties ()) {
 				if (pi.Name == "L2") {
-					var l21 = pi.GetValue (a1) as IList;
+                    var l21 = pi.GetValue(a1, new object[0]) as IList;
 					var l22 = a2 ["L2"] as IList;
 
 					Assert.IsNotNull (l21);
@@ -127,8 +133,11 @@ namespace Sweet.Jayson.Tests
 						Assert.AreEqual (l21[i], l22[i]);
 					}
 				} else {
-					Assert.AreEqual (pi.GetValue (a1), a2 [pi.Name]);
-				}
+                    var val = pi.GetValue(a1, new object[0]);
+                    if (val != null && a2.ContainsKey(pi.Name)) {
+                        Assert.AreEqual(val, a2[pi.Name]);
+                    }
+                }
 			}
 
 			foreach (var fi in a1.GetType ().GetFields ()) {
@@ -151,13 +160,16 @@ namespace Sweet.Jayson.Tests
 							(item as IDictionary<string, object>)["$v"].Equals (kvp.Value)));
 					}
 				} else {
-					Assert.AreEqual (fi.GetValue (a1), a2 [fi.Name]);
-				}
+                    var val = fi.GetValue(a1);
+                    if (val != null && a2.ContainsKey(fi.Name)) {
+                        Assert.AreEqual(val, a2[fi.Name]);
+                    }
+                }
 			}
 		}
 
 		[Test]
-        public static void TestUseKVModelForJsonObjects1()
+        public static void TestUseKVModelForJsonObjects1a()
 		{
 			var a1 = TestClasses.GetA ();
 
@@ -170,7 +182,21 @@ namespace Sweet.Jayson.Tests
             Assert.IsTrue(!json.Contains("$kv"));
 		}
 
-		[Test]
+        [Test]
+        public static void TestUseKVModelForJsonObjects1b()
+        {
+            var a1 = TestClasses.GetA();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+            string json = JaysonConverter.ToJsonString(a1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("$kv"));
+        }
+
+        [Test]
 		public static void TestUseKVModelForJsonObjects2()
 		{
 			var a1 = TestClasses.GetA ();
