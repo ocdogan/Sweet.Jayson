@@ -475,30 +475,6 @@ namespace Sweet.Jayson
             }
         }
 
-        private static bool WriteObjectId(int id, JaysonSerializationContext context, bool isFirst)
-        {
-            StringBuilder builder = context.Builder;
-            if (context.Settings.Formatting)
-            {
-                if (!isFirst) {
-                    builder.Append(',');
-                }
-
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
-                builder.Append("\"$id\": ");
-            }
-            else
-            {
-                if (isFirst) {
-                    builder.Append("\"$id\":");
-                } else {
-                    builder.Append(",\"$id\":");
-                }
-            }
-            JaysonFormatter.Format(id, builder);
-            return false; // isFirst
-        }
-
         private static void WriteListObjectId(int id, JaysonSerializationContext context)
         {
 			StringBuilder builder = context.Builder;
@@ -524,14 +500,26 @@ namespace Sweet.Jayson
             referenced = false;
             if (context.Settings.UseObjectReferencing)
             {
+                StringBuilder builder = context.Builder;
+
                 int id = context.ReferenceMap.GetObjectId(obj, out referenced);
-                if (referenced)
-                {
-                    isFirst = WriteKeyValueEntry("$ref", id, null, context, isFirst);
-                    return isFirst;
+                if (context.Settings.Formatting) {
+                    if (!isFirst) {
+                        builder.Append(',');
+                    }
+
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    builder.Append(referenced ? "\"$ref\": " : "\"$id\": ");
+                } else {
+                    if (isFirst) {
+                        builder.Append(referenced ? "\"$ref\":" : "\"$id\":");
+                    } else {
+                        builder.Append(referenced ? ",\"$ref\":" : ",\"$id\":");
+                    }
                 }
 
-                isFirst = WriteObjectId(id, context, isFirst);
+                JaysonFormatter.Format(id, builder);
+                return false; // isFirst
             }
             return isFirst;
         }
