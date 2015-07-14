@@ -25,6 +25,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -41,12 +42,6 @@ namespace Sweet.Jayson.ConsoleTest
 	{
 		public static void Main (string[] args)
 		{	
-			if (Console.IsOutputRedirected)
-			{
-				Test(2);
-				return;
-			}
-
             do
             {
                 int testType = ReadTestType();
@@ -106,15 +101,29 @@ namespace Sweet.Jayson.ConsoleTest
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Test {0} failed.", method.Name);
-                        while (e is TargetInvocationException)
+                        ConsoleColor clr = Console.ForegroundColor;
+                        try
                         {
-                            if (e.InnerException == null)
-                                break;
-                            e = e.InnerException;
-                        }
+							if (JaysonCommon.IsOnMono ()) {
+								clr = ConsoleColor.Black;
+							}
 
-                        Console.WriteLine(e.Message);
+                            Console.ForegroundColor = ConsoleColor.Red;
+
+                            Console.WriteLine("Test {0} failed.", method.Name);
+                            while (e is TargetInvocationException)
+                            {
+                                if (e.InnerException == null)
+                                    break;
+                                e = e.InnerException;
+                            }
+
+                            Console.WriteLine(e.Message);
+                        }
+                        finally
+                        {
+                            Console.ForegroundColor = clr;
+                        }
                     }
                     Console.WriteLine();
                 }

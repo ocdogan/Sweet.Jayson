@@ -26,10 +26,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 #if !(NET3500 || NET3000 || NET2000)
 using System.Dynamic;
 #endif
-using System.Data;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using System.Text;
 
 namespace Sweet.Jayson.Tests
@@ -85,6 +88,34 @@ namespace Sweet.Jayson.Tests
     }
   ]
 }";
+
+		public static ObjectGraph GetObjectGraph1()
+		{
+			var dc = new DataContainer
+			{
+                Exception = new ArgumentNullException("Test"),
+				Identifier = Guid.NewGuid(),
+				Object = "Test Object",
+				//ObjectList = new List<object> { typeof(string), new Exception("Another Test"), "Teststring" },
+				Type = typeof(TestClasses),
+				TypeList = new List<Type> { typeof(string), typeof(TestClasses), typeof(Int32) },
+                TS = new TimeSpan(0, 2, 3)
+			};
+
+			var orig = new ObjectGraph
+			{
+				AddressUri = new Uri("http://www.example.com/"),
+				IntValue = 123,
+				SomeType = typeof(CustomCollection),
+				Data = dc,
+                ObjectData = new object[] { 
+                    typeof(CustomException).GetConstructor(new Type[] { typeof(string), typeof(Exception) }),
+                    typeof(CustomException).GetProperty("Message")
+                }
+			};
+
+			return orig;
+		}
 
         public static C GetC()
         {
@@ -182,6 +213,11 @@ namespace Sweet.Jayson.Tests
                     D2 = 4
                 });
             return c;
+        }
+
+        internal static object MethodA(string p1, int p2)
+        {
+            return null;
         }
 
 		public static A GetA()
@@ -398,6 +434,222 @@ namespace Sweet.Jayson.Tests
     }
 
     # region Sample Classes
+
+	public class CustomException
+		: Exception
+	{
+		public CustomException()
+		{ }
+
+		public CustomException(string message) : base(message)
+		{ }
+
+		public CustomException(string message, Exception innerException) : base(message, innerException)
+		{ }
+
+		protected CustomException(SerializationInfo info, StreamingContext context) : base(info, context)
+		{ }
+	}
+
+	public class CustomCollectionDto
+	{
+		public Exception Exception { get; set; }
+		public CustomException CustomException { get; set; }
+		public Uri AddressUri { get; set; }
+		public Type SomeType { get; set; }
+		public int IntValue { get; set; }
+	}
+
+	public class StrictType
+	{
+		public string Name { get; set; }
+		public Type Type { get; set; }
+		public CustomCollectionDto Value { get; set; }
+	}
+
+	[Serializable]
+	public abstract class DataContainerBase
+	{
+		public Guid Identifier { get; set; }
+	}
+
+	[Serializable]
+	public sealed class DataContainer : DataContainerBase
+	{
+		public IEnumerable<Type> TypeList { get; set; }
+		public Exception Exception { get; set; }
+		public object Object { get; set; }
+		public Type Type { get; set; }
+        public TimeSpan TS { get; set; }
+	}
+
+	[Serializable]
+	public class CustomCollectionItem
+	{
+		public CustomCollectionItem()
+		{}
+
+		public CustomCollectionItem(string name, object value)
+		{
+			Name = name;
+			Value = value;
+		}
+
+		public string Name { get; set; }
+		public object Value { get; set; }
+
+		public override string ToString()
+		{
+			return string.Concat("Name = '", Name, "' Value = '", Value, "'");
+		}
+	}
+
+	[Serializable]
+	public class CustomCollection : 
+	#if !(NET4000 || NET3500 || NET3000 || NET2000)
+		Collection<CustomCollectionItem>
+	#else
+		List<CustomCollectionItem>
+	#endif
+	{
+		public int FindItemIndex(string name)
+		{
+			return IndexOf((from item in this
+				where item.Name == name
+				select item).FirstOrDefault());
+		}
+
+		public void RemoveAll(string name)
+		{
+			while (true)
+			{
+				var idx = FindItemIndex(name);
+				if (idx < 0)
+					break;
+
+				RemoveAt(idx);
+			}
+		}
+
+		public Uri AddressUri
+		{
+			get
+			{
+				var idx = FindItemIndex("AddressUri");
+				//Cater for value containing a real value or a serialized string value
+				//Using 'FromCsvField()' because 'Value' may have escaped chars
+				return idx < 0 ? null : 
+					(
+						this[idx].Value is string
+						? new Uri((string)this[idx].Value)
+						: this[idx].Value as Uri
+					);
+			}
+			set
+			{
+				RemoveAll("AddressUri");
+				Add(new CustomCollectionItem("AddressUri", value));
+			}
+		}
+
+		public Type SomeType
+		{
+			get
+			{
+				var idx = FindItemIndex("SomeType");
+				//Cater for value containing a real value or a serialized string value
+				//Using 'FromCsvField()' because 'Value' may have escaped chars
+				return idx < 0 ? null : 
+					(
+						this[idx].Value is string
+						? Type.GetType((string)this[idx].Value)
+						: this[idx].Value as Type
+					);
+			}
+			set
+			{
+				RemoveAll("SomeType");
+				Add(new CustomCollectionItem("SomeType", value));
+			}
+		}
+
+		public int IntValue
+		{
+			get
+			{
+				var idx = FindItemIndex("IntValue");
+				//Cater for value containing a real value or a serialized string value
+				return idx < 0 ? -1 : 
+					(
+						this[idx].Value is string
+						? int.Parse((string)this[idx].Value)
+						: (int)this[idx].Value 
+					);
+			}
+			set
+			{
+				RemoveAll("IntValue");
+				Add(new CustomCollectionItem("IntValue", value));
+			}
+		}
+	}
+
+	[Serializable]
+	public class ObjectGraph : ISerializable
+	{
+		private readonly CustomCollection internalCollection;
+
+		public ObjectGraph()
+		{
+			internalCollection = new CustomCollection();
+		}
+
+		protected ObjectGraph(SerializationInfo info, StreamingContext context)
+		{
+			internalCollection = (CustomCollection)info.GetValue("col", typeof(CustomCollection));
+			Data = (DataContainer)info.GetValue("data", typeof(DataContainer));
+            ObjectData = info.GetValue("obj", typeof(object));
+		}
+
+		public CustomCollection MyCollection
+		{
+			get { return internalCollection; }
+		}
+
+		public Uri AddressUri
+		{
+			get { return internalCollection.AddressUri; }
+			set { internalCollection.AddressUri = value; }
+		}
+
+		public Type SomeType
+		{
+			get { return internalCollection.SomeType; }
+			set { internalCollection.SomeType = value; }
+		}
+
+		public int IntValue
+		{
+			get { return internalCollection.IntValue; }
+			set { internalCollection.IntValue = value; }
+		}
+
+		public DataContainer Data { get; set; }
+
+        public object ObjectData { get; set; }
+
+		#region ISerializable Members
+
+		[SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
+		public void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			info.AddValue("col", internalCollection);
+			info.AddValue("data", Data);
+            info.AddValue("obj", ObjectData);
+		}
+
+		#endregion
+	}
 
     #if !(NET3500 || NET3000 || NET2000)
     public class MyDynamicObject : DynamicObject

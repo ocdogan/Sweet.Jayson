@@ -34,6 +34,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
@@ -49,6 +50,145 @@ namespace Sweet.Jayson.Tests
 	public class PrimaryTests
 	{
 		[Test]
+		public static void TestMethodInfo1()
+		{
+			var m1 = typeof(TestClasses).GetMethod("GetA");
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = false;
+
+			var jsonObj = JaysonConverter.ToJsonObject(m1, jaysonSerializationSettings);
+
+			Assert.IsTrue(jsonObj is IDictionary<string, object>);
+		}
+
+		[Test]
+		public static void TestMethodInfo2()
+		{
+			var m1 = typeof(TestClasses).GetMethod("GetA");
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = false;
+
+			var json = JaysonConverter.ToJsonString(m1, jaysonSerializationSettings);
+
+			Assert.IsTrue(json.Contains("\"QualifiedName\":\"Sweet.Jayson.Tests.TestClasses, Sweet.Jayson.Tests\""));
+            Assert.IsTrue(json.Contains("\"MemberName\":\"GetA\""));
+		}
+
+        [Test]
+        public static void TestMethodInfo3()
+        {
+            var m1 = typeof(TestClasses).GetMethod("MethodA", BindingFlags.Public | BindingFlags.NonPublic | 
+                BindingFlags.Instance | BindingFlags.Static);
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = false;
+
+            var json = JaysonConverter.ToJsonString(m1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("\"QualifiedName\":\"Sweet.Jayson.Tests.TestClasses, Sweet.Jayson.Tests\""));
+            Assert.IsTrue(json.Contains("\"MemberName\":\"MethodA\""));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+            var m2 = JaysonConverter.ToObject<MethodInfo>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(m1, m2);
+        }
+
+        [Test]
+        public static void TestMethodInfo4()
+        {
+            var c1 = typeof(CustomException).GetConstructor(new Type[] { typeof(string), typeof(Exception) });
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+            var json = JaysonConverter.ToJsonString(c1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("\"QualifiedName\":\"Sweet.Jayson.Tests.CustomException, Sweet.Jayson.Tests\""));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+            var c2 = JaysonConverter.ToObject<ConstructorInfo>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(c1, c2);
+        }
+        
+        [Test]
+		public static void TestObjectGraph1()
+		{
+			var o1 = TestClasses.GetObjectGraph1();
+
+			JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+			jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+			jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+			var json = JaysonConverter.ToJsonString(o1, jaysonSerializationSettings);
+
+			JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+			var o2 = JaysonConverter.ToObject<ObjectGraph> (json, jaysonDeserializationSettings);
+
+            Assert.NotNull(o2);
+
+            Assert.AreEqual(o1.AddressUri, o2.AddressUri);
+            Assert.AreEqual(o1.IntValue, o2.IntValue);
+            Assert.AreEqual(o1.SomeType, o2.SomeType);
+
+			Assert.IsNotNull(o2.ObjectData);
+			Assert.IsAssignableFrom<object[]> (o2.ObjectData);
+
+			object[] od1 = (object[])o1.ObjectData;
+			object[] od2 = (object[])o2.ObjectData;
+
+			Assert.AreEqual(od2.Length, 2);
+			Assert.IsTrue(od2[0] is ConstructorInfo);
+			Assert.IsTrue(od2[1] is PropertyInfo);
+			Assert.AreEqual(od1[0], od2[0]);
+			Assert.AreEqual(od1[1], od2[1]);
+
+			Assert.IsNotNull(o2.Data);
+			Assert.IsTrue(o1.Data.Exception is ArgumentNullException);
+			Assert.IsTrue(o2.Data.Exception is ArgumentNullException);
+			Assert.AreEqual(((ArgumentNullException)o1.Data.Exception).ParamName, ((ArgumentNullException)o2.Data.Exception).ParamName);
+			Assert.AreEqual(o1.Data.Identifier, o2.Data.Identifier);
+			Assert.AreEqual(o1.Data.Object, o2.Data.Object);
+			Assert.AreEqual(o1.Data.Type, o2.Data.Type);
+			Assert.AreEqual(o1.Data.TypeList, o2.Data.TypeList);
+			Assert.AreEqual(o1.Data.TS, o2.Data.TS);
+
+			Assert.IsNotNull(o1.MyCollection);
+			Assert.IsNotNull(o2.MyCollection);
+			Assert.AreEqual(o1.MyCollection.Count, o2.MyCollection.Count);
+
+			for (int i = 0; i < o2.MyCollection.Count; i++) 
+			{
+				Assert.AreEqual (o1.MyCollection[i].Name, o2.MyCollection[i].Name);
+				Assert.AreEqual (o1.MyCollection[i].Value, o2.MyCollection[i].Value);
+			}
+        }
+
+        [Test]
+        public static void TestObjectGraph2()
+        {
+            var o1 = TestClasses.GetObjectGraph1();
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.UseKVModelForJsonObjects = true;
+
+            var jsonObj = JaysonConverter.ToJsonObject(o1, jaysonSerializationSettings);
+
+            Assert.IsTrue(jsonObj is IDictionary<string, object>);
+        }
+        
+        [Test]
 		public static void TestToJsonObjectUseKVModelForJsonObjects1()
 		{
 			var a1 = TestClasses.GetA ();
