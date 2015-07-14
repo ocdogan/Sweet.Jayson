@@ -41,6 +41,8 @@ namespace Sweet.Jayson
 	{
 		# region Static Members
 
+		public static readonly IFormatterConverter FormatterConverter = new FormatterConverter ();
+
 		private static int s_IsMono = -1;
 
 		private static readonly int LowerCaseDif = (int)'a' - (int)'A';
@@ -1164,7 +1166,83 @@ namespace Sweet.Jayson
 				}
 
 				if (!s_TypeCache.TryGetValue (typeName, out result)) {
-					result = Type.GetType (typeName, false);
+					result = Type.GetType (typeName, false, true);
+                    if (result == null)
+                    {
+                        var asmNameSepPos = typeName.IndexOf(',');
+                        if (asmNameSepPos == -1)
+                        {
+                            int pos = typeName.IndexOf('.');
+                            if (pos > -1)
+                            {
+                                string assemblyNameStart = typeName.Substring(0, pos + 1);
+                                if (!String.IsNullOrEmpty(assemblyNameStart))
+                                {
+                                    Type typeRef;
+                                    foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                                    {
+                                        if (asm.GetName().Name.StartsWith(assemblyNameStart))
+                                        {
+                                            typeRef = asm.GetType(typeName, false, true);
+                                            if (typeRef != null)
+                                            {
+                                                return typeRef;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return (Type)null;
+                        }
+
+                        result = Type.GetType(typeName,
+                            (assemblyRef) =>
+                            {
+                                if (assemblyRef != null || !String.IsNullOrEmpty(assemblyRef.Name))
+                                {
+                                    try
+                                    {
+                                        var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(asm => asm.GetName().Name == assemblyRef.Name);
+                                        if (assembly == null)
+                                        {
+                                            assembly = Assembly.Load(assemblyRef);
+                                        }
+                                        return assembly;
+                                    }
+                                    catch (Exception)
+                                    { }
+                                }
+                                return (Assembly)null;
+                            },
+                            (assembly, name, ignoreCase) => {
+                                if (assembly != null)
+                                {
+                                    return assembly.GetType(name, false, ignoreCase);
+                                }
+
+                                int pos = name.IndexOf('.');
+                                if (pos > -1)
+                                {
+                                    string assemblyNameStart = name.Substring(0, pos + 1);
+                                    if (!String.IsNullOrEmpty(assemblyNameStart))
+                                    {
+                                        Type typeRef;
+                                        foreach(Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                                        {
+                                            if (asm.GetName().Name.StartsWith(assemblyNameStart))
+                                            {
+                                                typeRef = asm.GetType(name, false, ignoreCase);
+                                                if (typeRef != null)
+                                                {
+                                                    return typeRef;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                return (Type)null;
+                            });
+                    }
 					s_TypeCache [typeName] = result;
 				}
 			}
