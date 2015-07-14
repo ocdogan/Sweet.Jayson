@@ -46,6 +46,7 @@
     <Compile Include="JaysonTypeOverrideTK.cs" />
     <Compile Include="JaysonTypeOverride.cs" />
     <Compile Include="JaysonTypeOverrideT.cs" />
+    <Compile Include="JaysonTypeSerializationType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ArrayDeserializationType.cs" />
     <Compile Include="DictionaryDeserializationType.cs" />

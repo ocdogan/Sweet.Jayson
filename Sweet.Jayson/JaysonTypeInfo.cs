@@ -25,9 +25,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Data;
+#if !(NET3500 || NET3000 || NET2000)
+using System.Dynamic;
+#endif
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 
@@ -113,13 +119,15 @@ namespace Sweet.Jayson
 		private bool? m_IsJPrimitive;
 		private bool? m_IsPrimitive;
 		private bool? m_IsValueType;
+		private bool? m_IsISerializable;
 		private bool? m_DefaultJConstructor;
 		private Type[] m_GenericArguments;
 		private Type[] m_Interfaces;
 		private TypeCode? m_TypeCode;
 		private JaysonTypeName m_TypeName;
 		private JaysonTypeCode? m_JTypeCode;
-		private InfoItem<object> m_Default = new InfoItem<object>();
+        private JaysonTypeSerializationType? m_SerializationType;
+        private InfoItem<object> m_Default = new InfoItem<object>();
 		private InfoItem<Type> m_ElementType = new InfoItem<Type>();
         private InfoItem<Type> m_ElementRootType = new InfoItem<Type>();
 		private InfoItem<Type> m_GenericTypeDefinition = new InfoItem<Type>();
@@ -359,6 +367,18 @@ namespace Sweet.Jayson
 			}
 		}
 
+		public bool ISerializable
+		{
+			get 
+			{
+				if (m_IsISerializable == null) 
+				{
+					m_IsISerializable = typeof(ISerializable).IsAssignableFrom (Type);
+				}
+				return m_IsISerializable.Value;
+			}
+		}
+
 		public bool JPrimitive
 		{
 			get
@@ -419,6 +439,91 @@ namespace Sweet.Jayson
 				return m_IsPrimitive.Value;
 			}
 		}
+
+        public JaysonTypeSerializationType SerializationType
+        {
+            get
+            {
+                if (m_SerializationType == null)
+                {
+                    if (Enum)
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.Enum;
+                    }
+                    else if (typeof(IDictionary<string, object>).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.IDictionaryGeneric;
+                    }
+                    else if (typeof(IDictionary).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.IDictionary;
+                    }
+    				#if !(NET3500 || NET3000 || NET2000)
+                    else if (typeof(DynamicObject).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.DynamicObject;
+                    }
+                    #endif
+                    else if (typeof(DataTable).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.DataTable;
+                    }
+                    else if (typeof(DataSet).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.DataSet;
+                    }
+                    else if (typeof(StringDictionary).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.StringDictionary;
+                    }
+                    else if (typeof(NameValueCollection).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.NameValueCollection;
+                    }
+                    else if (typeof(IEnumerable).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.IEnumerable;
+                    }
+                    else if (Anonymous)
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.Anonymous;
+                    }
+                    else if (typeof(FieldInfo).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.FieldInfo;
+                    }
+                    else if (typeof(PropertyInfo).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.PropertyInfo;
+                    }
+                    else if (typeof(ConstructorInfo).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.ConstructorInfo;
+                    }
+                    else if (typeof(MethodInfo).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.MethodInfo;
+                    }
+                    else if (typeof(ParameterInfo).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.ParameterInfo;
+                    }
+                    else if (typeof(Type).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.Type;
+                    }
+                    else if (typeof(ISerializable).IsAssignableFrom(Type))
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.ISerializable;
+                    }
+                    else
+                    {
+                        m_SerializationType = JaysonTypeSerializationType.ClassOrStruct;
+                    }
+                }
+                return m_SerializationType.Value;
+            }
+        }
 
 		public object SyncRoot
 		{
@@ -560,6 +665,17 @@ namespace Sweet.Jayson
 			return info.JTypeCode;
 		}
 
+        public static JaysonTypeSerializationType GetSerializationType(Type type)
+        {
+            JaysonTypeInfo info;
+            if (!s_InfoCache.TryGetValue(type, out info))
+            {
+                info = new JaysonTypeInfo(type);
+                s_InfoCache[type] = info;
+            }
+            return info.SerializationType;
+        }
+
 		public static TypeCode GetTypeTode(Type type)
 		{
 			JaysonTypeInfo info;
@@ -690,6 +806,17 @@ namespace Sweet.Jayson
 			return info.Interface;
 		}
 
+		public static bool IsISerializable(Type type)
+		{
+			JaysonTypeInfo info;
+			if (!s_InfoCache.TryGetValue(type, out info))
+			{
+				info = new JaysonTypeInfo(type);
+				s_InfoCache[type] = info;
+			}
+			return info.ISerializable;
+		}
+			
 		public static bool IsJPrimitive(Type type)
 		{
 			JaysonTypeInfo info;

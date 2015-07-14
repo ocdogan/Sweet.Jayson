@@ -32,6 +32,8 @@ using System.Dynamic;
 #endif
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Sweet.Jayson
@@ -271,10 +273,16 @@ namespace Sweet.Jayson
         }
 
 		#if !(NET3500 || NET3000 || NET2000)
-		private static Dictionary<string, object> AsDynamicObject(DynamicObject obj, JaysonSerializationContext context)
+		private static Dictionary<string, object> AsDynamicObject(DynamicObject obj, Type objType, JaysonSerializationContext context)
 		{
+			string key;
 			object value;
-			bool ignoreNullValues = context.Settings.IgnoreNullValues;
+			string aliasKey;
+
+			JaysonSerializationSettings settings = context.Settings;
+
+			bool ignoreNullValues = settings.IgnoreNullValues;
+			JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
 			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
@@ -290,30 +298,41 @@ namespace Sweet.Jayson
 			{
 				bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
 
-				string fKey;
 				foreach (var memberKvp in members) 
 				{
 					if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite) 
 					{
-						fKey = memberKvp.Key;
-						value = memberKvp.Value.Get (obj);
-
-						if (value != null) 
+						key = memberKvp.Key;
+						if (typeOverride == null || !typeOverride.IsMemberIgnored (key)) 
 						{
-							if (canFilter) 
-							{
-								value = filter (fKey, value);
-							}
+							value = memberKvp.Value.Get (obj);
 
 							if (value != null) 
 							{
-								value = ToJsonObject (value, context);
-							}
-						}
+								if (canFilter) 
+								{
+									value = filter (key, value);
+								}
 
-						if ((value != null) || !ignoreNullValues) 
-						{
-							result.Add (fKey, value);
+								if (value != null) 
+								{
+									value = ToJsonObject (value, context);
+								}
+							}
+
+							if ((value != null) || !ignoreNullValues) 
+							{
+								if (typeOverride != null)
+								{
+									aliasKey = typeOverride.GetMemberAlias(key);
+									if (!String.IsNullOrEmpty(aliasKey))
+									{
+										key = aliasKey;
+									}
+								}
+
+								result.Add (key, value);
+							}
 						}
 					}
 				}
@@ -323,24 +342,37 @@ namespace Sweet.Jayson
 
 			foreach (var dKey in obj.GetDynamicMemberNames())
 			{
-				value = dObj[dKey];
-
-				if (value != null)
+				key = dKey;
+				if (typeOverride == null || !typeOverride.IsMemberIgnored (key)) 
 				{
-					if (canFilter)
-					{
-						value = filter(dKey, value);
-					}
+					value = dObj [key];
 
 					if (value != null)
 					{
-						value = ToJsonObject(value, context);
-					}
-				}
+						if (canFilter) 
+						{
+							value = filter (key, value);
+						}
 
-				if ((value != null) || !ignoreNullValues)
-				{
-					result.Add(dKey, value);
+						if (value != null) 
+						{
+							value = ToJsonObject (value, context);
+						}
+					}
+
+					if ((value != null) || !ignoreNullValues) 
+					{
+						if (typeOverride != null) 
+						{
+							aliasKey = typeOverride.GetMemberAlias (key);
+							if (!String.IsNullOrEmpty (aliasKey)) 
+							{
+								key = aliasKey;
+							}
+						}
+
+						result.Add (key, value);
+					}
 				}
 			}
 
@@ -352,7 +384,9 @@ namespace Sweet.Jayson
 		{
 			Dictionary<string, object> result = new Dictionary<string, object> (JaysonConstants.DictionaryCapacity);
 
-			if (context.Settings.UseObjectReferencing) {
+			JaysonSerializationSettings settings = context.Settings;
+
+			if (settings.UseObjectReferencing) {
 				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
 			}
 
@@ -361,8 +395,11 @@ namespace Sweet.Jayson
 			{
 				string key;
 				object value;
-				bool ignoreNullValues = context.Settings.IgnoreNullValues;
-				bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
+				string aliasKey;
+
+				bool ignoreNullValues = settings.IgnoreNullValues;
+				bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
+				JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
 				Func<string, object, object> filter = context.Filter;
 				bool canFilter = (filter != null);
@@ -372,7 +409,180 @@ namespace Sweet.Jayson
 					if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite) 
 					{
 						key = memberKvp.Key;
-						value = memberKvp.Value.Get (obj);
+						if (typeOverride == null || !typeOverride.IsMemberIgnored (key))
+						{
+							value = memberKvp.Value.Get (obj);
+
+							if (value != null) 
+							{
+								if (canFilter) 
+								{
+									value = filter (key, value);
+								}
+
+								if (value != null) 
+								{
+									value = ToJsonObject (value, context);
+								}
+							}
+
+							if ((value != null) || !ignoreNullValues) 
+							{
+								if (typeOverride != null) 
+								{
+									aliasKey = typeOverride.GetMemberAlias (key);
+									if (!String.IsNullOrEmpty (aliasKey)) 
+									{
+										key = aliasKey;
+									}
+								}
+
+								result.Add (key, value);
+							}
+						}
+					}
+				}
+			}
+
+			return result;
+		}
+
+        private static Dictionary<string, object> AsType(Type obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (context.Settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj, JaysonTypeNameInfo.TypeNameWithAssembly));
+
+            return result;
+        }
+
+        private static Dictionary<string, object> AsMemberInfo(MemberInfo obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (context.Settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+				result.Add ("ReflectedType", JaysonTypeInfo.GetTypeName (obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			}
+            result.Add("MemberName", obj.Name);
+
+            return result;
+        }
+
+        private static Dictionary<string, object> AsParameterInfo(ParameterInfo obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (context.Settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.ParameterType, JaysonTypeNameInfo.TypeNameWithAssembly));
+
+            return result;
+        }
+
+        private static Dictionary<string, object> AsConstructorInfo(ConstructorInfo obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+            if (context.Settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+				result.Add ("ReflectedType", JaysonTypeInfo.GetTypeName (obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			}
+
+            ParameterInfo[] parameters = obj.GetParameters();
+            if (parameters != null && parameters.Length > 0)
+            {
+                Type[] parameterTypes = new Type[parameters.Length];
+                for (int i = parameters.Length - 1; i > -1; i--)
+                {
+                    parameterTypes[i] = parameters[i].ParameterType;
+                }
+
+                result.Add("Params", AsObject(parameterTypes, typeof(Type[]), context));
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, object> AsMethodInfo(MethodInfo obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+            if (context.Settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+				result.Add ("ReflectedType", JaysonTypeInfo.GetTypeName (obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
+			}
+            result.Add("MemberName", obj.Name);
+
+            ParameterInfo[] parameters = obj.GetParameters();
+            if (parameters != null && parameters.Length > 0)
+            {
+                Type[] parameterTypes = new Type[parameters.Length];
+                for (int i = parameters.Length - 1; i > -1; i--)
+                {
+                    parameterTypes[i] = parameters[i].ParameterType;
+                }
+
+                result.Add("Params", AsObject(parameterTypes, typeof(Type[]), context));
+            }
+
+            return result;
+        }
+
+        private static object AsISerializable(ISerializable obj, Type objType, JaysonSerializationContext context)
+		{
+			Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+			JaysonSerializationSettings settings = context.Settings;
+
+			if (settings.UseObjectReferencing) {
+				result.Add ("$id", context.ReferenceMap.GetObjectId (obj));
+			}
+
+			SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+			obj.GetObjectData(info, context.StreamingContext);
+
+			if (info.MemberCount > 0) 
+			{
+				string key;
+				object value;
+				string aliasKey;
+
+				bool ignoreNullValues = settings.IgnoreNullValues;
+				JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+
+				Func<string, object, object> filter = context.Filter;
+				bool canFilter = (filter != null);
+
+				foreach (SerializationEntry se in info) 
+				{
+					key = se.Name;
+					if (typeOverride == null || !typeOverride.IsMemberIgnored (key)) 
+					{
+						value = se.Value;
 
 						if (value != null) 
 						{
@@ -389,6 +599,15 @@ namespace Sweet.Jayson
 
 						if ((value != null) || !ignoreNullValues) 
 						{
+							if (typeOverride != null) 
+							{
+								aliasKey = typeOverride.GetMemberAlias (key);
+								if (!String.IsNullOrEmpty (aliasKey)) 
+								{
+									key = aliasKey;
+								}
+							}
+
 							result.Add (key, value);
 						}
 					}
@@ -1125,66 +1344,102 @@ namespace Sweet.Jayson
 
 				try
 				{
-					JaysonSerializationSettings settings = context.Settings;
-					#if !(NET3500 || NET3000 || NET2000)
-					if (settings.IgnoreExpandoObjects && (info.Type == typeof(ExpandoObject)))
-					{
-						return null;
-					}
-					#endif
+                    JaysonTypeSerializationType serializationType = info.SerializationType;
 
-                    if (settings.IgnoreAnonymousTypes && info.Anonymous)
-					{
-						return null;
-					}
+                    switch (serializationType)
+                    {
+                        case JaysonTypeSerializationType.IDictionaryGeneric:
+                            {
+                                #if !(NET3500 || NET3000 || NET2000)
+                                if (context.Settings.IgnoreExpandoObjects && (info.Type == typeof(ExpandoObject)))
+                                {
+                                    return null;
+                                }
+                                #endif
 
-					if (obj is IDictionary<string, object>)
-					{
-						return AsGenericStringDictionary((IDictionary<string, object>)obj, context);
-					}
+                                if (obj is IDictionary<string, object>)
+                                {
+                                    return AsGenericStringDictionary((IDictionary<string, object>)obj, context);
+                                }
 
-					if (obj is IDictionary)
-					{
-						return AsDictionary((IDictionary)obj, context);
-					}
-
-					if (obj is DataSet)
-					{
-						return AsDataSet((DataSet)obj, context);
-					}
-
-					if (obj is DataTable)
-					{
-						return AsDataTable ((DataTable)obj, context);
-					}
-
-					#if !(NET3500 || NET3000 || NET2000)
-					if (obj is DynamicObject)
-					{
-						if (!settings.IgnoreDynamicObjects)
-						{
-							return AsDynamicObject((DynamicObject)obj, context);
-						}
-						return null;
-					}
-					#endif
-
-					if (obj is StringDictionary)
-					{
-						return AsStringDictionary((StringDictionary)obj, context);
-					}
-
-					if (obj is NameValueCollection)
-					{
-						return AsNameValueCollection((NameValueCollection)obj, context);
-					}
-
-					if (obj is IEnumerable)
-					{
-						return AsEnumerable((IEnumerable)obj, info.Type, context);
-					}
-
-					return AsObject(obj, info.Type, context);
+                                if (obj is IDictionary)
+                                {
+                                    return AsDictionary((IDictionary)obj, context);
+                                }
+                                break;
+                            }
+                        case JaysonTypeSerializationType.IDictionary:
+                            {
+                                return AsDictionary((IDictionary)obj, context);
+                            }
+                        case JaysonTypeSerializationType.DataSet:
+                            {
+                                return AsDataSet((DataSet)obj, context);
+                            }
+                        case JaysonTypeSerializationType.DataTable:
+                            {
+                                return AsDataTable((DataTable)obj, context);
+                            }
+                        #if !(NET3500 || NET3000 || NET2000)
+                        case JaysonTypeSerializationType.DynamicObject:
+                            {
+                                if (!context.Settings.IgnoreDynamicObjects)
+                                {
+                                    return AsDynamicObject((DynamicObject)obj, info.Type, context);
+                                }
+                                return null;
+                            }
+                        #endif
+                        case JaysonTypeSerializationType.StringDictionary:
+                            {
+                                return AsStringDictionary((StringDictionary)obj, context);
+                            }
+                        case JaysonTypeSerializationType.NameValueCollection:
+                            {
+                                return AsNameValueCollection((NameValueCollection)obj, context);
+                            }
+                        case JaysonTypeSerializationType.IEnumerable:
+                            {
+                                return AsEnumerable((IEnumerable)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.ISerializable:
+                            {
+                                return AsISerializable((ISerializable)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.Type:
+                            {
+                                return AsType((Type)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.FieldInfo:
+                        case JaysonTypeSerializationType.PropertyInfo:
+                            {
+                                return AsMemberInfo((MemberInfo)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.MethodInfo:
+                            {
+                                return AsMethodInfo((MethodInfo)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.ConstructorInfo:
+                            {
+                                return AsConstructorInfo((ConstructorInfo)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.ParameterInfo:
+                            {
+                                return AsParameterInfo((ParameterInfo)obj, info.Type, context);
+                            }
+                        case JaysonTypeSerializationType.Anonymous:
+                            {
+                                if (context.Settings.IgnoreAnonymousTypes && info.Anonymous)
+                                {
+                                    return null;
+                                }
+                                return AsObject(obj, info.Type, context);
+                            }
+                        default:
+                            {
+                                return AsObject(obj, info.Type, context);
+                            }
+                    }
 				}
 				finally
 				{

@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Sweet.Jayson
@@ -40,6 +41,7 @@ namespace Sweet.Jayson
 		public readonly JaysonSerializationSettings Settings;
 		public readonly JaysonStackList Stack;
         public readonly JaysonSerializationReferenceMap ReferenceMap = new JaysonSerializationReferenceMap();
+		public readonly StreamingContext StreamingContext = new StreamingContext();
 
 		public int ObjectDepth;
 		public Type CurrentType;

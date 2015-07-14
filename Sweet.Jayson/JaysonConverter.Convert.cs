@@ -925,61 +925,61 @@ namespace Sweet.Jayson
 
 		# endregion Convert DataTable & DataSet
 
-		private static void SetDictionary(IDictionary<string, object> obj, ref object instance,
-			JaysonDeserializationContext context)
+		private static void SetDictionary(IDictionary<string, object> obj, ref object instance, JaysonDeserializationContext context)
 		{
 			if (instance != null && obj != null && obj.Count > 0 && !(instance is DBNull))
 			{
-				if (instance is IDictionary<string, object>)
-				{
-					SetDictionaryStringKey(obj, (IDictionary<string, object>)instance, context);
-					return;
-				}
+				var info = JaysonTypeInfo.GetTypeInfo(instance.GetType());
+                JaysonTypeSerializationType serializationType = info.SerializationType;
 
-				if (instance is IDictionary)
-				{
-					SetDictionaryIDictionary(obj, (IDictionary)instance, context);
-					return;
-				}
+                switch (serializationType)
+                {
+				    case JaysonTypeSerializationType.IDictionaryGeneric:
+				    {
+					    SetDictionaryStringKey(obj, (IDictionary<string, object>)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.IDictionary:
+				    {
+					    SetDictionaryIDictionary(obj, (IDictionary)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.DataTable:
+				    {
+					    SetDataTable(obj, (DataTable)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.DataSet:
+				    {
+					    SetDataSet(obj, (DataSet)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.NameValueCollection:
+				    {
+					    SetDictionaryNameValueCollection(obj, (NameValueCollection)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.StringDictionary:
+				    {
+					    SetDictionaryStringDictionary(obj, (StringDictionary)instance, context);
+					    return;
+				    }
+				    case JaysonTypeSerializationType.Anonymous:
+				    {
+					    SetDictionaryAnonymousType(obj, instance, info.Type, context);
+					    return;
+				    }
+                    default:
+                    {
+                        if (SetDictionaryGeneric(obj, instance, info.Type, context))
+                        {
+                            return;
+                        }
 
-				if (instance is DataTable)
-				{
-					SetDataTable(obj, (DataTable)instance, context);
-					return;
-				}
-
-				if (instance is DataSet)
-				{
-					SetDataSet(obj, (DataSet)instance, context);
-					return;
-				}
-
-				if (instance is NameValueCollection)
-				{
-					SetDictionaryNameValueCollection(obj, (NameValueCollection)instance, context);
-					return;
-				}
-
-				if (instance is StringDictionary)
-				{
-					SetDictionaryStringDictionary(obj, (StringDictionary)instance, context);
-					return;
-				}
-
-				Type instanceType = instance.GetType();
-
-				if (JaysonTypeInfo.IsAnonymous(instanceType))
-				{
-					SetDictionaryAnonymousType(obj, instance, instanceType, context);
-					return;
-				}
-
-				if (SetDictionaryGeneric(obj, instance, instanceType, context))
-				{
-					return;
-				}
-
-				SetDictionaryClassOrStruct(obj, ref instance, instanceType, context);
+                        SetDictionaryClassOrStruct(obj, ref instance, info.Type, context);
+                        return;
+                    }
+                }
 			}
 		}
 
@@ -1626,12 +1626,13 @@ namespace Sweet.Jayson
 				}
 
 				for (int i = 0; i < count; i++) {
-					item = obj [i];
-					if (item is IDictionary<string, object>) {
+					item = ConvertObject(obj [i], typeof(object), context);
+
+					/* if (item is IDictionary<string, object>) {
 						item = ConvertDictionary ((IDictionary<string, object>)item, typeof(object), context);
 					} else if (item is IList<object>) {
 						item = ConvertList ((IList<object>)item, typeof(object), context);
-					}
+					} */
 
 					lResult.Add (item);
 				}
@@ -1944,7 +1945,9 @@ namespace Sweet.Jayson
 
 		private static object ConvertDictionary(IDictionary<string, object> obj, Type toType, JaysonDeserializationContext context, bool forceType = false)
 		{
-			object Sref;
+            bool hasSkeyword = false;
+            
+            object Sref;
 			if (obj.TryGetValue ("$ref", out Sref)) {
 				if (Sref is long) {
 					Sref = (int)((long)Sref);
@@ -1954,7 +1957,8 @@ namespace Sweet.Jayson
 
 			int id = 0;
 			if (obj.TryGetValue ("$id", out Sref)) {
-				if (Sref is long) {
+                hasSkeyword = true;
+                if (Sref is long) {
 					id = (int)((long)Sref);
 				} else {
 					id = (int)Sref;
@@ -1969,7 +1973,9 @@ namespace Sweet.Jayson
 			JaysonTypeInfo info = null;
 			if (obj.TryGetValue("$type", out Stype) && Stype != null)
 			{
-				info = JaysonTypeInfo.GetTypeInfo(toType);
+                hasSkeyword = true;
+                
+                info = JaysonTypeInfo.GetTypeInfo(toType);
 				Type instanceType = null;
 
 				if (!forceType || toType == typeof(object) || info.Interface)
@@ -2096,44 +2102,253 @@ namespace Sweet.Jayson
 
 				if (useDefaultCtor)
 				{
-					JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo (toType);
-					if (!ctorInfo.HasParam) {
-						result = JaysonObjectConstructor.New (toType);
-					} else {
-						object paramValue;
-						ParameterInfo ctorParam;
-						List<object> ctorParams = new List<object> ();
+					if (info == null || info.Type != toType) {
+						info = JaysonTypeInfo.GetTypeInfo (toType);
+					}
 
-						var matcher = context.Settings.CtorParamMatcher ?? DefaultMatcher;
+                    JaysonTypeSerializationType serializationType = info.SerializationType;
 
-						for (int i = 0; i < ctorInfo.ParamLength; i++) {
-							ctorParam = ctorInfo.CtorParams [i];
+                    switch (serializationType)
+                    {
+                        case JaysonTypeSerializationType.Type:
+                            {
+                                var asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "qualifiedname");
+                                if (String.IsNullOrEmpty(asmKvp.Key))
+                                {
+                                    return null;
+                                }
 
-							paramValue = matcher (ctorParam.Name, obj);
+                                string typeName = asmKvp.Value as string;
+                                if (String.IsNullOrEmpty(typeName))
+                                {
+                                    return null;
+                                }
 
-							if (paramValue != null) {
-								if (paramValue.GetType () != ctorParam.ParameterType) {
-									paramValue = ConvertObject (paramValue, ctorParam.ParameterType, context);
+                                result = JaysonCommon.GetType(typeName, settings.Binder);
+                                break;
+                            }
+                        case JaysonTypeSerializationType.ParameterInfo:
+                            {
+                                var asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "qualifiedname");
+                                if (String.IsNullOrEmpty(asmKvp.Key))
+                                {
+                                    return null;
+                                }
+
+                                string typeName = asmKvp.Value as string;
+                                if (String.IsNullOrEmpty(typeName))
+                                {
+                                    return null;
+                                }
+
+                                result = JaysonCommon.GetType(typeName, settings.Binder);
+                                break;
+                            }
+                        case JaysonTypeSerializationType.ConstructorInfo:
+                            {
+								string typeName;
+								Type type =  null;
+
+								var asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "reflectedtype");
+								if (!String.IsNullOrEmpty (asmKvp.Key)) 
+								{
+									typeName = asmKvp.Value as string;
+									if (!String.IsNullOrEmpty (typeName)) 
+									{
+										type = JaysonCommon.GetType (typeName, settings.Binder);
+									}
 								}
-							} 
-							#if !(NET4000 || NET3500 || NET3000 || NET2000)
-							else if (ctorParam.HasDefaultValue) {
-								paramValue = ctorParam.DefaultValue;
-							} 
-							#else
-							else if ((ctorParam.Attributes & ParameterAttributes.HasDefault) == ParameterAttributes.HasDefault)
-							{
-							paramValue = ctorParam.DefaultValue;
-							}
-							#endif
-							else {
-								paramValue = ConvertObject (null, ctorParam.ParameterType, context);
-							}
 
-							ctorParams.Add (paramValue);
-						}
+								if (type == null) 
+								{
+									asmKvp = obj.FirstOrDefault (kvp => kvp.Key.ToLowerInvariant () == "qualifiedname");
+									if (String.IsNullOrEmpty (asmKvp.Key)) 
+									{
+										return null;
+									}
 
-						result = ctorInfo.New (ctorParams.ToArray ());
+									typeName = asmKvp.Value as string;
+									if (String.IsNullOrEmpty (typeName)) 
+									{
+										return null;
+									}
+
+									type = JaysonCommon.GetType (typeName, settings.Binder);
+									if (type == null) 
+									{
+										return null;
+									}
+								}
+
+                                Type[] parameterTypes = null;
+
+                                asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "params");
+                                if (!String.IsNullOrEmpty(asmKvp.Key))
+                                {
+                                    parameterTypes = ConvertObject(asmKvp.Value, typeof(Type[]), context) as Type[];
+                                }
+
+                                result = type.GetConstructor(BindingFlags.Instance | BindingFlags.Static |
+                                    BindingFlags.Public | BindingFlags.NonPublic, null, parameterTypes, null);
+                                break;
+                            }
+                        case JaysonTypeSerializationType.FieldInfo:
+                        case JaysonTypeSerializationType.PropertyInfo:
+                        case JaysonTypeSerializationType.MethodInfo:
+                            {
+								string typeName;
+								Type type =  null;
+
+								var asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "reflectedtype");
+								if (!String.IsNullOrEmpty (asmKvp.Key)) 
+								{
+									typeName = asmKvp.Value as string;
+									if (!String.IsNullOrEmpty (typeName)) 
+									{
+										type = JaysonCommon.GetType (typeName, settings.Binder);
+									}
+								}
+								
+								if (type == null) 
+								{
+									asmKvp = obj.FirstOrDefault (kvp => kvp.Key.ToLowerInvariant () == "qualifiedname");
+									if (String.IsNullOrEmpty (asmKvp.Key)) 
+									{
+										return null;
+									}
+
+									typeName = asmKvp.Value as string;
+									if (String.IsNullOrEmpty (typeName)) 
+									{
+										return null;
+									}
+
+									type = JaysonCommon.GetType (typeName, settings.Binder);
+									if (type == null) 
+									{
+										return null;
+									}
+								}
+
+								asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "membername");
+                                if (String.IsNullOrEmpty(asmKvp.Key))
+                                {
+                                    return null;
+                                }
+
+                                string memberName = asmKvp.Value as string;
+                                if (String.IsNullOrEmpty(memberName))
+                                {
+                                    return null;
+                                }
+
+                                switch (serializationType)
+                                {
+                                    case JaysonTypeSerializationType.FieldInfo:
+                                        result = type.GetField(memberName, BindingFlags.Instance | BindingFlags.Static |
+                                            BindingFlags.Public | BindingFlags.NonPublic);
+                                        break;
+                                    case JaysonTypeSerializationType.PropertyInfo:
+                                        result = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Static |
+                                            BindingFlags.Public | BindingFlags.NonPublic);
+                                        break;
+                                    case JaysonTypeSerializationType.MethodInfo:
+                                        {
+                                            Type[] parameterTypes = null;
+
+                                            asmKvp = obj.FirstOrDefault(kvp => kvp.Key.ToLowerInvariant() == "params");
+                                            if (!String.IsNullOrEmpty(asmKvp.Key))
+                                            {
+                                                parameterTypes = ConvertObject(asmKvp.Value, typeof(Type[]), context) as Type[];
+                                            }
+
+                                            if (parameterTypes == null)
+                                            {
+                                                result = type.GetMethod(memberName, BindingFlags.Instance | BindingFlags.Static |
+                                                    BindingFlags.Public | BindingFlags.NonPublic);
+                                            }
+                                            else
+                                            {
+                                                result = type.GetMethod(memberName, BindingFlags.Instance | BindingFlags.Static |
+                                                    BindingFlags.Public | BindingFlags.NonPublic, null, parameterTypes, null);
+                                            }
+                                            break;
+                                        }
+                                }
+                                break;
+                            }
+                        case JaysonTypeSerializationType.ISerializable:
+                            {
+						        JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetISerializableCtorInfo (toType);
+
+						        object paramValue;
+						        SerializationInfo serializationInfo = new SerializationInfo(toType, JaysonCommon.FormatterConverter);
+
+                                string key;
+						        foreach (var kvp in obj) {
+                                    key = kvp.Key;
+                                    if (!hasSkeyword || !(key == "$type" || key == "$id")) 
+                                    {
+                                        paramValue = ConvertObject(kvp.Value, typeof(object), context);
+                                        serializationInfo.AddValue(key, paramValue);
+                                    }
+						        }
+
+                                result = ctorInfo.New(new object[] { serializationInfo, new StreamingContext(StreamingContextStates.Other) });
+                                break;
+                            }
+                        default:
+                            {
+                                JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(toType);
+                                if (!ctorInfo.HasParam)
+                                {
+                                    result = JaysonObjectConstructor.New(toType);
+                                }
+                                else
+                                {
+                                    object paramValue;
+                                    ParameterInfo ctorParam;
+                                    List<object> ctorParams = new List<object>();
+
+                                    var matcher = context.Settings.CtorParamMatcher ?? DefaultMatcher;
+
+                                    for (int i = 0; i < ctorInfo.ParamLength; i++)
+                                    {
+                                        ctorParam = ctorInfo.CtorParams[i];
+
+                                        paramValue = matcher(ctorParam.Name, obj);
+
+                                        if (paramValue != null)
+                                        {
+                                            if (paramValue.GetType() != ctorParam.ParameterType)
+                                            {
+                                                paramValue = ConvertObject(paramValue, ctorParam.ParameterType, context);
+                                            }
+                                        }
+                                        #if !(NET4000 || NET3500 || NET3000 || NET2000)
+                                        else if (ctorParam.HasDefaultValue)
+                                        {
+                                            paramValue = ctorParam.DefaultValue;
+                                        }
+                                        #else
+							            else if ((ctorParam.Attributes & ParameterAttributes.HasDefault) == ParameterAttributes.HasDefault)
+							            {
+								            paramValue = ctorParam.DefaultValue;
+							            }
+                                        #endif
+                                        else
+                                        {
+                                            paramValue = ConvertObject(null, ctorParam.ParameterType, context);
+                                        }
+
+                                        ctorParams.Add(paramValue);
+
+                                    }
+
+                                    result = ctorInfo.New(ctorParams.ToArray());
+                                }
+                                break;
+                            }
 					}
 				}
 			}

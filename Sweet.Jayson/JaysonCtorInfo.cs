@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
@@ -34,6 +35,7 @@ namespace Sweet.Jayson
 	internal sealed class JaysonCtorInfo
 	{
 		private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
+		private static readonly Dictionary<Type, JaysonCtorInfo> s_ISerializableCtorInfos = new Dictionary<Type, JaysonCtorInfo>();
 
 		private Func<object[], object> m_LambdaCtor;
 
@@ -62,14 +64,36 @@ namespace Sweet.Jayson
 			HasParam = ParamLength > 0;
 		}
 
+		public static JaysonCtorInfo GetISerializableCtorInfo(Type objType)
+		{
+			JaysonCtorInfo result;
+			if (!s_ISerializableCtorInfos.TryGetValue (objType, out result)) {
+				var ctors = objType.GetConstructors (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+				if (ctors.Length > 0) {
+					ParameterInfo[] ctorParams;
+
+					// Check ISerializable ctor
+					foreach (var ctor in ctors) {
+						ctorParams = ctor.GetParameters ();
+						if (ctorParams.Length == 2 && ctorParams [0].ParameterType == typeof(SerializationInfo) &&
+						   ctorParams [1].ParameterType == typeof(StreamingContext)) {
+							result = new JaysonCtorInfo (ctor, ctorParams);
+							break;
+						}
+					}
+				}
+				s_ISerializableCtorInfos [objType] = result;
+			}
+			return result;
+		}
+
 		public static JaysonCtorInfo GetDefaultCtorInfo(Type objType)
 		{
 			JaysonCtorInfo result;
-			if (!s_CtorInfos.TryGetValue (objType, out result)) 
-			{
-				var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+			if (!s_CtorInfos.TryGetValue (objType, out result)) {
+				var ctors = objType.GetConstructors (BindingFlags.Public | BindingFlags.Instance);
 				if (ctors.Length == 0) {
-					ctors = objType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
+					ctors = objType.GetConstructors (BindingFlags.NonPublic | BindingFlags.Instance);
 				}
 
 				if (ctors.Length == 0) {
@@ -77,20 +101,23 @@ namespace Sweet.Jayson
 				} else {
 					ParameterInfo[] ctorParams;
 
-					foreach (var ctor in ctors) {
-						ctorParams = ctor.GetParameters ();
-						if (ctorParams.Length == 0) {
-							result = new JaysonCtorInfo (ctor, ctorParams);
-							break;
+					// Check first parameterized ctor
+					if (result == null) {
+						foreach (var ctor in ctors) {
+							ctorParams = ctor.GetParameters ();
+							if (ctorParams.Length == 0) {
+								result = new JaysonCtorInfo (ctor, ctorParams);
+								break;
+							}
 						}
 					}
 
 					if (result == null) {
-						result = new JaysonCtorInfo(ctors [0]);
+						result = new JaysonCtorInfo (ctors [0]);
 					}
 				}
 
-				s_CtorInfos[objType] = result;
+				s_CtorInfos [objType] = result;
 			}
 
 			return result;

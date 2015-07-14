@@ -32,6 +32,8 @@ using System.Dynamic;
 #endif
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Sweet.Jayson
@@ -614,7 +616,7 @@ namespace Sweet.Jayson
 		}
 
 		private static bool WriteProperty(string propertyName, object value, Type expectedValueType, 
-			JaysonSerializationContext context, bool isFirst)
+			JaysonSerializationContext context, bool isFirst, bool forceNullValues = false)
 		{
 			if ((value != null) && (value != DBNull.Value))
 			{
@@ -691,7 +693,7 @@ namespace Sweet.Jayson
 				context.Formatter.Format(value, valueType, context.Builder);
 				return false; // isFirst
 			}
-			else if (!context.Settings.IgnoreNullValues)
+			else if (forceNullValues || !context.Settings.IgnoreNullValues)
 			{
 				StringBuilder builder = context.Builder;
 				JaysonSerializationSettings settings = context.Settings;
@@ -1741,6 +1743,244 @@ namespace Sweet.Jayson
 			}
 		}
 
+        private static void WriteType(Type obj, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType((object)obj, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj, JaysonTypeNameInfo.TypeNameWithAssembly), 
+                    typeof(string), context, isFirst);
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static void WriteMemberInfo(MemberInfo obj, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType((object)obj, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
+                    typeof(string), context, isFirst);
+				if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+					isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly), 
+						typeof(string), context, isFirst);
+				}
+				isFirst = WriteKeyValueEntry("MemberName", obj.Name, typeof(string), context, isFirst);
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static void WriteParameterInfo(ParameterInfo obj, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType((object)obj, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.ParameterType, JaysonTypeNameInfo.TypeNameWithAssembly),
+                    typeof(string), context, isFirst);
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static void WriteConstructorInfo(ConstructorInfo obj, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType((object)obj, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
+                    typeof(string), context, isFirst);
+				if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+					isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly), 
+						typeof(string), context, isFirst);
+				}
+
+                ParameterInfo[] parameters = obj.GetParameters();
+                if (parameters != null && parameters.Length > 0)
+                {
+                    Type[] parameterTypes = new Type[parameters.Length];
+                    for (int i = parameters.Length - 1; i > -1; i--)
+                    {
+                        parameterTypes[i] = parameters[i].ParameterType;
+                    }
+
+                    WriteKeyValueEntry("Params", parameterTypes, typeof(object), context, isFirst);
+                }
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static void WriteMethodInfo(MethodInfo obj, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType((object)obj, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
+                    typeof(string), context, isFirst);
+				if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType) {
+					isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly), 
+						typeof(string), context, isFirst);
+				}
+                isFirst = WriteKeyValueEntry("MemberName", obj.Name, typeof(string), context, isFirst);
+
+                ParameterInfo[] parameters = obj.GetParameters();
+                if (parameters != null && parameters.Length > 0)
+                {
+                    Type[] parameterTypes = new Type[parameters.Length];
+                    for (int i = parameters.Length - 1; i > -1; i--)
+                    {
+                        parameterTypes[i] = parameters[i].ParameterType;
+                    }
+
+                    WriteKeyValueEntry("Params", parameterTypes, typeof(object), context, isFirst);
+                }
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
         private static void WriteDictionaryObject(IDictionary obj, Type keyType, Type valueType, JaysonSerializationContext context)
         {
 			var settings = context.Settings;
@@ -2124,10 +2364,14 @@ namespace Sweet.Jayson
                     return;
                 }
 
+				string key;
                 object value;
+				string aliasKey;
 
 				Func<string, object, object> filter = context.Filter;
 				bool canFilter = (filter != null);
+
+				JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
 				var fastDict = JaysonFastMemberCache.GetMembers(objType);
 				if (fastDict.Count > 0)
@@ -2139,35 +2383,32 @@ namespace Sweet.Jayson
 					}
 
 					bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
-                    JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
                     
-                    string fKey;
-                    string aliasKey;
 					foreach (var memberKvp in members)
 					{
 						if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
 						{
-							fKey = memberKvp.Key;
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(fKey))
+							key = memberKvp.Key;
+                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                             {
                                 value = memberKvp.Value.Get(obj);
 
                                 if ((value != null) && canFilter)
                                 {
-                                    value = filter(fKey, value);
+                                    value = filter(key, value);
                                 }
 
                                 if (typeOverride != null)
                                 {
-                                    aliasKey = typeOverride.GetMemberAlias(fKey);
+                                    aliasKey = typeOverride.GetMemberAlias(key);
                                     if (!String.IsNullOrEmpty(aliasKey))
                                     {
-                                        fKey = aliasKey;
+                                        key = aliasKey;
                                     }
                                 }
 
 								context.CurrentType = memberKvp.Value.MemberType;
-								isFirst = WriteProperty(fKey, value, null, context, isFirst);
+								isFirst = WriteProperty(key, value, null, context, isFirst);
                             }
 						}
 					}
@@ -2183,14 +2424,27 @@ namespace Sweet.Jayson
 
 				foreach (var dKey in memberNames)
 				{
-					value = dObj[dKey];
-
-					if ((value != null) && canFilter)
+					key = dKey;
+					if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
 					{
-						value = filter(dKey, value);
-					}
+						value = dObj[key];
 
-					isFirst = WriteProperty(dKey, value, null, context, isFirst);
+						if ((value != null) && canFilter)
+						{
+							value = filter(key, value);
+						}
+
+						if (typeOverride != null)
+						{
+							aliasKey = typeOverride.GetMemberAlias(key);
+							if (!String.IsNullOrEmpty(aliasKey))
+							{
+								key = aliasKey;
+							}
+						}
+
+						isFirst = WriteProperty(key, value, null, context, isFirst);
+					}
 				}
 			}
 			finally
@@ -2269,6 +2523,77 @@ namespace Sweet.Jayson
 								context.CurrentType = memberKvp.Value.MemberType;
 								isFirst = WriteProperty(key, value, null, context, isFirst);
                             }
+						}
+					}
+				}
+			} finally {
+				context.ObjectDepth--;
+				if (settings.Formatting) {
+					builder.Append (JaysonConstants.Indentation [context.ObjectDepth]);
+				} 
+				builder.Append ('}');
+			}
+		}
+
+		private static void WriteISerializable(ISerializable obj, Type objType, JaysonSerializationContext context)
+		{
+			var settings = context.Settings;
+
+			context.ObjectDepth++;
+			StringBuilder builder = context.Builder;
+			try {
+				bool isFirst = !WriteObjectType (objType, context);
+				if (isFirst)
+				{
+					builder.Append ('{');
+				}
+
+				if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth)) {
+					return;
+				}
+
+				bool referenced;
+				isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+				if (referenced) {
+					return;
+				}
+
+				SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+				obj.GetObjectData(info, context.StreamingContext);
+
+				if (info.MemberCount > 0) {
+					string key;
+					object value;
+					string aliasKey;
+
+					Func<string, object, object> filter = context.Filter;
+					bool canFilter = (filter != null);
+
+					JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+
+					foreach (SerializationEntry se in info) 
+					{
+						key = se.Name;
+						if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+						{
+							value = se.Value;
+
+							if ((value != null) && canFilter)
+							{
+								value = filter(key, value);
+							}
+
+							if (typeOverride != null)
+							{
+								aliasKey = typeOverride.GetMemberAlias(key);
+								if (!String.IsNullOrEmpty(aliasKey))
+								{
+									key = aliasKey;
+								}
+							}
+
+							context.CurrentType = null;
+							isFirst = WriteProperty(key, value, null, context, isFirst, true);
 						}
 					}
 				}
@@ -3059,120 +3384,167 @@ namespace Sweet.Jayson
                     }
                 }
             }
-			else if (info.Enum)
-			{
-				StringBuilder builder = context.Builder;
-
-				builder.Append('"');
-				builder.Append(context.Settings.UseEnumNames ? JaysonEnumCache.GetName((Enum)obj) : JaysonEnumCache.AsIntString((Enum)obj));
-				builder.Append('"');
-				return;
-			}
 
 			try
 			{
 				JaysonSerializationSettings settings = context.Settings;
-				if (obj is IDictionary<string, object>)
-				{
-                    #if !(NET3500 || NET3000 || NET2000)
-                    if (settings.IgnoreExpandoObjects && (objType == typeof(ExpandoObject)))
-                    {
-                        if (!settings.IgnoreNullValues)
-                        {
-							context.Builder.Append(JaysonConstants.Null);
-                        }
-                        else
-                        {
-                            context.Builder.Append('{');
-                            context.Builder.Append('}');
-                        }
-                        return;
-                    }
-                    #endif
+                JaysonTypeSerializationType serializationType = info.SerializationType;
 
-                    WriteGenericStringDictionary((IDictionary<string, object>)obj, context);
-					return;
-				}
-
-				if (obj is IDictionary)
-				{
-                    if (!settings.UseKVModelForJsonObjects) {
-                        WriteDictionaryStringKey((IDictionary)obj, context);
-                    } else {
-                        var genericArgs = info.GenericArguments;
-                        if (genericArgs != null && genericArgs.Length > 0) {
-                            if (genericArgs[0] == typeof(string)) {
-                                WriteDictionaryStringKey((IDictionary)obj, context);
-                            } else {
-                                WriteDictionaryObject((IDictionary)obj, genericArgs[0], genericArgs[1], context);
-                            }
-                        } else {
-                            WriteDictionaryObject((IDictionary)obj, null, null, context);
-                        }
-                    }
-					return;
-				}
-
-				#if !(NET3500 || NET3000 || NET2000)
-				if (obj is DynamicObject)
-				{
-					if (!settings.IgnoreDynamicObjects) {
-						WriteDynamicObject((DynamicObject)obj, context);
-					} else if (!settings.IgnoreNullValues) {
-						context.Builder.Append(JaysonConstants.Null);
-					} else {
-						context.Builder.Append('{');
-						context.Builder.Append('}');
-					}
-					return;
-				}
-				#endif
-
-				if (obj is DataTable)
-				{
-					WriteDataTable((DataTable)obj, context);
-					return;
-				}
-
-				if (obj is DataSet)
-				{
-					WriteDataSet((DataSet)obj, context);
-					return;
-				}
-
-				if (obj is StringDictionary)
-				{
-					WriteStringDictionary((StringDictionary)obj, context);
-					return;
-				}
-
-				if (obj is NameValueCollection)
-				{
-					WriteNameValueCollection((NameValueCollection)obj, context);
-					return;
-				}
-
-				if (obj is IEnumerable)
-				{
-					WriteEnumerable((IEnumerable)obj, objType, context);
-					return;
-				}
-
-                if (settings.IgnoreAnonymousTypes && JaysonTypeInfo.IsAnonymous(objType))
+                switch (serializationType)
                 {
-                    if (!settings.IgnoreNullValues)
-                    {
-						context.Builder.Append(JaysonConstants.Null);
-                    }
-                    else
-                    {
-                        context.Builder.Append('{');
-                        context.Builder.Append('}');
-                    }
-                    return;
-                }
+                    case JaysonTypeSerializationType.Enum:
+                        {
+                            StringBuilder builder = context.Builder;
 
-				WriteClassOrStruct(obj, objType, context);
+                            builder.Append('"');
+                            builder.Append(context.Settings.UseEnumNames ? JaysonEnumCache.GetName((Enum)obj) : JaysonEnumCache.AsIntString((Enum)obj));
+                            builder.Append('"');
+                            return;
+                        }
+                    case JaysonTypeSerializationType.IDictionaryGeneric:
+                        {
+                            #if !(NET3500 || NET3000 || NET2000)
+                            if (settings.IgnoreExpandoObjects && (objType == typeof(ExpandoObject)))
+                            {
+                                if (!settings.IgnoreNullValues)
+                                {
+                                    context.Builder.Append(JaysonConstants.Null);
+                                }
+                                else
+                                {
+                                    context.Builder.Append('{');
+                                    context.Builder.Append('}');
+                                }
+                                return;
+                            }
+                            #endif
+
+                            WriteGenericStringDictionary((IDictionary<string, object>)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.IDictionary:
+                        {
+                            if (!settings.UseKVModelForJsonObjects)
+                            {
+                                WriteDictionaryStringKey((IDictionary)obj, context);
+                            }
+                            else
+                            {
+                                var genericArgs = info.GenericArguments;
+                                if (genericArgs != null && genericArgs.Length > 0)
+                                {
+                                    if (genericArgs[0] == typeof(string))
+                                    {
+                                        WriteDictionaryStringKey((IDictionary)obj, context);
+                                    }
+                                    else
+                                    {
+                                        WriteDictionaryObject((IDictionary)obj, genericArgs[0], genericArgs[1], context);
+                                    }
+                                }
+                                else
+                                {
+                                    WriteDictionaryObject((IDictionary)obj, null, null, context);
+                                }
+                            }
+                            return;
+                        }
+                    #if !(NET3500 || NET3000 || NET2000)
+                    case JaysonTypeSerializationType.DynamicObject:
+                        {
+                            if (!settings.IgnoreDynamicObjects)
+                            {
+                                WriteDynamicObject((DynamicObject)obj, context);
+                            }
+                            else if (!settings.IgnoreNullValues)
+                            {
+                                context.Builder.Append(JaysonConstants.Null);
+                            }
+                            else
+                            {
+                                context.Builder.Append('{');
+                                context.Builder.Append('}');
+                            }
+                            return;
+                        }
+                    #endif
+                    case JaysonTypeSerializationType.DataTable:
+                        {
+                            WriteDataTable((DataTable)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.DataSet:
+                        {
+                            WriteDataSet((DataSet)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.StringDictionary:
+                        {
+                            WriteStringDictionary((StringDictionary)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.NameValueCollection:
+                        {
+                            WriteNameValueCollection((NameValueCollection)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.IEnumerable:
+                        {
+                            WriteEnumerable((IEnumerable)obj, objType, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.Type:
+                        {
+                            WriteType((Type)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.FieldInfo:
+                    case JaysonTypeSerializationType.PropertyInfo:
+                        {
+                            WriteMemberInfo((MemberInfo)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.MethodInfo:
+                        {
+                            WriteMethodInfo((MethodInfo)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.ConstructorInfo:
+                        {
+                            WriteConstructorInfo((ConstructorInfo)obj, context);
+                            return;
+                        }
+                    case JaysonTypeSerializationType.ParameterInfo:
+                        {
+                            WriteParameterInfo((ParameterInfo)obj, context);
+                            return;
+                        }
+                    default:
+                        {
+                            if (serializationType == JaysonTypeSerializationType.Anonymous && settings.IgnoreAnonymousTypes)
+                            {
+                                if (!settings.IgnoreNullValues)
+                                {
+                                    context.Builder.Append(JaysonConstants.Null);
+                                }
+                                else
+                                {
+                                    context.Builder.Append('{');
+                                    context.Builder.Append('}');
+                                }
+                                return;
+                            }
+
+                            if (serializationType == JaysonTypeSerializationType.ISerializable)
+                            {
+                                WriteISerializable((ISerializable)obj, objType, context);
+                                return;
+                            }
+
+                            WriteClassOrStruct(obj, objType, context);
+                            break;
+                        }
+                }
 			}
 			finally
 			{
