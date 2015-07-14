@@ -408,6 +408,24 @@ Details can be found at :
 Revision History
 ----------------
 
+#### v1.0.0.9
+
+14 July 2015
+
+-   `System.Runtime.Serialization.ISerializable` interface support
+
+-   `System.Type` serialization support
+
+-   `System.Reflection.ConstuctorInfo`, `System.Reflection.MethodInfo`,
+    `System.Reflection.PropertyInfo`, `System.Reflection.FieldInfo`
+    serialization support
+
+-   `System.Exception` serialization support
+
+-   Fix for `System.Type.GetType` which works different than Mono version
+
+-   Detailed test cases
+
 #### v1.0.0.8
 
 17 June 2015
