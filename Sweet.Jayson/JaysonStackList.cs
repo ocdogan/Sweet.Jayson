@@ -95,7 +95,7 @@ namespace Sweet.Jayson
 
 		private void EnsureCapacity()
 		{
-			if (m_Index >= m_Length)
+			if (m_Index >= m_Length - 1)
 			{
 				m_Length += FrameSize;
 
