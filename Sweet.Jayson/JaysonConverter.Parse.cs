@@ -89,6 +89,7 @@ namespace Sweet.Jayson
 
             if (str[pos] == '"')
             {
+				pos++;
                 return String.Empty;
             }
 
