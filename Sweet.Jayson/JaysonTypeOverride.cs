@@ -48,9 +48,9 @@ namespace Sweet.Jayson
 
         # region Properties
 
-        public Type Type 
-        { 
-            get { return m_Type; } 
+        public Type Type
+        {
+            get { return m_Type; }
         }
 
         public Type BindToType
@@ -139,10 +139,10 @@ namespace Sweet.Jayson
                 result.m_IgnoredMembers.Add(iKvp.Key, iKvp.Value);
             }
 
-			foreach (var aKvp in m_AliasToMemberName)
-			{
-				result.m_AliasToMemberName.Add(aKvp.Key, aKvp.Value);
-			}
+            foreach (var aKvp in m_AliasToMemberName)
+            {
+                result.m_AliasToMemberName.Add(aKvp.Key, aKvp.Value);
+            }
 
             foreach (var aKvp in m_MemberNameToAlias)
             {

@@ -29,19 +29,19 @@ using System.Reflection;
 
 namespace Sweet.Jayson
 {
-	# region JaysonFastMemberCache
+    # region JaysonFastMemberCache
 
-	internal static class JaysonFastMemberCache
-	{
-		# region Constants
+    internal static class JaysonFastMemberCache
+    {
+        # region Constants
 
-		private const int CacheCapacity = 10000;
+        private const int CacheCapacity = 10000;
 
-		# endregion Constants
+        # endregion Constants
 
-		# region Static Members
+        # region Static Members
 
-		private static readonly object s_TypeMembersLock = new object();
+        private static readonly object s_TypeMembersLock = new object();
 
         private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
@@ -53,179 +53,180 @@ namespace Sweet.Jayson
         private static Dictionary<Type, IDictionary<string, IJaysonFastMember>> s_TypeInvariantAllFieldMembers =
             new Dictionary<Type, IDictionary<string, IJaysonFastMember>>(JaysonConstants.CacheInitialCapacity);
 
-		# endregion Static Members
+        # endregion Static Members
 
-		public static IJaysonFastMember GetMember(Type objType, string memberName, bool caseSensitive = true)
-		{
-			IJaysonFastMember result = null;
-			if ((objType != null) && (memberName != null) && (memberName.Length > 0))
-			{
-				IDictionary<string, IJaysonFastMember> members = GetMembers(objType, caseSensitive);
-				members.TryGetValue(memberName, out result);
-			}
-			return result;
-		}
+        public static IJaysonFastMember GetMember(Type objType, string memberName, bool caseSensitive = true)
+        {
+            IJaysonFastMember result = null;
+            if ((objType != null) && (memberName != null) && (memberName.Length > 0))
+            {
+                IDictionary<string, IJaysonFastMember> members = GetMembers(objType, caseSensitive);
+                members.TryGetValue(memberName, out result);
+            }
+            return result;
+        }
 
-		private static void FillMembers(Type objType, out IDictionary<string, IJaysonFastMember> members,
-			out IDictionary<string, IJaysonFastMember> membersInvariant)
-		{
+        private static void FillMembers(Type objType, out IDictionary<string, IJaysonFastMember> members,
+            out IDictionary<string, IJaysonFastMember> membersInvariant)
+        {
             members = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
             membersInvariant = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
 
-			IJaysonFastMember member;
+            IJaysonFastMember member;
 
-			PropertyInfo[] pis = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public |
-				BindingFlags.GetProperty | BindingFlags.SetProperty);
+            PropertyInfo[] pis = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public |
+                BindingFlags.GetProperty | BindingFlags.SetProperty);
 
-			PropertyInfo pi;
-			for (int i = pis.Length - 1; i > -1; i--)
-			{
-				pi = pis[i];
-				if (pi.CanRead)
-				{
-					var iParams = pi.GetIndexParameters();
+            PropertyInfo pi;
+            for (int i = pis.Length - 1; i > -1; i--)
+            {
+                pi = pis[i];
+                if (pi.CanRead)
+                {
+                    var iParams = pi.GetIndexParameters();
 
-					if ((iParams == null || iParams.Length == 0) && !pi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
-						// pi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
-					{
-						member = new JaysonFastProperty(pi, true, true);
+                    if ((iParams == null || iParams.Length == 0) && !pi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
+                    // pi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+                    {
+                        member = new JaysonFastProperty(pi, true, true);
 
-						members.Add(pi.Name, member);
-						membersInvariant.Add(pi.Name.ToLower(JaysonConstants.InvariantCulture), member);
-					}
-				}
-			}
+                        members.Add(pi.Name, member);
+                        membersInvariant.Add(pi.Name.ToLower(JaysonConstants.InvariantCulture), member);
+                    }
+                }
+            }
 
-			FieldInfo[] fis = objType.GetFields(BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo[] fis = objType.GetFields(BindingFlags.Instance | BindingFlags.Public);
 
-			FieldInfo fi;
-			for (int i = fis.Length - 1; i > -1; i--)
-			{
-				fi = fis[i];
-				// if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+            FieldInfo fi;
+            for (int i = fis.Length - 1; i > -1; i--)
+            {
+                fi = fis[i];
+                // if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
                 if (!fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
-				{
-					member = new JaysonFastField(fi, true, true);
+                {
+                    member = new JaysonFastField(fi, true, true);
 
-					members.Add(fi.Name, member);
+                    members.Add(fi.Name, member);
                     membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), member);
-				}
-			}
-		}
+                }
+            }
+        }
 
-		public static IDictionary<string, IJaysonFastMember> GetMembers(Type objType, bool caseSensitive = true)
-		{
-			if (objType != null)
-			{
-				IDictionary<string, IJaysonFastMember> members = null;
+        public static IDictionary<string, IJaysonFastMember> GetMembers(Type objType, bool caseSensitive = true)
+        {
+            if (objType != null)
+            {
+                IDictionary<string, IJaysonFastMember> members = null;
 
-				if (caseSensitive) {
-					if (!s_TypeMembers.TryGetValue(objType, out members))
-					{
-						lock (s_TypeMembersLock)
-						{
-							if (!s_TypeMembers.TryGetValue(objType, out members))
-							{
-								IDictionary<string, IJaysonFastMember> members1;
-								FillMembers(objType, out members, out members1);
+                if (caseSensitive)
+                {
+                    if (!s_TypeMembers.TryGetValue(objType, out members))
+                    {
+                        lock (s_TypeMembersLock)
+                        {
+                            if (!s_TypeMembers.TryGetValue(objType, out members))
+                            {
+                                IDictionary<string, IJaysonFastMember> members1;
+                                FillMembers(objType, out members, out members1);
 
-								s_TypeMembers[objType] = members;
-								s_TypeInvariantMembers[objType] = members1;
-							}
-						}
-					}
+                                s_TypeMembers[objType] = members;
+                                s_TypeInvariantMembers[objType] = members1;
+                            }
+                        }
+                    }
 
-					return members;
-				} 
+                    return members;
+                }
 
-				if (!s_TypeInvariantMembers.TryGetValue(objType, out members))
-				{
-					lock (s_TypeMembersLock)
-					{
-						if (!s_TypeInvariantMembers.TryGetValue(objType, out members))
-						{
-							IDictionary<string, IJaysonFastMember> members2;
-							FillMembers(objType, out members2, out members);
+                if (!s_TypeInvariantMembers.TryGetValue(objType, out members))
+                {
+                    lock (s_TypeMembersLock)
+                    {
+                        if (!s_TypeInvariantMembers.TryGetValue(objType, out members))
+                        {
+                            IDictionary<string, IJaysonFastMember> members2;
+                            FillMembers(objType, out members2, out members);
 
-							s_TypeMembers[objType] = members2;
-							s_TypeInvariantMembers[objType] = members;
-						}
-					}
-				}
-				return members;
-			}
-			return null;
-		}
+                            s_TypeMembers[objType] = members2;
+                            s_TypeInvariantMembers[objType] = members;
+                        }
+                    }
+                }
+                return members;
+            }
+            return null;
+        }
 
-		private static void FillAllFieldMembers(Type objType, out IDictionary<string, IJaysonFastMember> members, 
-			out IDictionary<string, IJaysonFastMember> membersInvariant)
-		{
+        private static void FillAllFieldMembers(Type objType, out IDictionary<string, IJaysonFastMember> members,
+            out IDictionary<string, IJaysonFastMember> membersInvariant)
+        {
             members = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
             membersInvariant = new JaysonOrderedDictionary<string, IJaysonFastMember>(5);
 
-			FieldInfo[] fis = objType.GetFields(BindingFlags.Instance | BindingFlags.Public |
-				BindingFlags.NonPublic);
+            FieldInfo[] fis = objType.GetFields(BindingFlags.Instance | BindingFlags.Public |
+                BindingFlags.NonPublic);
 
-			FieldInfo fi;
-			JaysonFastField fastField;
-			for (int i = fis.Length - 1; i > -1; i--)
-			{
-				fi = fis[i];
-				// if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
+            FieldInfo fi;
+            JaysonFastField fastField;
+            for (int i = fis.Length - 1; i > -1; i--)
+            {
+                fi = fis[i];
+                // if (fi.GetCustomAttributes(typeof(JaysonIgnoreMemberAttribute), true).FirstOrDefault () == null)
                 if (!fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
-				{
-					fastField = new JaysonFastField(fi, true, true);
+                {
+                    fastField = new JaysonFastField(fi, true, true);
 
-					members.Add(fi.Name, fastField);
+                    members.Add(fi.Name, fastField);
                     membersInvariant.Add(fi.Name.ToLower(JaysonConstants.InvariantCulture), fastField);
-				}
-			}
-		}
+                }
+            }
+        }
 
-		public static IDictionary<string, IJaysonFastMember> GetAllFieldMembers(Type objType, bool caseSensitive = true)
-		{
-			if (objType != null)
-			{
-				IDictionary<string, IJaysonFastMember> members = null;
+        public static IDictionary<string, IJaysonFastMember> GetAllFieldMembers(Type objType, bool caseSensitive = true)
+        {
+            if (objType != null)
+            {
+                IDictionary<string, IJaysonFastMember> members = null;
 
-				if (caseSensitive) 
-				{
-					if (!s_TypeAllFieldMembers.TryGetValue(objType, out members))
-					{
-						lock (s_TypeMembersLock)
-						{
-							if (!s_TypeAllFieldMembers.TryGetValue(objType, out members))
-							{
-								IDictionary<string, IJaysonFastMember> members1;
-								FillAllFieldMembers(objType, out members, out members1);
+                if (caseSensitive)
+                {
+                    if (!s_TypeAllFieldMembers.TryGetValue(objType, out members))
+                    {
+                        lock (s_TypeMembersLock)
+                        {
+                            if (!s_TypeAllFieldMembers.TryGetValue(objType, out members))
+                            {
+                                IDictionary<string, IJaysonFastMember> members1;
+                                FillAllFieldMembers(objType, out members, out members1);
 
-								s_TypeAllFieldMembers[objType] = members;
-								s_TypeInvariantAllFieldMembers[objType] = members1;
-							}
-						}
-					}
-					return members;
-				}
-	
-				if (!s_TypeInvariantAllFieldMembers.TryGetValue(objType, out members))
-				{
-					lock (s_TypeMembersLock)
-					{
-						if (!s_TypeInvariantAllFieldMembers.TryGetValue(objType, out members))
-						{
-							IDictionary<string, IJaysonFastMember> members1;
-							FillAllFieldMembers(objType, out members1, out members);
+                                s_TypeAllFieldMembers[objType] = members;
+                                s_TypeInvariantAllFieldMembers[objType] = members1;
+                            }
+                        }
+                    }
+                    return members;
+                }
 
-							s_TypeAllFieldMembers[objType] = members1;
-							s_TypeInvariantAllFieldMembers[objType] = members;
-						}
-					}
-				}
-				return members;
-			}
-			return null;
-		}
-	}
+                if (!s_TypeInvariantAllFieldMembers.TryGetValue(objType, out members))
+                {
+                    lock (s_TypeMembersLock)
+                    {
+                        if (!s_TypeInvariantAllFieldMembers.TryGetValue(objType, out members))
+                        {
+                            IDictionary<string, IJaysonFastMember> members1;
+                            FillAllFieldMembers(objType, out members1, out members);
 
-	# endregion JaysonFastMemberCache
+                            s_TypeAllFieldMembers[objType] = members1;
+                            s_TypeInvariantAllFieldMembers[objType] = members;
+                        }
+                    }
+                }
+                return members;
+            }
+            return null;
+        }
+    }
+
+    # endregion JaysonFastMemberCache
 }

@@ -27,6 +27,6 @@ using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
-	public delegate object JaysonCtorParamMatcher(string ctorParamName, IDictionary<string, object> parsedObject);
+    public delegate object JaysonCtorParamMatcher(string ctorParamName, IDictionary<string, object> parsedObject);
 }
 

@@ -29,19 +29,19 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-	# region JaysonObjectConstructor<T>
+    # region JaysonObjectConstructor<T>
 
-	internal static class JaysonObjectConstructor<T>
-	{
-		private static readonly Func<T> function = Creator();
+    internal static class JaysonObjectConstructor<T>
+    {
+        private static readonly Func<T> function = Creator();
 
-		private static Func<T> Creator()
-		{
-			Type objType = typeof(T);
-			if (objType == typeof(string))
-			{
-				return Expression.Lambda<Func<T>>(Expression.Constant(String.Empty)).Compile();
-			}
+        private static Func<T> Creator()
+        {
+            Type objType = typeof(T);
+            if (objType == typeof(string))
+            {
+                return Expression.Lambda<Func<T>>(Expression.Constant(String.Empty)).Compile();
+            }
 
             var info = JaysonTypeInfo.GetTypeInfo(objType);
             if (info.Enum)
@@ -50,23 +50,24 @@ namespace Sweet.Jayson
             }
 
             if (info.DefaultJConstructor)
-			{
+            {
                 return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
-			}
+            }
 
-			JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
-			if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
-				return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
-			} 
+            JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+            if (ctorInfo.HasCtor && !ctorInfo.HasParam)
+            {
+                return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
+            }
 
-			return () => (T)FormatterServices.GetUninitializedObject(objType);
-		}
+            return () => (T)FormatterServices.GetUninitializedObject(objType);
+        }
 
-		public static T New()
-		{
-			return function();
-		}
-	}
+        public static T New()
+        {
+            return function();
+        }
+    }
 
-	# endregion JaysonObjectConstructor<T>
+    # endregion JaysonObjectConstructor<T>
 }

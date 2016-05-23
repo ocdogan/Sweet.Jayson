@@ -27,17 +27,17 @@ using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
-	# region DeserializationContext
+    # region DeserializationContext
 
-	internal sealed class JaysonDeserializationContext : IDisposable
-	{
-		public string Text;
-		public int Length = 0;
-		public int Position = 0;
-		public int ObjectDepth = 0;
-		public bool HasTypeInfo = false;
-		public JaysonDeserializationSettings Settings;
-		public JaysonDeserializationTypeList GlobalTypes;
+    internal sealed class JaysonDeserializationContext : IDisposable
+    {
+        public string Text;
+        public int Length = 0;
+        public int Position = 0;
+        public int ObjectDepth = 0;
+        public bool HasTypeInfo = false;
+        public JaysonDeserializationSettings Settings;
+        public JaysonDeserializationTypeList GlobalTypes;
         public readonly JaysonDeserializationReferenceMap ReferenceMap = new JaysonDeserializationReferenceMap();
 
         public void Dispose()
@@ -46,5 +46,5 @@ namespace Sweet.Jayson
         }
     }
 
-	# endregion DeserializationContext
+    # endregion DeserializationContext
 }

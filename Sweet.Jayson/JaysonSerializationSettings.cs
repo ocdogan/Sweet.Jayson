@@ -28,49 +28,49 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-	# region JaysonSerializationSettings
+    # region JaysonSerializationSettings
 
-	public sealed class JaysonSerializationSettings : ICloneable
-	{
-		public static readonly JaysonSerializationSettings Default = new JaysonSerializationSettings();
-		private static readonly JaysonSerializationSettings Initial = new JaysonSerializationSettings ();
+    public sealed class JaysonSerializationSettings : ICloneable
+    {
+        public static readonly JaysonSerializationSettings Default = new JaysonSerializationSettings();
+        private static readonly JaysonSerializationSettings Initial = new JaysonSerializationSettings();
 
         private object m_TypeOverrideLock = new object();
         private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
-		public string DateTimeFormat;
-		public string DateTimeOffsetFormat;
-		public string NumberFormat;
-		public string TimeSpanFormat;
+        public string DateTimeFormat;
+        public string DateTimeOffsetFormat;
+        public string NumberFormat;
+        public string TimeSpanFormat;
 
-		public bool CaseSensitive = true;
-		public bool ConvertDecimalToDouble = false;
-		public bool EscapeChars = true;
-		public bool EscapeUnicodeChars = false;
-		public bool Formatting = false;
-		public bool GuidAsByteArray = false;
+        public bool CaseSensitive = true;
+        public bool ConvertDecimalToDouble = false;
+        public bool EscapeChars = true;
+        public bool EscapeUnicodeChars = false;
+        public bool Formatting = false;
+        public bool GuidAsByteArray = false;
         public bool IgnoreAnonymousTypes = true;
-        #if !(NET3500 || NET3000 || NET2000)
+#if !(NET3500 || NET3000 || NET2000)
         public bool IgnoreDynamicObjects = false;
         public bool IgnoreExpandoObjects = false;
-        #endif
+#endif
         public bool IgnorePrimitiveTypeNames = true;
         public bool IgnoreReadOnlyMembers = false;
-		public bool IgnoreNullValues = true;
+        public bool IgnoreNullValues = true;
         public bool IgnoreNullListItems = false;
-		public bool OrderNames = false;
-		public bool RaiseErrorOnCircularRef = false;
-		public bool RaiseErrorOnMaxObjectDepth = true;
-		public bool UseEnumNames = true;
-		public bool UseGlobalTypeNames = false;
+        public bool OrderNames = false;
+        public bool RaiseErrorOnCircularRef = false;
+        public bool RaiseErrorOnMaxObjectDepth = true;
+        public bool UseEnumNames = true;
+        public bool UseGlobalTypeNames = false;
         public bool UseKVModelForJsonObjects = true;
         public bool UseObjectReferencing = false;
 
-		public int MaxObjectDepth;
+        public int MaxObjectDepth;
 
-		public JaysonDateFormatType DateFormatType = JaysonDateFormatType.Iso8601;
-		public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-		public JaysonTypeNameSerialization TypeNames = JaysonTypeNameSerialization.None;
+        public JaysonDateFormatType DateFormatType = JaysonDateFormatType.Iso8601;
+        public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+        public JaysonTypeNameSerialization TypeNames = JaysonTypeNameSerialization.None;
         public JaysonTypeNameInfo TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly;
 
         public JaysonSerializationSettings()
@@ -86,66 +86,66 @@ namespace Sweet.Jayson
                 {
                     if (typeOverride != null)
                     {
-						m_TypeOverrides[typeOverride.Type] = typeOverride;
+                        m_TypeOverrides[typeOverride.Type] = typeOverride;
                     }
                 }
             }
         }
 
-		internal void AssignTo(JaysonSerializationSettings destination)
-		{
-			destination.CaseSensitive = CaseSensitive;
-			destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
-			destination.DateFormatType = DateFormatType;
-			destination.DateTimeFormat = DateTimeFormat;
-			destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
-			destination.DateTimeZoneType = DateTimeZoneType;
-			destination.TimeSpanFormat = TimeSpanFormat;
-			destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
-			#if !(NET3500 || NET3000 || NET2000)
-			destination.IgnoreDynamicObjects = IgnoreDynamicObjects;
-			destination.IgnoreExpandoObjects = IgnoreExpandoObjects;
-			#endif
-			destination.EscapeChars = EscapeChars;
-			destination.EscapeUnicodeChars = EscapeUnicodeChars;
-			destination.Formatting = Formatting;
-			destination.GuidAsByteArray = GuidAsByteArray;
-			destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
+        internal void AssignTo(JaysonSerializationSettings destination)
+        {
+            destination.CaseSensitive = CaseSensitive;
+            destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
+            destination.DateFormatType = DateFormatType;
+            destination.DateTimeFormat = DateTimeFormat;
+            destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
+            destination.DateTimeZoneType = DateTimeZoneType;
+            destination.TimeSpanFormat = TimeSpanFormat;
+            destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
+#if !(NET3500 || NET3000 || NET2000)
+            destination.IgnoreDynamicObjects = IgnoreDynamicObjects;
+            destination.IgnoreExpandoObjects = IgnoreExpandoObjects;
+#endif
+            destination.EscapeChars = EscapeChars;
+            destination.EscapeUnicodeChars = EscapeUnicodeChars;
+            destination.Formatting = Formatting;
+            destination.GuidAsByteArray = GuidAsByteArray;
+            destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
             destination.IgnoreNullListItems = IgnoreNullListItems;
-			destination.IgnoreNullValues = IgnoreNullValues;
-			destination.IgnoreReadOnlyMembers = IgnoreReadOnlyMembers;
-			destination.MaxObjectDepth = MaxObjectDepth;
-			destination.NumberFormat = NumberFormat;
-			destination.OrderNames = OrderNames;
-			destination.RaiseErrorOnCircularRef = RaiseErrorOnCircularRef;
-			destination.RaiseErrorOnMaxObjectDepth = RaiseErrorOnMaxObjectDepth;
-			destination.UseEnumNames = UseEnumNames;
-			destination.UseGlobalTypeNames = UseGlobalTypeNames;
+            destination.IgnoreNullValues = IgnoreNullValues;
+            destination.IgnoreReadOnlyMembers = IgnoreReadOnlyMembers;
+            destination.MaxObjectDepth = MaxObjectDepth;
+            destination.NumberFormat = NumberFormat;
+            destination.OrderNames = OrderNames;
+            destination.RaiseErrorOnCircularRef = RaiseErrorOnCircularRef;
+            destination.RaiseErrorOnMaxObjectDepth = RaiseErrorOnMaxObjectDepth;
+            destination.UseEnumNames = UseEnumNames;
+            destination.UseGlobalTypeNames = UseGlobalTypeNames;
             destination.UseKVModelForJsonObjects = UseKVModelForJsonObjects;
             destination.UseObjectReferencing = UseObjectReferencing;
             destination.TypeNameInfo = TypeNameInfo;
-			destination.TypeNames = TypeNames;
+            destination.TypeNames = TypeNames;
 
             AssignTypeOverridesTo(destination);
-		}
+        }
 
-		public object Clone()
-		{
-			JaysonSerializationSettings clone = new JaysonSerializationSettings();
-			AssignTo (clone);
+        public object Clone()
+        {
+            JaysonSerializationSettings clone = new JaysonSerializationSettings();
+            AssignTo(clone);
 
-			return clone;
-		}
+            return clone;
+        }
 
-		public void Reset()
-		{
-			Initial.AssignTo (this);
-		}
+        public void Reset()
+        {
+            Initial.AssignTo(this);
+        }
 
-		public static JaysonSerializationSettings DefaultClone()
-		{
-			return (JaysonSerializationSettings)Default.Clone ();
-		}
+        public static JaysonSerializationSettings DefaultClone()
+        {
+            return (JaysonSerializationSettings)Default.Clone();
+        }
 
         private void AssignTypeOverridesTo(JaysonSerializationSettings destination)
         {
@@ -257,7 +257,7 @@ namespace Sweet.Jayson
             {
                 if (m_TypeOverrides == null)
                 {
-                    m_TypeOverrides = new Dictionary<Type,JaysonTypeOverride>();
+                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
                 }
 
                 foreach (var typeOverride in typeOverrides)
@@ -287,5 +287,5 @@ namespace Sweet.Jayson
         }
     }
 
-	# endregion JaysonSerializationSettings
+    # endregion JaysonSerializationSettings
 }

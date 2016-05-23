@@ -26,15 +26,15 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region ArrayDeserializationType
+    # region ArrayDeserializationType
 
-	public enum ArrayDeserializationType
-	{
-		List,
-		ArrayList,
-		Array,
-		ArrayDefined
-	}
+    public enum ArrayDeserializationType
+    {
+        List,
+        ArrayList,
+        Array,
+        ArrayDefined
+    }
 
-	# endregion ArrayDeserializationType
+    # endregion ArrayDeserializationType
 }

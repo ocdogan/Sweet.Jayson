@@ -28,37 +28,38 @@ using System.Linq;
 
 namespace Sweet.Jayson
 {
-	public sealed class JaysonSerializationTypeList
-	{
-		# region Field Members
+    public sealed class JaysonSerializationTypeList
+    {
+        # region Field Members
 
-		private int m_Ref = 1;
-		private Dictionary<Type, string> m_Types = new Dictionary<Type, string>();
-		private List<JaysonKeyValue<string, Type>> m_OrderedList = new List<JaysonKeyValue<string, Type>>();
+        private int m_Ref = 1;
+        private Dictionary<Type, string> m_Types = new Dictionary<Type, string>();
+        private List<JaysonKeyValue<string, Type>> m_OrderedList = new List<JaysonKeyValue<string, Type>>();
 
-		# endregion Field Members
+        # endregion Field Members
 
-		public int Count
-		{
-			get { return m_Types.Count; }
-		}
+        public int Count
+        {
+            get { return m_Types.Count; }
+        }
 
-		public string Register(Type type)
-		{
-			string id;
-			if (!m_Types.TryGetValue (type, out id)) {
-				id = JaysonFormatter.Format(m_Ref++);
+        public string Register(Type type)
+        {
+            string id;
+            if (!m_Types.TryGetValue(type, out id))
+            {
+                id = JaysonFormatter.Format(m_Ref++);
 
-				m_Types.Add (type, id);
-				m_OrderedList.Add (new JaysonKeyValue<string, Type> { Key = id, Value = type });
-			}
-			return id;
-		}
+                m_Types.Add(type, id);
+                m_OrderedList.Add(new JaysonKeyValue<string, Type> { Key = id, Value = type });
+            }
+            return id;
+        }
 
-		internal List<JaysonKeyValue<string, Type>> GetList()
-		{
-			return m_OrderedList;
-		}
-	}
+        internal List<JaysonKeyValue<string, Type>> GetList()
+        {
+            return m_OrderedList;
+        }
+    }
 }
 

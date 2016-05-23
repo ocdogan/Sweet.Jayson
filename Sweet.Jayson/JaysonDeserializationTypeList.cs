@@ -27,86 +27,92 @@ using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
-	public class JaysonDeserializationTypeList
-	{
-		# region Field Members
+    public class JaysonDeserializationTypeList
+    {
+        # region Field Members
 
-		private Dictionary<int, Type> m_Ids = new Dictionary<int, Type>();
+        private Dictionary<int, Type> m_Ids = new Dictionary<int, Type>();
 
-		# endregion Field Members
+        # endregion Field Members
 
-		public JaysonDeserializationTypeList(IDictionary<string, object> types = null)
-		{
-			if (types != null) {
-				Initialize (types);
-			}
-		}
+        public JaysonDeserializationTypeList(IDictionary<string, object> types = null)
+        {
+            if (types != null)
+            {
+                Initialize(types);
+            }
+        }
 
-		public Type GetType(int id)
-		{
-			Type type;
-			m_Ids.TryGetValue (id, out type);
-			return type;
-		}
+        public Type GetType(int id)
+        {
+            Type type;
+            m_Ids.TryGetValue(id, out type);
+            return type;
+        }
 
-		private static int ParseId(string sid)
-		{
-			if (sid == null) {
-				throw new JaysonException(JaysonError.InvalidNumber);
-			}
+        private static int ParseId(string sid)
+        {
+            if (sid == null)
+            {
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
 
-			int length = sid.Length;
-			if (length == 0) {
-				throw new JaysonException(JaysonError.InvalidNumber);
-			}
+            int length = sid.Length;
+            if (length == 0)
+            {
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
 
-			char ch;
-			if (length == 1)
-			{
-				ch = sid[0];
-				if (ch < '0' || ch > '9')
-				{
-					throw new JaysonException(JaysonError.InvalidNumber);
-				}
-				return (int)(ch - '0');
-			}
+            char ch;
+            if (length == 1)
+            {
+                ch = sid[0];
+                if (ch < '0' || ch > '9')
+                {
+                    throw new JaysonException(JaysonError.InvalidNumber);
+                }
+                return (int)(ch - '0');
+            }
 
-			ch = (char)0;
-			int value = 0;
+            ch = (char)0;
+            int value = 0;
 
-			for (int pos = 0; pos < length; pos++)
-			{
-				ch = sid[pos];
-				if (!(ch < '0' || ch > '9'))
-				{
-					value = (value * 10) + (int)(ch - '0');
-					continue;
-				}
+            for (int pos = 0; pos < length; pos++)
+            {
+                ch = sid[pos];
+                if (!(ch < '0' || ch > '9'))
+                {
+                    value = (value * 10) + (int)(ch - '0');
+                    continue;
+                }
 
-				throw new JaysonException(JaysonError.InvalidNumber);
-			}
-			return value;
-		}
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
+            return value;
+        }
 
-		private void Initialize(IDictionary<string, object> types)
-		{
-			if (types.Count > 0) {
-				int id;
-				Type type;
-				string typeName;
+        private void Initialize(IDictionary<string, object> types)
+        {
+            if (types.Count > 0)
+            {
+                int id;
+                Type type;
+                string typeName;
 
-				foreach (var tKvp in types) {
-					typeName = tKvp.Value as string;
-					if (String.IsNullOrEmpty (typeName)) {
-						throw new JaysonException(JaysonError.InvalidTypeName);
-					}
+                foreach (var tKvp in types)
+                {
+                    typeName = tKvp.Value as string;
+                    if (String.IsNullOrEmpty(typeName))
+                    {
+                        throw new JaysonException(JaysonError.InvalidTypeName);
+                    }
 
-					id = ParseId(tKvp.Key);
-					type = JaysonCommon.GetType (typeName);
+                    id = ParseId(tKvp.Key);
+                    type = JaysonCommon.GetType(typeName);
 
-					m_Ids.Add (id, type);
-				}
-			}
-		}
-	}
+                    m_Ids.Add(id, type);
+                }
+            }
+        }
+    }
 }

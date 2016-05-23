@@ -26,13 +26,13 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region JaysonFastMemberType
+    # region JaysonFastMemberType
 
-	internal enum JaysonFastMemberType
-	{
-		Property,
-		Field
-	}
+    internal enum JaysonFastMemberType
+    {
+        Property,
+        Field
+    }
 
-	# endregion JaysonFastMemberType
+    # endregion JaysonFastMemberType
 }

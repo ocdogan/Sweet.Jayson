@@ -30,108 +30,122 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-	# region JaysonCtorInfo
+    # region JaysonCtorInfo
 
-	internal sealed class JaysonCtorInfo
-	{
-		private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
-		private static readonly Dictionary<Type, JaysonCtorInfo> s_ISerializableCtorInfos = new Dictionary<Type, JaysonCtorInfo>();
+    internal sealed class JaysonCtorInfo
+    {
+        private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
+        private static readonly Dictionary<Type, JaysonCtorInfo> s_ISerializableCtorInfos = new Dictionary<Type, JaysonCtorInfo>();
 
-		private Func<object[], object> m_LambdaCtor;
+        private Func<object[], object> m_LambdaCtor;
 
-		public readonly bool HasCtor;
-		public readonly bool HasParam;
-		public readonly int ParamLength;
+        public readonly bool HasCtor;
+        public readonly bool HasParam;
+        public readonly int ParamLength;
 
-		public readonly ConstructorInfo Ctor;
-		public readonly ParameterInfo[] CtorParams;
+        public readonly ConstructorInfo Ctor;
+        public readonly ParameterInfo[] CtorParams;
 
-		private JaysonCtorInfo(ConstructorInfo ctor)
-		{
-			Ctor = ctor;
-			HasCtor = ctor != null;
-			CtorParams = !HasCtor ? new ParameterInfo[0] : (ctor.GetParameters () ?? new ParameterInfo[0]);
-			ParamLength = CtorParams.Length;
-			HasParam = ParamLength > 0;
-		}
+        private JaysonCtorInfo(ConstructorInfo ctor)
+        {
+            Ctor = ctor;
+            HasCtor = ctor != null;
+            CtorParams = !HasCtor ? new ParameterInfo[0] : (ctor.GetParameters() ?? new ParameterInfo[0]);
+            ParamLength = CtorParams.Length;
+            HasParam = ParamLength > 0;
+        }
 
-		private JaysonCtorInfo(ConstructorInfo ctor, ParameterInfo[] ctorParams)
-		{
-			Ctor = ctor;
-			HasCtor = ctor != null;
-			CtorParams = !HasCtor ? new ParameterInfo[0] : (ctorParams ?? new ParameterInfo[0]);
-			ParamLength = CtorParams.Length;
-			HasParam = ParamLength > 0;
-		}
+        private JaysonCtorInfo(ConstructorInfo ctor, ParameterInfo[] ctorParams)
+        {
+            Ctor = ctor;
+            HasCtor = ctor != null;
+            CtorParams = !HasCtor ? new ParameterInfo[0] : (ctorParams ?? new ParameterInfo[0]);
+            ParamLength = CtorParams.Length;
+            HasParam = ParamLength > 0;
+        }
 
-		public static JaysonCtorInfo GetISerializableCtorInfo(Type objType)
-		{
-			JaysonCtorInfo result;
-			if (!s_ISerializableCtorInfos.TryGetValue (objType, out result)) {
-				var ctors = objType.GetConstructors (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-				if (ctors.Length > 0) {
-					ParameterInfo[] ctorParams;
+        public static JaysonCtorInfo GetISerializableCtorInfo(Type objType)
+        {
+            JaysonCtorInfo result;
+            if (!s_ISerializableCtorInfos.TryGetValue(objType, out result))
+            {
+                var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (ctors.Length > 0)
+                {
+                    ParameterInfo[] ctorParams;
 
-					// Check ISerializable ctor
-					foreach (var ctor in ctors) {
-						ctorParams = ctor.GetParameters ();
-						if (ctorParams.Length == 2 && ctorParams [0].ParameterType == typeof(SerializationInfo) &&
-						   ctorParams [1].ParameterType == typeof(StreamingContext)) {
-							result = new JaysonCtorInfo (ctor, ctorParams);
-							break;
-						}
-					}
-				}
-				s_ISerializableCtorInfos [objType] = result;
-			}
-			return result;
-		}
+                    // Check ISerializable ctor
+                    foreach (var ctor in ctors)
+                    {
+                        ctorParams = ctor.GetParameters();
+                        if (ctorParams.Length == 2 && ctorParams[0].ParameterType == typeof(SerializationInfo) &&
+                           ctorParams[1].ParameterType == typeof(StreamingContext))
+                        {
+                            result = new JaysonCtorInfo(ctor, ctorParams);
+                            break;
+                        }
+                    }
+                }
+                s_ISerializableCtorInfos[objType] = result;
+            }
+            return result;
+        }
 
-		public static JaysonCtorInfo GetDefaultCtorInfo(Type objType)
-		{
-			JaysonCtorInfo result;
-			if (!s_CtorInfos.TryGetValue (objType, out result)) {
-				var ctors = objType.GetConstructors (BindingFlags.Public | BindingFlags.Instance);
-				if (ctors.Length == 0) {
-					ctors = objType.GetConstructors (BindingFlags.NonPublic | BindingFlags.Instance);
-				}
+        public static JaysonCtorInfo GetDefaultCtorInfo(Type objType)
+        {
+            JaysonCtorInfo result;
+            if (!s_CtorInfos.TryGetValue(objType, out result))
+            {
+                var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+                if (ctors.Length == 0)
+                {
+                    ctors = objType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
+                }
 
-				if (ctors.Length == 0) {
-					result = new JaysonCtorInfo (null); 
-				} else {
-					ParameterInfo[] ctorParams;
+                if (ctors.Length == 0)
+                {
+                    result = new JaysonCtorInfo(null);
+                }
+                else
+                {
+                    ParameterInfo[] ctorParams;
 
-					// Check first parameterized ctor
-					if (result == null) {
-						foreach (var ctor in ctors) {
-							ctorParams = ctor.GetParameters ();
-							if (ctorParams.Length == 0) {
-								result = new JaysonCtorInfo (ctor, ctorParams);
-								break;
-							}
-						}
-					}
+                    // Check first parameterized ctor
+                    if (result == null)
+                    {
+                        foreach (var ctor in ctors)
+                        {
+                            ctorParams = ctor.GetParameters();
+                            if (ctorParams.Length == 0)
+                            {
+                                result = new JaysonCtorInfo(ctor, ctorParams);
+                                break;
+                            }
+                        }
+                    }
 
-					if (result == null) {
-						result = new JaysonCtorInfo (ctors [0]);
-					}
-				}
+                    if (result == null)
+                    {
+                        result = new JaysonCtorInfo(ctors[0]);
+                    }
+                }
 
-				s_CtorInfos [objType] = result;
-			}
+                s_CtorInfos[objType] = result;
+            }
 
-			return result;
-		}
+            return result;
+        }
 
-		public object New(object[] args)
-		{
-			if (m_LambdaCtor == null) {
-				m_LambdaCtor = JaysonCommon.CreateActivator (Ctor);
-			}
-			return m_LambdaCtor(args);
-		}
-	}
+        public object New(object[] args)
+        {
+            if (m_LambdaCtor == null)
+            {
+                m_LambdaCtor = JaysonCommon.CreateActivator(Ctor);
+            }
+            return m_LambdaCtor(args);
+        }
+    }
 
-	# endregion JaysonCtorInfo
+    # endregion JaysonCtorInfo
 }
 

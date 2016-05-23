@@ -31,34 +31,34 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-	# region JaysonObjectConstructor
+    # region JaysonObjectConstructor
 
-	internal static class JaysonObjectConstructor
-	{
-		private static readonly object s_SyncRoot = new object();
+    internal static class JaysonObjectConstructor
+    {
+        private static readonly object s_SyncRoot = new object();
 
-		private static readonly Dictionary<Type, object> s_LockCache = new Dictionary<Type, object>();
-		private static readonly Dictionary<Type, Func<object>> s_DefaultCache = new Dictionary<Type, Func<object>>();
+        private static readonly Dictionary<Type, object> s_LockCache = new Dictionary<Type, object>();
+        private static readonly Dictionary<Type, Func<object>> s_DefaultCache = new Dictionary<Type, Func<object>>();
 
-		private static object GetLock(Type objType)
-		{
-			object result;
-			if (!s_LockCache.TryGetValue(objType, out result))
-			{
-				lock (s_SyncRoot)
-				{
-					if (!s_LockCache.TryGetValue(objType, out result))
-					{
-						result = new object();
-						s_LockCache[objType] = result;
-					}
-				}
-			}
-			return result;
-		}
+        private static object GetLock(Type objType)
+        {
+            object result;
+            if (!s_LockCache.TryGetValue(objType, out result))
+            {
+                lock (s_SyncRoot)
+                {
+                    if (!s_LockCache.TryGetValue(objType, out result))
+                    {
+                        result = new object();
+                        s_LockCache[objType] = result;
+                    }
+                }
+            }
+            return result;
+        }
 
-		public static object New(Type objType)
-		{
+        public static object New(Type objType)
+        {
             Func<object> function;
             if (!s_DefaultCache.TryGetValue(objType, out function))
             {
@@ -67,33 +67,41 @@ namespace Sweet.Jayson
                 {
                     if (!s_DefaultCache.TryGetValue(objType, out function))
                     {
-                        if (info.JTypeCode == JaysonTypeCode.String) {
+                        if (info.JTypeCode == JaysonTypeCode.String)
+                        {
                             function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
                         }
-                        else if (info.Enum) {
-							function = () => Enum.ToObject(objType, 0L);
+                        else if (info.Enum)
+                        {
+                            function = () => Enum.ToObject(objType, 0L);
                         }
-						else if (info.DefaultJConstructor) {
-                            Expression newExp = Expression.New (objType);
+                        else if (info.DefaultJConstructor)
+                        {
+                            Expression newExp = Expression.New(objType);
                             newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
-							function = Expression.Lambda<Func<object>> (newExp).Compile ();
-						} else {
-							JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
-							if (ctorInfo.HasCtor && !ctorInfo.HasParam) {
+                            function = Expression.Lambda<Func<object>>(newExp).Compile();
+                        }
+                        else
+                        {
+                            JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+                            if (ctorInfo.HasCtor && !ctorInfo.HasParam)
+                            {
                                 Expression newExp = Expression.New(objType);
                                 newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
                                 function = Expression.Lambda<Func<object>>(newExp).Compile();
-                            } else {
-								function = () => FormatterServices.GetUninitializedObject (objType);
-							}
-						}
-						s_DefaultCache[objType] = function;
+                            }
+                            else
+                            {
+                                function = () => FormatterServices.GetUninitializedObject(objType);
+                            }
+                        }
+                        s_DefaultCache[objType] = function;
                     }
                 }
             }
             return function();
         }
-	}
+    }
 
-	# endregion JaysonObjectConstructor
+    # endregion JaysonObjectConstructor
 }

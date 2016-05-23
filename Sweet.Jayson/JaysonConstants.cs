@@ -28,73 +28,76 @@ using System.Globalization;
 
 namespace Sweet.Jayson
 {
-	public static class JaysonConstants
-	{
-		# region Constants
+    public static class JaysonConstants
+    {
+        # region Constants
 
         public const int CacheCapacity = 10000;
-		public const int CacheInitialCapacity = 100;
-		public const int ListCapacity = 5;
+        public const int CacheInitialCapacity = 100;
+        public const int ListCapacity = 5;
         public const int DictionaryCapacity = 5;
 
-		public const string TimeSpanDefaultFormat = "c";
-		public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
-		public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";
-		public const string DateMicrosoftJsonFormat = "\\/Date({0})\\/";
+        public const string TimeSpanDefaultFormat = "c";
+        public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
+        public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";
+        public const string DateMicrosoftJsonFormat = "\\/Date({0})\\/";
 
-		internal const string MicrosoftDateFormatStart = "/Date(";
-		internal const string MicrosoftDateFormatEnd = ")/";
+        public const string SingleCommentTag = "//";
+        public const string MultiCommentTag = "/**/";
 
-		internal const string Null = "null";
+        internal const string MicrosoftDateFormatStart = "/Date(";
+        internal const string MicrosoftDateFormatEnd = ")/";
 
-		internal const string IntMinValue = "-2147483648";
-		internal const string LongMinValue = "-9223372036854775808";
+        internal const string Null = "null";
 
-		internal const string JScriptDateZero = "new Date(0)";
-		internal const string MicrosoftDateZero = "\"/Date(0)/\"";
+        internal const string IntMinValue = "-2147483648";
+        internal const string LongMinValue = "-9223372036854775808";
 
-		# endregion Constants
+        internal const string JScriptDateZero = "new Date(0)";
+        internal const string MicrosoftDateZero = "\"/Date(0)/\"";
 
-		# region Static Members
+        # endregion Constants
 
-		internal static readonly int MicrosoftDateFormatLen = "/Date()/".Length;
-		internal static readonly int MicrosoftDateFormatStartLen = "/Date(".Length;
-		internal static readonly int MicrosoftDateFormatEndLen = ")/".Length;
+        # region Static Members
 
-		public static readonly string[] DateDefaultFormats = new string[] {
+        internal static readonly int MicrosoftDateFormatLen = "/Date()/".Length;
+        internal static readonly int MicrosoftDateFormatStartLen = "/Date(".Length;
+        internal static readonly int MicrosoftDateFormatEndLen = ")/".Length;
+
+        public static readonly string[] DateDefaultFormats = new string[] {
 			DateIso8601Format,
 			DateDefaultFormat
 		};
 
-		public static readonly char CharA10 = (char)('A' - 10);
-		public static readonly char Chara10 = (char)('a' - 10);
+        public static readonly char CharA10 = (char)('A' - 10);
+        public static readonly char Chara10 = (char)('a' - 10);
 
-		public static readonly object[] EmptyObjArray = new object[0];
+        public static readonly object[] EmptyObjArray = new object[0];
 
-		public static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
-		public static readonly Type DefaultDictionaryType = typeof(Dictionary<string, object>);
+        public static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
+        public static readonly Type DefaultDictionaryType = typeof(Dictionary<string, object>);
 
-		public static readonly decimal LongMaxValueAsDecimal = Convert.ToDecimal(long.MaxValue);
-		public static readonly decimal LongMinValueAsDecimal = Convert.ToDecimal(long.MinValue);
+        public static readonly decimal LongMaxValueAsDecimal = Convert.ToDecimal(long.MaxValue);
+        public static readonly decimal LongMinValueAsDecimal = Convert.ToDecimal(long.MinValue);
 
-		public static readonly long IntMaxValueAsLong = (long)int.MaxValue;
-		public static readonly long IntMinValueAsLong = (long)int.MinValue;
+        public static readonly long IntMaxValueAsLong = (long)int.MaxValue;
+        public static readonly long IntMinValueAsLong = (long)int.MinValue;
 
-		public static readonly char[] NewLine = Environment.NewLine.ToCharArray ();
-		public static readonly string[] Indentation = new string[61];
+        public static readonly char[] NewLine = Environment.NewLine.ToCharArray();
+        public static readonly string[] Indentation = new string[61];
 
-		public static readonly TimeZone CurrentTimeZone = TimeZone.CurrentTimeZone;
+        public static readonly TimeZone CurrentTimeZone = TimeZone.CurrentTimeZone;
 
-		// Min: 621355968000000000L, Max: 642830688000000000L
-		public static readonly long UnixEpochMinValue = (new DateTime (1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Ticks;
-		public static readonly long UnixEpochMaxValue = (new DateTime (2038, 1, 19, 0, 0, 0, DateTimeKind.Utc)).Ticks;
+        // Min: 621355968000000000L, Max: 642830688000000000L
+        public static readonly long UnixEpochMinValue = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Ticks;
+        public static readonly long UnixEpochMaxValue = (new DateTime(2038, 1, 19, 0, 0, 0, DateTimeKind.Utc)).Ticks;
 
-		public static readonly DateTime DateTimeUtcMinValue = new DateTime(1, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-		public static readonly DateTime DateTimeUnixEpochMinValue = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-		public static readonly DateTime DateTimeUnixEpochMaxValue = new DateTime(2038, 1, 19, 0, 0, 0, DateTimeKind.Utc);
-		public static readonly DateTime DateTimeUnixEpochMinValueUnspecified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        public static readonly DateTime DateTimeUtcMinValue = new DateTime(1, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime DateTimeUnixEpochMinValue = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime DateTimeUnixEpochMaxValue = new DateTime(2038, 1, 19, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime DateTimeUnixEpochMinValueUnspecified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
-		public static readonly long[] PowerOf10Long = new long[] { 
+        public static readonly long[] PowerOf10Long = new long[] { 
 			1L,
 			10L,
 			100L,
@@ -116,7 +119,7 @@ namespace Sweet.Jayson
 			1000000000000000000L
 		};
 
-		public static readonly double[] PowerOf10Double = new double[] { 
+        public static readonly double[] PowerOf10Double = new double[] { 
 			1d,
 			10d,
 			100d,
@@ -139,7 +142,7 @@ namespace Sweet.Jayson
 			10000000000000000000d
 		};
 
-		public static readonly decimal[] PowerOf10Decimal = new decimal[] { 
+        public static readonly decimal[] PowerOf10Decimal = new decimal[] { 
 			1m,
 			10m,
 			100m,
@@ -162,16 +165,17 @@ namespace Sweet.Jayson
 			10000000000000000000m
 		};
 
-		# endregion Static Members
+        # endregion Static Members
 
-		static JaysonConstants()
-		{
-			string newLine = Environment.NewLine;
+        static JaysonConstants()
+        {
+            string newLine = Environment.NewLine;
 
-			Indentation [0] = newLine;
-			for (int i = 1; i < Indentation.Length; i++) {
-				Indentation [i] = newLine.PadRight (newLine.Length + (4 * i), ' ');
-			}
-		}
-	}
+            Indentation[0] = newLine;
+            for (int i = 1; i < Indentation.Length; i++)
+            {
+                Indentation[i] = newLine.PadRight(newLine.Length + (4 * i), ' ');
+            }
+        }
+    }
 }

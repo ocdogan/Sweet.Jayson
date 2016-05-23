@@ -28,34 +28,35 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-	# region JaysonDeserializationSettings
+    # region JaysonDeserializationSettings
 
-	public class JaysonDeserializationSettings : ICloneable
-	{
-		public static readonly JaysonDeserializationSettings Default = new JaysonDeserializationSettings();
-		private static readonly JaysonDeserializationSettings Initial = new JaysonDeserializationSettings ();
+    public class JaysonDeserializationSettings : ICloneable
+    {
+        public static readonly JaysonDeserializationSettings Default = new JaysonDeserializationSettings();
+        private static readonly JaysonDeserializationSettings Initial = new JaysonDeserializationSettings();
 
         private object m_TypeOverrideLock = new object();
         private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
         public SerializationBinder Binder;
-        
-		public string DateTimeFormat;
-		public string DateTimeOffsetFormat;
 
-		public bool CaseSensitive = true;
-		public bool ConvertDecimalToDouble = false;
+        public string DateTimeFormat;
+        public string DateTimeOffsetFormat;
+
+        public bool CaseSensitive = true;
+        public bool ConvertDecimalToDouble = false;
         public bool IgnoreAnonymousTypes = true;
         public bool RaiseErrorOnMissingMember = false;
 
-		public int MaxObjectDepth;
+        public int MaxObjectDepth;
 
-		public ArrayDeserializationType ArrayType = ArrayDeserializationType.List;
-		public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
-		public DictionaryDeserializationType DictionaryType = DictionaryDeserializationType.Dictionary;
+        public ArrayDeserializationType ArrayType = ArrayDeserializationType.List;
+        public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+        public DictionaryDeserializationType DictionaryType = DictionaryDeserializationType.Dictionary;
+        public JaysonCommentHandling CommentHandling = JaysonCommentHandling.Ignore;
 
-		public JaysonObjectActivator ObjectActivator;
-		public JaysonCtorParamMatcher CtorParamMatcher;
+        public JaysonObjectActivator ObjectActivator;
+        public JaysonCtorParamMatcher CtorParamMatcher;
 
         public JaysonDeserializationSettings()
             : this(null)
@@ -76,41 +77,42 @@ namespace Sweet.Jayson
             }
         }
 
-		internal void AssignTo(JaysonDeserializationSettings destination)
-		{
-			destination.ArrayType = ArrayType;
+        internal void AssignTo(JaysonDeserializationSettings destination)
+        {
+            destination.ArrayType = ArrayType;
             destination.Binder = Binder;
-			destination.CaseSensitive = CaseSensitive;
-			destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
-			destination.DateTimeFormat = DateTimeFormat;
-			destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
-			destination.DateTimeZoneType = DateTimeZoneType;
-			destination.DictionaryType = DictionaryType;
-			destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
-			destination.MaxObjectDepth = MaxObjectDepth;
-			destination.ObjectActivator = ObjectActivator;
+            destination.CaseSensitive = CaseSensitive;
+            destination.CommentHandling = CommentHandling;
+            destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
+            destination.DateTimeFormat = DateTimeFormat;
+            destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
+            destination.DateTimeZoneType = DateTimeZoneType;
+            destination.DictionaryType = DictionaryType;
+            destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
+            destination.MaxObjectDepth = MaxObjectDepth;
+            destination.ObjectActivator = ObjectActivator;
             destination.RaiseErrorOnMissingMember = RaiseErrorOnMissingMember;
 
             AssignTypeOverridesTo(destination);
         }
 
-		public object Clone()
-		{
-			JaysonDeserializationSettings clone = new JaysonDeserializationSettings ();
-			AssignTo (clone);
+        public object Clone()
+        {
+            JaysonDeserializationSettings clone = new JaysonDeserializationSettings();
+            AssignTo(clone);
 
-			return clone;
-		}
+            return clone;
+        }
 
-		public void Reset()
-		{
-			Initial.AssignTo (this);
-		}
+        public void Reset()
+        {
+            Initial.AssignTo(this);
+        }
 
-		public static JaysonDeserializationSettings DefaultClone()
-		{
-			return (JaysonDeserializationSettings)Default.Clone ();
-		}
+        public static JaysonDeserializationSettings DefaultClone()
+        {
+            return (JaysonDeserializationSettings)Default.Clone();
+        }
 
         private void AssignTypeOverridesTo(JaysonDeserializationSettings destination)
         {
@@ -202,5 +204,5 @@ namespace Sweet.Jayson
         }
     }
 
-	# endregion JaysonDeserializationSettings
+    # endregion JaysonDeserializationSettings
 }

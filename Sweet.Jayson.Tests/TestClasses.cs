@@ -89,33 +89,33 @@ namespace Sweet.Jayson.Tests
   ]
 }";
 
-		public static ObjectGraph GetObjectGraph1()
-		{
-			var dc = new DataContainer
-			{
+        public static ObjectGraph GetObjectGraph1()
+        {
+            var dc = new DataContainer
+            {
                 Exception = new ArgumentNullException("Test"),
-				Identifier = Guid.NewGuid(),
-				Object = "Test Object",
-				//ObjectList = new List<object> { typeof(string), new Exception("Another Test"), "Teststring" },
-				Type = typeof(TestClasses),
-				TypeList = new List<Type> { typeof(string), typeof(TestClasses), typeof(Int32) },
+                Identifier = Guid.NewGuid(),
+                Object = "Test Object",
+                //ObjectList = new List<object> { typeof(string), new Exception("Another Test"), "Teststring" },
+                Type = typeof(TestClasses),
+                TypeList = new List<Type> { typeof(string), typeof(TestClasses), typeof(Int32) },
                 TS = new TimeSpan(0, 2, 3)
-			};
+            };
 
-			var orig = new ObjectGraph
-			{
-				AddressUri = new Uri("http://www.example.com/"),
-				IntValue = 123,
-				SomeType = typeof(CustomCollection),
-				Data = dc,
+            var orig = new ObjectGraph
+            {
+                AddressUri = new Uri("http://www.example.com/"),
+                IntValue = 123,
+                SomeType = typeof(CustomCollection),
+                Data = dc,
                 ObjectData = new object[] { 
                     typeof(CustomException).GetConstructor(new Type[] { typeof(string), typeof(Exception) }),
                     typeof(CustomException).GetProperty("Message")
                 }
-			};
+            };
 
-			return orig;
-		}
+            return orig;
+        }
 
         public static C GetC()
         {
@@ -220,92 +220,100 @@ namespace Sweet.Jayson.Tests
             return null;
         }
 
-		public static A GetA()
-		{
-			return new A {
-				D1 = 12345.67890m,
-				D2 = 23456.78901,
-				D3 = new Dictionary<object, object> {
+        public static A GetA()
+        {
+            return new A
+            {
+                D1 = 12345.67890m,
+                D2 = 23456.78901,
+                D3 = new Dictionary<object, object> {
 					{ 1, 2m },
 					{ "a", "b" },
 					{ true, false }
 				},
-				E1 = MyEnum.EnumB | MyEnum.EnumC,
-				I1 = 123456789,
-				L1 = 12345678909876543,
-				L2 = new List<int?> { 1, null, 2, null },
-				O1 = true,
-				O2 = "yes"
-			};
-		}
+                E1 = MyEnum.EnumB | MyEnum.EnumC,
+                I1 = 123456789,
+                L1 = 12345678909876543,
+                L2 = new List<int?> { 1, null, 2, null },
+                O1 = true,
+                O2 = "yes"
+            };
+        }
 
-		public static A GetA2()
-		{
-			var d = new Dictionary<object, object> {
+        public static A GetA2()
+        {
+            var d = new Dictionary<object, object> {
 				{ 1, 2m },
 				{ "a", "b" },
 				{ true, false }
 			};
 
-			d ["#self"] = d;
-			d ["#list"] = new List<object> { d };
+            d["#self"] = d;
+            d["#list"] = new List<object> { d };
 
-			return new A {
-				D1 = 12345.67890m,
-				D2 = 23456.78901,
-				D3 = d,
-				E1 = MyEnum.EnumB | MyEnum.EnumC,
-				I1 = 123456789,
-				L1 = 12345678909876543,
-				L2 = new List<int?> { 1, null, 2, null },
-				O1 = true,
-				O2 = d
-			};
-		}
+            return new A
+            {
+                D1 = 12345.67890m,
+                D2 = 23456.78901,
+                D3 = d,
+                E1 = MyEnum.EnumB | MyEnum.EnumC,
+                I1 = 123456789,
+                L1 = 12345678909876543,
+                L2 = new List<int?> { 1, null, 2, null },
+                O1 = true,
+                O2 = d
+            };
+        }
 
-		public static A GetA3()
-		{
-			var d = new Dictionary<string, object> {
+        public static A GetA3()
+        {
+            var d = new Dictionary<string, object> {
 				{ "1", 2m },
 				{ "a", "b" },
 				{ "true", false }
 			};
 
-			d ["#self"] = d;
-			d ["#list"] = new List<object> { d };
+            d["#self"] = d;
+            d["#list"] = new List<object> { d };
 
-			return new A {
-				D1 = 12345.67890m,
-				D2 = 23456.78901,
-				D4 = d,
-				E1 = MyEnum.EnumB | MyEnum.EnumC,
-				I1 = 123456789,
-				L1 = 12345678909876543,
-				L2 = new List<int?> { 1, null, 2, null },
-				O1 = true,
-				O2 = d
-			};
-		}
+            return new A
+            {
+                D1 = 12345.67890m,
+                D2 = 23456.78901,
+                D4 = d,
+                E1 = MyEnum.EnumB | MyEnum.EnumC,
+                I1 = 123456789,
+                L1 = 12345678909876543,
+                L2 = new List<int?> { 1, null, 2, null },
+                O1 = true,
+                O2 = d
+            };
+        }
 
-		public static object GetTypedContainerDto()
+        public static object GetTypedContainerDto()
         {
             return new TypedContainerDto
             {
                 Date1 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Utc),
                 Date2 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Local),
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
+                Enum1 = TypedContainerEnum.F,
+                Enum2 = TypedContainerEnum.B | TypedContainerEnum.F,
+                Enum3 = (TypedContainerEnum)5,
+                Guid1 = Guid.Empty,
+                Guid2 = Guid.NewGuid(),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
-                #if !(NET4000 || NET3500 || NET3000 || NET2000)
-				ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
+#if !(NET4000 || NET3500 || NET3000 || NET2000)
+                ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
-                #else
+#else
 				ObjectProperty = new Dictionary<string, object>{ 
 					{"op", new List<object> { "a", 1 } } },
-				#endif
-				#if !(NET3500 || NET3000 || NET2000)
+#endif
+#if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
-				#endif
+#endif
                 ByteArray = Encoding.UTF8.GetBytes("Hello world!"),
                 Source = new List<TextElementDto> { new TextElementDto {
 						ElementId = "text_1",
@@ -316,13 +324,13 @@ namespace Sweet.Jayson.Tests
 					}
 				},
                 Destination = "Here is the destionation",
-				ObjectArrayList = new List<object[]> { 
+                ObjectArrayList = new List<object[]> { 
 					new object[] { 1, 3.0123456789m, "item1", new ElementContentDto { 
 							ElementId = "text_1", Content = "text goes here" } }, 
 					new object[] { 2, 3, 4, 5 } },
-				Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
+                Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
 					new object[2][] { new object[] { 4, 5, 6 }, new object[] { 7, 8 } } },
-				IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } }
+                IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } }
             };
         }
 
@@ -335,16 +343,16 @@ namespace Sweet.Jayson.Tests
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
-                #if (NET4000 || NET3500 || NET3000 || NET2000)
+#if (NET4000 || NET3500 || NET3000 || NET2000)
                 ObjectProperty = new Dictionary<string, object>{ 
 					{"op", new List<object> { "a", 1 } } },
-				#else
+#else
                 ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
-				#endif
-				#if !(NET3500 || NET3000 || NET2000)
+#endif
+#if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
-				#endif
+#endif
                 ByteArray = Encoding.UTF8.GetBytes("Hello world!"),
                 Source = new List<TextElementDto> { new TextElementDto {
 						ElementId = "text_1",
@@ -355,14 +363,14 @@ namespace Sweet.Jayson.Tests
 					}
 				},
                 Destination = "Here is the destionation",
-				ObjectArrayList = new List<object[]> { 
+                ObjectArrayList = new List<object[]> { 
 					new object[] { 1, 3.0123456789m, "item1", new ElementContentDto { 
 							ElementId = "text_1", Content = "text goes here" } }, 
 					new object[] { 2, 3, 4, 5 } },
-				Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
+                Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
 					new object[2][] { new object[] { 4, 5, 6 }, new object[] { 7, 8 } } },
-				IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } },
-				ValueContainer = new JsonValueContainerNoDto
+                IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } },
+                ValueContainer = new JsonValueContainerNoDto
                 {
                     Source = "Source 1",
                     Destination = "Destination 1"
@@ -379,16 +387,16 @@ namespace Sweet.Jayson.Tests
                 Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
-                #if (NET4000 || NET3500 || NET3000 || NET2000)
+#if (NET4000 || NET3500 || NET3000 || NET2000)
                 ObjectProperty = new Dictionary<string, object>{ 
 					{"op", new List<object> { "a", 1 } } },
-				#else
+#else
                 ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
 					{"op", new List<dynamic> { "a", 1 } } }),
-				#endif
-                #if !(NET3500 || NET3000 || NET2000)
+#endif
+#if !(NET3500 || NET3000 || NET2000)
                 DynamicProperty = 12,
-                #endif
+#endif
                 ByteArray = Encoding.UTF8.GetBytes("Hello world!"),
                 Source = new List<TextElementDto> { new TextElementDto {
 						ElementId = "text_1",
@@ -435,223 +443,226 @@ namespace Sweet.Jayson.Tests
 
     # region Sample Classes
 
-	public class CustomException
-		: Exception
-	{
-		public CustomException()
-		{ }
+    public class CustomException
+        : Exception
+    {
+        public CustomException()
+        { }
 
-		public CustomException(string message) : base(message)
-		{ }
+        public CustomException(string message)
+            : base(message)
+        { }
 
-		public CustomException(string message, Exception innerException) : base(message, innerException)
-		{ }
+        public CustomException(string message, Exception innerException)
+            : base(message, innerException)
+        { }
 
-		protected CustomException(SerializationInfo info, StreamingContext context) : base(info, context)
-		{ }
-	}
+        protected CustomException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        { }
+    }
 
-	public class CustomCollectionDto
-	{
-		public Exception Exception { get; set; }
-		public CustomException CustomException { get; set; }
-		public Uri AddressUri { get; set; }
-		public Type SomeType { get; set; }
-		public int IntValue { get; set; }
-	}
+    public class CustomCollectionDto
+    {
+        public Exception Exception { get; set; }
+        public CustomException CustomException { get; set; }
+        public Uri AddressUri { get; set; }
+        public Type SomeType { get; set; }
+        public int IntValue { get; set; }
+    }
 
-	public class StrictType
-	{
-		public string Name { get; set; }
-		public Type Type { get; set; }
-		public CustomCollectionDto Value { get; set; }
-	}
+    public class StrictType
+    {
+        public string Name { get; set; }
+        public Type Type { get; set; }
+        public CustomCollectionDto Value { get; set; }
+    }
 
-	[Serializable]
-	public abstract class DataContainerBase
-	{
-		public Guid Identifier { get; set; }
-	}
+    [Serializable]
+    public abstract class DataContainerBase
+    {
+        public Guid Identifier { get; set; }
+    }
 
-	[Serializable]
-	public sealed class DataContainer : DataContainerBase
-	{
-		public IEnumerable<Type> TypeList { get; set; }
-		public Exception Exception { get; set; }
-		public object Object { get; set; }
-		public Type Type { get; set; }
+    [Serializable]
+    public sealed class DataContainer : DataContainerBase
+    {
+        public IEnumerable<Type> TypeList { get; set; }
+        public Exception Exception { get; set; }
+        public object Object { get; set; }
+        public Type Type { get; set; }
         public TimeSpan TS { get; set; }
-	}
+    }
 
-	[Serializable]
-	public class CustomCollectionItem
-	{
-		public CustomCollectionItem()
-		{}
+    [Serializable]
+    public class CustomCollectionItem
+    {
+        public CustomCollectionItem()
+        { }
 
-		public CustomCollectionItem(string name, object value)
-		{
-			Name = name;
-			Value = value;
-		}
+        public CustomCollectionItem(string name, object value)
+        {
+            Name = name;
+            Value = value;
+        }
 
-		public string Name { get; set; }
-		public object Value { get; set; }
+        public string Name { get; set; }
+        public object Value { get; set; }
 
-		public override string ToString()
-		{
-			return string.Concat("Name = '", Name, "' Value = '", Value, "'");
-		}
-	}
+        public override string ToString()
+        {
+            return string.Concat("Name = '", Name, "' Value = '", Value, "'");
+        }
+    }
 
-	[Serializable]
-	public class CustomCollection : 
-	#if !(NET4000 || NET3500 || NET3000 || NET2000)
-		Collection<CustomCollectionItem>
-	#else
+    [Serializable]
+    public class CustomCollection :
+#if !(NET4000 || NET3500 || NET3000 || NET2000)
+ Collection<CustomCollectionItem>
+#else
 		List<CustomCollectionItem>
-	#endif
-	{
-		public int FindItemIndex(string name)
-		{
-			return IndexOf((from item in this
-				where item.Name == name
-				select item).FirstOrDefault());
-		}
+#endif
+    {
+        public int FindItemIndex(string name)
+        {
+            return IndexOf((from item in this
+                            where item.Name == name
+                            select item).FirstOrDefault());
+        }
 
-		public void RemoveAll(string name)
-		{
-			while (true)
-			{
-				var idx = FindItemIndex(name);
-				if (idx < 0)
-					break;
+        public void RemoveAll(string name)
+        {
+            while (true)
+            {
+                var idx = FindItemIndex(name);
+                if (idx < 0)
+                    break;
 
-				RemoveAt(idx);
-			}
-		}
+                RemoveAt(idx);
+            }
+        }
 
-		public Uri AddressUri
-		{
-			get
-			{
-				var idx = FindItemIndex("AddressUri");
-				//Cater for value containing a real value or a serialized string value
-				//Using 'FromCsvField()' because 'Value' may have escaped chars
-				return idx < 0 ? null : 
-					(
-						this[idx].Value is string
-						? new Uri((string)this[idx].Value)
-						: this[idx].Value as Uri
-					);
-			}
-			set
-			{
-				RemoveAll("AddressUri");
-				Add(new CustomCollectionItem("AddressUri", value));
-			}
-		}
+        public Uri AddressUri
+        {
+            get
+            {
+                var idx = FindItemIndex("AddressUri");
+                //Cater for value containing a real value or a serialized string value
+                //Using 'FromCsvField()' because 'Value' may have escaped chars
+                return idx < 0 ? null :
+                    (
+                        this[idx].Value is string
+                        ? new Uri((string)this[idx].Value)
+                        : this[idx].Value as Uri
+                    );
+            }
+            set
+            {
+                RemoveAll("AddressUri");
+                Add(new CustomCollectionItem("AddressUri", value));
+            }
+        }
 
-		public Type SomeType
-		{
-			get
-			{
-				var idx = FindItemIndex("SomeType");
-				//Cater for value containing a real value or a serialized string value
-				//Using 'FromCsvField()' because 'Value' may have escaped chars
-				return idx < 0 ? null : 
-					(
-						this[idx].Value is string
-						? Type.GetType((string)this[idx].Value)
-						: this[idx].Value as Type
-					);
-			}
-			set
-			{
-				RemoveAll("SomeType");
-				Add(new CustomCollectionItem("SomeType", value));
-			}
-		}
+        public Type SomeType
+        {
+            get
+            {
+                var idx = FindItemIndex("SomeType");
+                //Cater for value containing a real value or a serialized string value
+                //Using 'FromCsvField()' because 'Value' may have escaped chars
+                return idx < 0 ? null :
+                    (
+                        this[idx].Value is string
+                        ? Type.GetType((string)this[idx].Value)
+                        : this[idx].Value as Type
+                    );
+            }
+            set
+            {
+                RemoveAll("SomeType");
+                Add(new CustomCollectionItem("SomeType", value));
+            }
+        }
 
-		public int IntValue
-		{
-			get
-			{
-				var idx = FindItemIndex("IntValue");
-				//Cater for value containing a real value or a serialized string value
-				return idx < 0 ? -1 : 
-					(
-						this[idx].Value is string
-						? int.Parse((string)this[idx].Value)
-						: (int)this[idx].Value 
-					);
-			}
-			set
-			{
-				RemoveAll("IntValue");
-				Add(new CustomCollectionItem("IntValue", value));
-			}
-		}
-	}
+        public int IntValue
+        {
+            get
+            {
+                var idx = FindItemIndex("IntValue");
+                //Cater for value containing a real value or a serialized string value
+                return idx < 0 ? -1 :
+                    (
+                        this[idx].Value is string
+                        ? int.Parse((string)this[idx].Value)
+                        : (int)this[idx].Value
+                    );
+            }
+            set
+            {
+                RemoveAll("IntValue");
+                Add(new CustomCollectionItem("IntValue", value));
+            }
+        }
+    }
 
-	[Serializable]
-	public class ObjectGraph : ISerializable
-	{
-		private readonly CustomCollection internalCollection;
+    [Serializable]
+    public class ObjectGraph : ISerializable
+    {
+        private readonly CustomCollection internalCollection;
 
-		public ObjectGraph()
-		{
-			internalCollection = new CustomCollection();
-		}
+        public ObjectGraph()
+        {
+            internalCollection = new CustomCollection();
+        }
 
-		protected ObjectGraph(SerializationInfo info, StreamingContext context)
-		{
-			internalCollection = (CustomCollection)info.GetValue("col", typeof(CustomCollection));
-			Data = (DataContainer)info.GetValue("data", typeof(DataContainer));
+        protected ObjectGraph(SerializationInfo info, StreamingContext context)
+        {
+            internalCollection = (CustomCollection)info.GetValue("col", typeof(CustomCollection));
+            Data = (DataContainer)info.GetValue("data", typeof(DataContainer));
             ObjectData = info.GetValue("obj", typeof(object));
-		}
+        }
 
-		public CustomCollection MyCollection
-		{
-			get { return internalCollection; }
-		}
+        public CustomCollection MyCollection
+        {
+            get { return internalCollection; }
+        }
 
-		public Uri AddressUri
-		{
-			get { return internalCollection.AddressUri; }
-			set { internalCollection.AddressUri = value; }
-		}
+        public Uri AddressUri
+        {
+            get { return internalCollection.AddressUri; }
+            set { internalCollection.AddressUri = value; }
+        }
 
-		public Type SomeType
-		{
-			get { return internalCollection.SomeType; }
-			set { internalCollection.SomeType = value; }
-		}
+        public Type SomeType
+        {
+            get { return internalCollection.SomeType; }
+            set { internalCollection.SomeType = value; }
+        }
 
-		public int IntValue
-		{
-			get { return internalCollection.IntValue; }
-			set { internalCollection.IntValue = value; }
-		}
+        public int IntValue
+        {
+            get { return internalCollection.IntValue; }
+            set { internalCollection.IntValue = value; }
+        }
 
-		public DataContainer Data { get; set; }
+        public DataContainer Data { get; set; }
 
         public object ObjectData { get; set; }
 
-		#region ISerializable Members
+        #region ISerializable Members
 
-		[SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			info.AddValue("col", internalCollection);
-			info.AddValue("data", Data);
+        [SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("col", internalCollection);
+            info.AddValue("data", Data);
             info.AddValue("obj", ObjectData);
-		}
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 
-    #if !(NET3500 || NET3000 || NET2000)
+#if !(NET3500 || NET3000 || NET2000)
     public class MyDynamicObject : DynamicObject
     {
         private Dictionary<string, object> _members = new Dictionary<string, object>();
@@ -717,7 +728,7 @@ namespace Sweet.Jayson.Tests
             return _members.Keys;
         }
     }
-    #endif
+#endif
 
     public enum MyEnum
     {
@@ -736,7 +747,7 @@ namespace Sweet.Jayson.Tests
         public decimal? D1;
         public double D2 { get; set; }
         public Dictionary<object, object> D3;
-		public Dictionary<string, object> D4 { get; set; }
+        public Dictionary<string, object> D4 { get; set; }
 
         public MyEnum E1 { get; set; }
 
@@ -769,13 +780,13 @@ namespace Sweet.Jayson.Tests
         public object O4 { get; set; }
     }
 
-	public class SimpleObjDerivative : SimpleObj
-	{
-		public string Value3 { get; set; }
-		public string Value4 { get; set; }
-	}
+    public class SimpleObjDerivative : SimpleObj
+    {
+        public string Value3 { get; set; }
+        public string Value4 { get; set; }
+    }
 
-	public class SimpleObj
+    public class SimpleObj
     {
         public string Value1 { get; set; }
         public string Value2 { get; set; }
@@ -803,9 +814,9 @@ namespace Sweet.Jayson.Tests
         ReadOnlyCollection<int?> P2 { get; set; }
         byte[] ByteArray { get; set; }
         object ObjectProperty { get; set; }
-		#if !(NET3500 || NET3000 || NET2000)
+#if !(NET3500 || NET3000 || NET2000)
         dynamic DynamicProperty { get; set; }
-		#endif
+#endif
         List<TextElementDto> Source { get; set; }
         string Destination { get; set; }
     }
@@ -832,23 +843,40 @@ namespace Sweet.Jayson.Tests
         public string InheritedStr4 { get; set; }
     }
 
+    public enum TypedContainerEnum : long
+    {
+        A = 0,
+        B = 1,
+        C = 2,
+        D = 4,
+        E = 8,
+        F = 16,
+        G = 32,
+        H = 64
+    }
+
     public class TypedContainerDto
     {
         public DateTime Date1;
         public DateTime Date2;
         public DateTime Date3;
+        public TypedContainerEnum Enum1;
+        public TypedContainerEnum Enum2;
+        public TypedContainerEnum Enum3;
+        public Guid Guid1;
+        public Guid Guid2;
         public ReadOnlyCollection<object> P1 { get; set; }
         public ReadOnlyCollection<int?> P2 { get; set; }
         public byte[] ByteArray { get; set; }
         public object ObjectProperty { get; set; }
-		#if !(NET3500 || NET3000 || NET2000)
+#if !(NET3500 || NET3000 || NET2000)
         public dynamic DynamicProperty { get; set; }
-		#endif
+#endif
         public List<TextElementDto> Source { get; set; }
         public string Destination { get; set; }
-		public List<object[]> ObjectArrayList { get; set; }
-		public object[][][] Object2DArray { get; set; }
-		public int[,] IntArray2D;
+        public List<object[]> ObjectArrayList { get; set; }
+        public object[][][] Object2DArray { get; set; }
+        public int[,] IntArray2D;
     }
 
     // DTOs
@@ -913,54 +941,54 @@ namespace Sweet.Jayson.Tests
         // There can be more nested objects in here
     }
 
-	public struct SampleStructDto1
-	{
-		public int I1;
-		public string S1;
-		public decimal D1;
+    public struct SampleStructDto1
+    {
+        public int I1;
+        public string S1;
+        public decimal D1;
 
-		public int I2 { get; set; }
-		public string S2 { get; set; }
-		public decimal D2 { get; set; }
-	}
+        public int I2 { get; set; }
+        public string S2 { get; set; }
+        public decimal D2 { get; set; }
+    }
 
-	public struct SampleStructDto2
-	{
-		private int m_I2;
-		private string m_S2;
-		private decimal m_D2;
+    public struct SampleStructDto2
+    {
+        private int m_I2;
+        private string m_S2;
+        private decimal m_D2;
 
-		public int I1;
-		public string S1;
-		public decimal D1;
+        public int I1;
+        public string S1;
+        public decimal D1;
 
-		public int I2 
-		{ 
-			get { return m_I2; }
-			set { m_I2 = value; }
-		}
-		public string S2
-		{ 
-			get { return m_S2; }
-			set { m_S2 = value; }
-		}
-		public decimal D2
-		{ 
-			get { return m_D2; }
-			set { m_D2 = value; }
-		}
+        public int I2
+        {
+            get { return m_I2; }
+            set { m_I2 = value; }
+        }
+        public string S2
+        {
+            get { return m_S2; }
+            set { m_S2 = value; }
+        }
+        public decimal D2
+        {
+            get { return m_D2; }
+            set { m_D2 = value; }
+        }
 
-		public SampleStructDto2(int i1, int i2) 
-			: this()
-		{
-			I1 = i1;
-			S1 = null;
-			D1 = 0m;
-			m_I2 = i2;
-			m_S2 = null;
-			m_D2 = 0m;
-		}
-	}
+        public SampleStructDto2(int i1, int i2)
+            : this()
+        {
+            I1 = i1;
+            S1 = null;
+            D1 = 0m;
+            m_I2 = i2;
+            m_S2 = null;
+            m_D2 = 0m;
+        }
+    }
 
     # region [ data objects ]
 
@@ -1023,7 +1051,7 @@ namespace Sweet.Jayson.Tests
             gender = Gender.Female;
             intarray = new int[5] { 1, 2, 3, 4, 5 };
         }
-        
+
         public bool done { get; set; }
         public bool booleanValue { get; set; }
         public DateTime date { get; set; }

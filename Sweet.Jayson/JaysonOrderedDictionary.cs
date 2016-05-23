@@ -37,7 +37,7 @@ namespace Sweet.Jayson
         private readonly List<KeyValuePair<T, K>> m_OrderedItems;
 
         public JaysonOrderedDictionary()
-        { 
+        {
             m_Items = new Dictionary<T, K>();
             m_OrderedItems = new List<KeyValuePair<T, K>>();
         }

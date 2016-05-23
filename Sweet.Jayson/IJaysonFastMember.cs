@@ -26,20 +26,19 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region IJaysonFastMember
+    # region IJaysonFastMember
 
-	internal interface IJaysonFastMember
-	{
+    internal interface IJaysonFastMember
+    {
         JaysonFastMemberType Type { get; }
-		Type MemberType { get; }
+        Type MemberType { get; }
 
-		bool CanRead { get; }
-		bool CanWrite { get; }
-        
+        bool CanRead { get; }
+        bool CanWrite { get; }
+
         object Get(object instance);
-		void Set(ref object instance, object value);
-	}
+        void Set(ref object instance, object value);
+    }
 
-	# endregion IJaysonFastMember
+    # endregion IJaysonFastMember
 }
-

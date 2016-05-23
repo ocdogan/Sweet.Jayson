@@ -26,14 +26,14 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region JaysonDictionaryType
+    # region JaysonDictionaryType
 
-	internal enum JaysonDictionaryType
-	{
-		Undefined = 0,
-		IDictionary = 1,
-		IGenericDictionary = 2,
-	}
+    internal enum JaysonDictionaryType
+    {
+        Undefined = 0,
+        IDictionary = 1,
+        IGenericDictionary = 2,
+    }
 
-	# endregion JaysonDictionaryType
+    # endregion JaysonDictionaryType
 }

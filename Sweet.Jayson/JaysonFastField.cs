@@ -29,160 +29,165 @@ using System.Reflection;
 
 namespace Sweet.Jayson
 {
-	# region JaysonFastField
+    # region JaysonFastField
 
-	internal sealed class JaysonFastField : IJaysonFastMember
-	{
-		private delegate void ByRefAction(ref object instance, object value);
+    internal sealed class JaysonFastField : IJaysonFastMember
+    {
+        private delegate void ByRefAction(ref object instance, object value);
 
-		private bool m_Get;
-		private bool m_Set;
+        private bool m_Get;
+        private bool m_Set;
 
-		private Type m_MemberType;
-		private FieldInfo m_FieldInfo;
+        private Type m_MemberType;
+        private FieldInfo m_FieldInfo;
 
-		private bool m_CanRead;
-		private bool m_CanWrite;
+        private bool m_CanRead;
+        private bool m_CanWrite;
 
-		private bool m_InvokeOnSet;
+        private bool m_InvokeOnSet;
 
-		private ByRefAction m_SetDelegate;
-		private Func<object, object> m_GetDelegate;
+        private ByRefAction m_SetDelegate;
+        private Func<object, object> m_GetDelegate;
 
-		public JaysonFastMemberType Type
-		{
-			get { return JaysonFastMemberType.Property; }
-		}
+        public JaysonFastMemberType Type
+        {
+            get { return JaysonFastMemberType.Property; }
+        }
 
-		public Type MemberType
-		{
-			get { return m_MemberType; }
-		}
+        public Type MemberType
+        {
+            get { return m_MemberType; }
+        }
 
-		public bool CanRead
-		{
-			get { return m_CanRead; }
-		}
+        public bool CanRead
+        {
+            get { return m_CanRead; }
+        }
 
-		public bool CanWrite
-		{
-			get { return m_CanWrite || m_InvokeOnSet; }
-		}
+        public bool CanWrite
+        {
+            get { return m_CanWrite || m_InvokeOnSet; }
+        }
 
-		public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true)
-		{
-			m_FieldInfo = fi;
-			m_MemberType = m_FieldInfo.FieldType;
+        public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true)
+        {
+            m_FieldInfo = fi;
+            m_MemberType = m_FieldInfo.FieldType;
 
-			m_CanRead = true;
-			m_CanWrite = !(m_FieldInfo.IsInitOnly || m_FieldInfo.IsStatic);
-			m_InvokeOnSet = m_FieldInfo.IsInitOnly && !m_FieldInfo.IsStatic;
+            m_CanRead = true;
+            m_CanWrite = !(m_FieldInfo.IsInitOnly || m_FieldInfo.IsStatic);
+            m_InvokeOnSet = m_FieldInfo.IsInitOnly && !m_FieldInfo.IsStatic;
 
-			if (initGet)
-			{
-				m_Get = true;
-				InitializeGet(fi);
-			}
-			if (initSet)
-			{
-				m_Set = true;
-				InitializeSet(fi);
-			}
-		}
+            if (initGet)
+            {
+                m_Get = true;
+                InitializeGet(fi);
+            }
+            if (initSet)
+            {
+                m_Set = true;
+                InitializeSet(fi);
+            }
+        }
 
-		private void InitializeGet(FieldInfo fi)
-		{
-			if (m_CanRead) {
-				var instance = Expression.Parameter (typeof(object), "instance");
+        private void InitializeGet(FieldInfo fi)
+        {
+            if (m_CanRead)
+            {
+                var instance = Expression.Parameter(typeof(object), "instance");
 
-				Type declaringT = fi.DeclaringType;
+                Type declaringT = fi.DeclaringType;
 
-				UnaryExpression instanceCast = !declaringT.IsValueType ?
-					Expression.TypeAs (instance, declaringT) : 
-					Expression.Convert (instance, declaringT);
+                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                    Expression.TypeAs(instance, declaringT) :
+                    Expression.Convert(instance, declaringT);
 
-				Expression fieldExp = Expression.Field (instanceCast, fi);
-				Expression toObjectExp = Expression.TypeAs (fieldExp, typeof(object));
+                Expression fieldExp = Expression.Field(instanceCast, fi);
+                Expression toObjectExp = Expression.TypeAs(fieldExp, typeof(object));
 
-				m_GetDelegate = Expression.Lambda<Func<object, object>> (toObjectExp, instance).Compile ();
-			}
-		}
+                m_GetDelegate = Expression.Lambda<Func<object, object>>(toObjectExp, instance).Compile();
+            }
+        }
 
-		private void InitializeSet(FieldInfo fi)
-		{
-			if (m_CanWrite) {
-				Type declaringT = fi.DeclaringType;
+        private void InitializeSet(FieldInfo fi)
+        {
+            if (m_CanWrite)
+            {
+                Type declaringT = fi.DeclaringType;
 
-				#if (NET3500 || NET3000 || NET2000)
+#if (NET3500 || NET3000 || NET2000)
 				m_SetDelegate = delegate(ref object instance, object value) {
 					m_FieldInfo.SetValue (instance, value);
 				};
-				#else
-				var instanceExp = Expression.Parameter (typeof(object).MakeByRefType (), "instance");
-				var valueExp = Expression.Parameter (typeof(object), "value");
+#else
+                var instanceExp = Expression.Parameter(typeof(object).MakeByRefType(), "instance");
+                var valueExp = Expression.Parameter(typeof(object), "value");
 
-				// value as T is slightly faster than (T)value, so if it's not a value type, use that
-				UnaryExpression instanceCast = !declaringT.IsValueType ? 
-					Expression.TypeAs (instanceExp, declaringT) :
-					Expression.Convert (instanceExp, declaringT);
+                // value as T is slightly faster than (T)value, so if it's not a value type, use that
+                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                    Expression.TypeAs(instanceExp, declaringT) :
+                    Expression.Convert(instanceExp, declaringT);
 
-				UnaryExpression valueCast = !m_MemberType.IsValueType ?
-					Expression.TypeAs (valueExp, m_MemberType) : 
-					Expression.Convert (valueExp, m_MemberType);
+                UnaryExpression valueCast = !m_MemberType.IsValueType ?
+                    Expression.TypeAs(valueExp, m_MemberType) :
+                    Expression.Convert(valueExp, m_MemberType);
 
-				List<Expression> expBlockList = new List<Expression> ();
+                List<Expression> expBlockList = new List<Expression>();
 
-				var instanceRefExp = Expression.Variable (declaringT, "instanceRef");
-				expBlockList.Add(Expression.Assign (instanceRefExp, instanceCast));
+                var instanceRefExp = Expression.Variable(declaringT, "instanceRef");
+                expBlockList.Add(Expression.Assign(instanceRefExp, instanceCast));
 
-				MemberExpression fieldExp = Expression.Field (instanceRefExp, fi);
-				BinaryExpression assignExp = Expression.Assign (fieldExp, valueCast);
+                MemberExpression fieldExp = Expression.Field(instanceRefExp, fi);
+                BinaryExpression assignExp = Expression.Assign(fieldExp, valueCast);
 
-				expBlockList.Add (assignExp);
+                expBlockList.Add(assignExp);
 
-				Expression toObjectExp = Expression.Assign (instanceExp, 
-					Expression.Convert (instanceRefExp, typeof(object)));
-				expBlockList.Add (toObjectExp);
+                Expression toObjectExp = Expression.Assign(instanceExp,
+                    Expression.Convert(instanceRefExp, typeof(object)));
+                expBlockList.Add(toObjectExp);
 
-				Expression blockExp = Expression.Block (new[] { instanceRefExp }, expBlockList);
+                Expression blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
 
-				m_SetDelegate = Expression.Lambda<ByRefAction> (blockExp, 
-					new ParameterExpression[] { instanceExp, valueExp }).Compile ();
-				#endif
-			}
-		}
+                m_SetDelegate = Expression.Lambda<ByRefAction>(blockExp,
+                    new ParameterExpression[] { instanceExp, valueExp }).Compile();
+#endif
+            }
+        }
 
-		public object Get(object instance)
-		{
-			if (m_CanRead)
-			{
-				if (!m_Get)
-				{
-					m_Get = true;
-					InitializeGet(m_FieldInfo);
-				}
-				return m_GetDelegate(instance);
-			}
-			return null;
-		}
+        public object Get(object instance)
+        {
+            if (m_CanRead)
+            {
+                if (!m_Get)
+                {
+                    m_Get = true;
+                    InitializeGet(m_FieldInfo);
+                }
+                return m_GetDelegate(instance);
+            }
+            return null;
+        }
 
-		public void Set(ref object instance, object value)
-		{
-			if (m_CanWrite) {
-				if (!m_Set) {
-					m_Set = true;
-					InitializeSet (m_FieldInfo);
-				}
-                if (m_SetDelegate != null) {
+        public void Set(ref object instance, object value)
+        {
+            if (m_CanWrite)
+            {
+                if (!m_Set)
+                {
+                    m_Set = true;
+                    InitializeSet(m_FieldInfo);
+                }
+                if (m_SetDelegate != null)
+                {
                     m_SetDelegate(ref instance, value);
                 }
             }
             else if (m_InvokeOnSet)
             {
-				m_FieldInfo.SetValue (instance, value);
-			}
-		}
-	}
+                m_FieldInfo.SetValue(instance, value);
+            }
+        }
+    }
 
-	# endregion JaysonFastField
+    # endregion JaysonFastField
 }

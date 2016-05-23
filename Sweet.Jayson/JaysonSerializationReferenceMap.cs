@@ -37,7 +37,8 @@ namespace Sweet.Jayson
         public int GetObjectId(object obj)
         {
             int id = 0;
-            if (obj != null && !m_ObjectMap.TryGetValue(obj, out id)) {
+            if (obj != null && !m_ObjectMap.TryGetValue(obj, out id))
+            {
                 id = Interlocked.Increment(ref m_Ids);
                 m_ObjectMap[obj] = id;
             }

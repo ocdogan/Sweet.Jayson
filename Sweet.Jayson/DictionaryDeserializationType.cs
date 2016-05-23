@@ -26,13 +26,13 @@ using System;
 
 namespace Sweet.Jayson
 {
-	# region DictionaryDeserializationType
+    # region DictionaryDeserializationType
 
-	public enum DictionaryDeserializationType
-	{
-		Dictionary,
-		Expando
-	}
+    public enum DictionaryDeserializationType
+    {
+        Dictionary,
+        Expando
+    }
 
-	# endregion DictionaryDeserializationType
+    # endregion DictionaryDeserializationType
 }

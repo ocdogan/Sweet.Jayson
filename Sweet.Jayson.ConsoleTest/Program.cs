@@ -38,27 +38,28 @@ using Sweet.Jayson.Tests;
 
 namespace Sweet.Jayson.ConsoleTest
 {
-	class MainClass
-	{
-		public static void Main (string[] args)
-		{	
+    class MainClass
+    {
+        public static void Main(string[] args)
+        {
             do
             {
                 int testType = ReadTestType();
-				switch (testType) {
-				case 1:
-				case 2:
-	                {
-						Test(testType);
-						break;
-	                }
-				default:
-					return;
-				}
+                switch (testType)
+                {
+                    case 1:
+                    case 2:
+                        {
+                            Test(testType);
+                            break;
+                        }
+                    default:
+                        return;
+                }
 
-				Console.WriteLine ("Press Escape to exit, any other to continue...");
-			} while (Console.ReadKey (true).Key != ConsoleKey.Escape);
-		}
+                Console.WriteLine("Press Escape to exit, any other to continue...");
+            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+        }
 
         private static int ReadTestType()
         {
@@ -69,25 +70,28 @@ namespace Sweet.Jayson.ConsoleTest
                 Console.WriteLine("Press,");
                 Console.WriteLine("  1) for Unit Tests");
                 Console.WriteLine("  2) for Performance Tests");
-				Console.WriteLine("  3) for Exit");
+                Console.WriteLine("  3) for Exit");
                 Console.WriteLine();
 
                 key = Console.ReadKey(true).Key;
-			} while (!(key == ConsoleKey.D1 || key == ConsoleKey.D2 || 
-				key == ConsoleKey.D3));
+            } while (!(key == ConsoleKey.D1 || key == ConsoleKey.D2 ||
+                key == ConsoleKey.D3));
 
             Console.Clear();
             return (int)(key - ConsoleKey.D1) + 1;
         }
 
-		private static void Test(int testType)
+        private static void Test(int testType)
         {
-			IOrderedEnumerable<MethodInfo> methods;
-			if (testType == 1) {
-				methods = typeof(PrimaryTests).GetMethods ().OrderBy (m => m.Name);
-			} else {
-				methods = typeof(PerformanceTests).GetMethods ().OrderBy (m => m.Name);
-			}
+            IOrderedEnumerable<MethodInfo> methods;
+            if (testType == 1)
+            {
+                methods = typeof(PrimaryTests).GetMethods().OrderBy(m => m.Name);
+            }
+            else
+            {
+                methods = typeof(PerformanceTests).GetMethods().OrderBy(m => m.Name);
+            }
 
             foreach (var method in methods)
             {
@@ -104,9 +108,10 @@ namespace Sweet.Jayson.ConsoleTest
                         ConsoleColor clr = Console.ForegroundColor;
                         try
                         {
-							if (JaysonCommon.IsOnMono ()) {
-								clr = ConsoleColor.Black;
-							}
+                            if (JaysonCommon.IsOnMono())
+                            {
+                                clr = ConsoleColor.Black;
+                            }
 
                             Console.ForegroundColor = ConsoleColor.Red;
 
@@ -129,5 +134,5 @@ namespace Sweet.Jayson.ConsoleTest
                 }
             }
         }
-	}
+    }
 }

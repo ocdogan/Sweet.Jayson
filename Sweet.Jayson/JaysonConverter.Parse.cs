@@ -69,7 +69,7 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-					throw new JaysonException(JaysonError.InvalidUnicodeEscapedChar);
+                    throw new JaysonException(JaysonError.InvalidUnicodeEscapedChar);
                 }
 
                 result *= 16;
@@ -79,23 +79,94 @@ namespace Sweet.Jayson
             return result;
         }
 
+        private static void ParseComment(JaysonDeserializationContext context)
+        {
+            if (context.Settings.CommentHandling == JaysonCommentHandling.ThrowError)
+            {
+                throw new JaysonException(JaysonError.InvalidComment);
+            }
+
+            var str = context.Text;
+            int length = str.Length;
+
+            if (context.Position > length - 1)
+            {
+                throw new JaysonException(JaysonError.InvalidCommentTermination);
+            }
+
+            var singleLine = str[context.Position] == '/';
+            if (!(singleLine || str[context.Position] == '*'))
+            {
+                throw new JaysonException(JaysonError.InvalidCommentStart);
+            }
+
+            context.Position++;
+
+            if (context.Position >= length - 1)
+            {
+                if (!singleLine)
+                {
+                    throw new JaysonException(JaysonError.InvalidCommentTermination);
+                }
+                return;
+            }
+
+            char ch;
+            do
+            {
+                ch = str[context.Position];
+
+                switch (ch)
+                {
+                    case '\r':
+                    case '\n':
+                        if (singleLine)
+                        {
+                            EatWhites(context);
+                            return;
+                        }
+                        break;
+                    case '*':
+                        if (!singleLine)
+                        {
+                            context.Position++;
+                            if (context.Position >= length || str[context.Position] != '/')
+                            {
+                                throw new JaysonException(JaysonError.InvalidCommentTermination);
+                            }
+                            context.Position++;
+                            EatWhites(context);
+                            return;
+                        }
+                        break;
+                }
+
+                context.Position++;
+            } while (context.Position < length);
+
+            if (!singleLine)
+            {
+                throw new JaysonException(JaysonError.InvalidCommentTermination);
+            }
+        }
+
         private static string ParseString(string str, ref int pos)
         {
             int length = str.Length;
             if (pos > length - 1)
             {
-				throw new JaysonException(JaysonError.InvalidStringTermination);
+                throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             if (str[pos] == '"')
             {
-				pos++;
+                pos++;
                 return String.Empty;
             }
 
             if (pos == length - 1)
             {
-				throw new JaysonException(JaysonError.InvalidStringTermination);
+                throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             char ch;
@@ -124,7 +195,7 @@ namespace Sweet.Jayson
 
                 if (pos > length - 1)
                 {
-					throw new JaysonException(JaysonError.InvalidCharInString);
+                    throw new JaysonException(JaysonError.InvalidCharInString);
                 }
 
                 len = pos - start;
@@ -170,7 +241,7 @@ namespace Sweet.Jayson
                             }
                         }
 
-						throw new JaysonException(JaysonError.InvalidUnicodeString);
+                        throw new JaysonException(JaysonError.InvalidUnicodeString);
                     case '/':
                         start = ++pos;
                         charStore.Append('/');
@@ -184,13 +255,13 @@ namespace Sweet.Jayson
                         charStore.Append('\f');
                         break;
                     default:
-						throw new JaysonException(JaysonError.InvalidUnicodeChar);
+                        throw new JaysonException(JaysonError.InvalidUnicodeChar);
                 }
             } while (pos < length);
 
             if (!terminated)
             {
-				throw new JaysonException(JaysonError.InvalidStringTermination);
+                throw new JaysonException(JaysonError.InvalidStringTermination);
             }
 
             len = pos - start;
@@ -225,7 +296,7 @@ namespace Sweet.Jayson
                 ++pos;
                 if (pos >= end)
                 {
-					throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                    throw new JaysonException(JaysonError.InvalidFlotingNumber);
                 }
                 sign = -1;
             }
@@ -260,7 +331,7 @@ namespace Sweet.Jayson
                         if (ch == 'E' || ch == 'e')
                             break;
 
-						throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                        throw new JaysonException(JaysonError.InvalidFlotingNumber);
                     }
 
                     result += (ch - '0') * exp;
@@ -273,7 +344,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-					throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                    throw new JaysonException(JaysonError.InvalidFlotingNumber);
                 }
 
                 int eValue = 0;
@@ -284,7 +355,7 @@ namespace Sweet.Jayson
                     ch = str[pos];
                     if (ch < '0' || ch > '9')
                     {
-						throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                        throw new JaysonException(JaysonError.InvalidFlotingNumber);
                     }
 
                     eValue = (eValue * 10) + (int)(ch - '0');
@@ -343,7 +414,7 @@ namespace Sweet.Jayson
 
                 if (pos >= end)
                 {
-					throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
             }
 
@@ -364,7 +435,7 @@ namespace Sweet.Jayson
                 {
                     if (decimalPosition != end)
                     {
-						throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                        throw new JaysonException(JaysonError.InvalidDecimalNumber);
                     }
                     decimalPosition = pos + 1;
                     continue;
@@ -375,7 +446,7 @@ namespace Sweet.Jayson
                     break;
                 }
 
-				throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                throw new JaysonException(JaysonError.InvalidDecimalNumber);
             }
 
             int scale = pos - decimalPosition;
@@ -386,7 +457,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-					throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
 
                 bool eNegative = (str[++pos] == '-');
@@ -400,7 +471,7 @@ namespace Sweet.Jayson
                         continue;
                     }
 
-					throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
 
                 if (eValue > 0)
@@ -456,7 +527,7 @@ namespace Sweet.Jayson
                 ch = str[start];
                 if (ch < '0' || ch > '9')
                 {
-					throw new JaysonException(JaysonError.InvalidNumber);
+                    throw new JaysonException(JaysonError.InvalidNumber);
                 }
                 return (long)(ch - '0');
             }
@@ -488,7 +559,7 @@ namespace Sweet.Jayson
                     break;
                 }
 
-				throw new JaysonException(JaysonError.InvalidNumber);
+                throw new JaysonException(JaysonError.InvalidNumber);
             }
 
             // scientific part
@@ -496,7 +567,7 @@ namespace Sweet.Jayson
             {
                 if (!(ch == 'e' || ch == 'E'))
                 {
-					throw new JaysonException(JaysonError.InvalidNumber);
+                    throw new JaysonException(JaysonError.InvalidNumber);
                 }
 
                 int eValue = 0;
@@ -507,7 +578,7 @@ namespace Sweet.Jayson
                     ch = str[pos];
                     if (ch < '0' || ch > '9')
                     {
-						throw new JaysonException(JaysonError.InvalidNumber);
+                        throw new JaysonException(JaysonError.InvalidNumber);
                     }
 
                     eValue = (eValue * 10) + (int)(ch - '0');
@@ -564,29 +635,31 @@ namespace Sweet.Jayson
                 }
                 else if (ch < '0' || ch > '9')
                 {
-					throw new JaysonException(JaysonError.InvalidNumberChar);
+                    throw new JaysonException(JaysonError.InvalidNumberChar);
                 }
 
-				int digitCount = 0;
+                int digitCount = 0;
                 bool exponent = false;
                 char startChar = str[context.Position];
 
-				int decimalPointCount = 0;
-				bool inDecimalPoint = false;
+                int decimalPointCount = 0;
+                bool inDecimalPoint = false;
 
-				do
+                do
                 {
                     ch = str[context.Position];
 
                     if (!(ch < '0' || ch > '9'))
                     {
                         context.Position++;
-                        if (!exponent) {
+                        if (!exponent)
+                        {
                             digitCount++;
                         }
-						if (inDecimalPoint) {
-							decimalPointCount++;
-						}
+                        if (inDecimalPoint)
+                        {
+                            decimalPointCount++;
+                        }
                         continue;
                     }
 
@@ -594,11 +667,11 @@ namespace Sweet.Jayson
                     {
                         if (numType != JaysonNumberType.Long)
                         {
-							throw new JaysonException(JaysonError.InvalidNumberChar);
+                            throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
-						inDecimalPoint = true;
+                        inDecimalPoint = true;
 
                         numType = JaysonNumberType.Double;
                         numStyle |= NumberStyles.AllowDecimalPoint;
@@ -609,13 +682,13 @@ namespace Sweet.Jayson
                     {
                         if (numType == JaysonNumberType.Decimal)
                         {
-							throw new JaysonException(JaysonError.InvalidNumberChar);
+                            throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
-						inDecimalPoint = false;
+                        inDecimalPoint = false;
 
-						numType = JaysonNumberType.Decimal;
+                        numType = JaysonNumberType.Decimal;
                         numStyle |= NumberStyles.AllowExponent;
                         continue;
                     }
@@ -624,7 +697,7 @@ namespace Sweet.Jayson
                     {
                         if (numType != JaysonNumberType.Decimal)
                         {
-							throw new JaysonException(JaysonError.InvalidNumberChar);
+                            throw new JaysonException(JaysonError.InvalidNumberChar);
                         }
 
                         context.Position++;
@@ -637,18 +710,18 @@ namespace Sweet.Jayson
                         break;
                     }
 
-					throw new JaysonException(JaysonError.InvalidNumberChar);
+                    throw new JaysonException(JaysonError.InvalidNumberChar);
                 } while (context.Position < length);
 
                 int len = context.Position - start;
                 if (len > 0)
                 {
-					if (digitCount > 19 || decimalPointCount > 10 || (digitCount == 19 && startChar == '9'))
+                    if (digitCount > 19 || decimalPointCount > 10 || (digitCount == 19 && startChar == '9'))
                     {
                         decimal d;
                         if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.InvariantCulture, out d))
                         {
-							throw new JaysonException(JaysonError.InvalidDecimalNumber);
+                            throw new JaysonException(JaysonError.InvalidDecimalNumber);
                         }
 
                         if ((numStyle == NumberStyles.None || numStyle == NumberStyles.AllowTrailingSign) &&
@@ -718,8 +791,21 @@ namespace Sweet.Jayson
             if (context.Settings.MaxObjectDepth > 0 &&
                 context.ObjectDepth > context.Settings.MaxObjectDepth)
             {
-				throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
+                throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
                     context.Settings.MaxObjectDepth));
+            }
+        }
+
+        private static void EatWhites(JaysonDeserializationContext context)
+        {
+            string str = context.Text;
+            int length = context.Length;
+
+            while (context.Position < length)
+            {
+                if (!JaysonCommon.IsWhiteSpace(str[context.Position]))
+                    return;
+                context.Position++;
             }
         }
 
@@ -727,7 +813,7 @@ namespace Sweet.Jayson
         {
             if (context.Position >= context.Length - 1)
             {
-				throw new JaysonException(JaysonError.InvalidJson);
+                throw new JaysonException(JaysonError.InvalidJson);
             }
 
             int ch = (int)context.Text[context.Position];
@@ -754,10 +840,60 @@ namespace Sweet.Jayson
                             if (JaysonCommon.IsWhiteSpace(ch))
                                 continue;
                         }
-						throw new JaysonException(JaysonError.InvalidJson);
+                        throw new JaysonException(JaysonError.InvalidJson);
                     } while (true);
                 }
-				throw new JaysonException(JaysonError.InvalidJson);
+                throw new JaysonException(JaysonError.InvalidJson);
+            }
+        }
+
+        private static void EatWhitesAndCheckChars(JaysonDeserializationContext context, int[] charsToCheck)
+        {
+            if (context.Position >= context.Length - 1)
+            {
+                throw new JaysonException(JaysonError.InvalidJson);
+            }
+
+            int chLen = charsToCheck == null ? 0 : charsToCheck.Length;
+            if (chLen == 0)
+            {
+                return;
+            }
+
+            if (chLen == 1)
+            {
+                EatWhitesAndCheckChar(context, charsToCheck[0]);
+                return;
+            }
+
+            int ch = (int)context.Text[context.Position];
+            if (charsToCheck.Contains(ch))
+            {
+                context.Position++;
+            }
+            else
+            {
+                if (JaysonCommon.IsWhiteSpace(ch))
+                {
+                    string str = context.Text;
+                    int length = context.Length;
+
+                    do
+                    {
+                        context.Position++;
+                        if (context.Position < length)
+                        {
+                            ch = (int)str[context.Position];
+                            if (charsToCheck.Contains(ch))
+                                return;
+
+                            if (JaysonCommon.IsWhiteSpace(ch))
+                                continue;
+                        }
+                        throw new JaysonException(JaysonError.InvalidJson);
+                    } while (true);
+                }
+                throw new JaysonException(JaysonError.InvalidJson);
             }
         }
 
@@ -825,7 +961,25 @@ namespace Sweet.Jayson
 
         private static IList ParseList(JaysonDeserializationContext context)
         {
-            EatWhitesAndCheckChar(context, '[');
+            string str = context.Text;
+            int length = context.Length;
+
+            bool startedWithComment = false;
+            if (context.Settings.CommentHandling == JaysonCommentHandling.ThrowError)
+            {
+                EatWhitesAndCheckChar(context, '[');
+            }
+            else
+            {
+                EatWhitesAndCheckChars(context, new int[] { '[', '/' });
+                startedWithComment = (str[context.Position - 1] == '/') &&
+                    (str[context.Position] == '/' || str[context.Position] == '*');
+
+                if (startedWithComment) 
+                {
+                    context.Position--;
+                }
+            }
 
             context.ObjectDepth++;
             ValidateObjectDepth(context);
@@ -835,100 +989,119 @@ namespace Sweet.Jayson
                 (IList)(new ArrayList(10)) :
                 new List<object>(10);
 
-            string str = context.Text;
-            int length = context.Length;
-
             char ch;
             JaysonSerializationToken token = JaysonSerializationToken.Value;
 
-			while (context.Position < length) {
-				ch = str [context.Position++];
-				if (token == JaysonSerializationToken.Comma) {
-					token = JaysonSerializationToken.Value;
-					if (ch == ',' || ch == ']' || ch == '}') {
-						throw new JaysonException (JaysonError.InvalidJsonList);
-					}
-				}
+            while (context.Position < length)
+            {
+                ch = str[context.Position++];
+                if (token == JaysonSerializationToken.Comma)
+                {
+                    token = JaysonSerializationToken.Value;
+                    if (ch == ',' || ch == ']' || ch == '}')
+                    {
+                        throw new JaysonException(JaysonError.InvalidJsonList);
+                    }
+                }
 
-				switch (ch) {
-				case '"':
-					result.Add (ParseString (str, ref context.Position));
-					break;
-				case ',':
-					if (result.Count == 0) {
-						throw new JaysonException (JaysonError.InvalidJsonListItem);
-					}
-					token = JaysonSerializationToken.Comma;
-					break;
-				case ']':
-					if (context.Settings.ArrayType == ArrayDeserializationType.Array) {
-						return ((IList<object>)result).ToArray ();
-					}
-					if (context.Settings.ArrayType == ArrayDeserializationType.ArrayDefined) {
-						return ListAsArray (result);
-					}
-					return result;
-				case '{':
-					context.Position--;
-					result.Add (ParseDictionary (context));
-					break;
-				case 'n':
-					{
-						int pos = context.Position;
-						if (pos < length - 3 &&
-						    str [pos] == 'u' &&
-						    str [pos + 1] == 'l' &&
-						    str [pos + 2] == 'l') {
-							result.Add (null);
-							context.Position += 3;
-							break;
-						}
-						throw new JaysonException (JaysonError.InvalidJsonListItem);
-					}
-				case 't':
-					{
-						int pos = context.Position;
-						if (pos < length - 3 &&
-						    str [pos] == 'r' &&
-						    str [pos + 1] == 'u' &&
-						    str [pos + 2] == 'e') {
-							result.Add (true);
-							context.Position += 3;
-							break;
-						}
-						throw new JaysonException (JaysonError.InvalidJsonListItem);
-					}
-				case 'f':
-					{
-						int pos = context.Position;
-						if (pos < length - 4 &&
-						    str [pos] == 'a' &&
-						    str [pos + 1] == 'l' &&
-						    str [pos + 2] == 's' &&
-						    str [pos + 3] == 'e') {
-							result.Add (false);
-							context.Position += 4;
-							break;
-						}
-						throw new JaysonException (JaysonError.InvalidJsonListItem);
-					}
-				case '[':
-					context.Position--;
-					result.Add (ParseList (context));
-					break;
-				default:
-					if (!(ch < '0' || ch > '9') || ch == '-') {
-						context.Position--;
-						result.Add (ParseNumber (context, JaysonSerializationToken.Value));
-						break;
-					}
-					if (JaysonCommon.IsWhiteSpace (ch))
-						continue;
-					throw new JaysonException (JaysonError.InvalidJsonListItem);
-				}
-			}
+                switch (ch)
+                {
+                    case '"':
+                        result.Add(ParseString(str, ref context.Position));
+                        break;
+                    case ',':
+                        if (result.Count == 0)
+                        {
+                            throw new JaysonException(JaysonError.InvalidJsonListItem);
+                        }
+                        token = JaysonSerializationToken.Comma;
+                        break;
+                    case ']':
+                        if (context.Settings.ArrayType == ArrayDeserializationType.Array)
+                        {
+                            return ((IList<object>)result).ToArray();
+                        }
+                        if (context.Settings.ArrayType == ArrayDeserializationType.ArrayDefined)
+                        {
+                            return ListAsArray(result);
+                        }
+                        return result;
+                    case '{':
+                        context.Position--;
+                        result.Add(ParseDictionary(context));
+                        break;
+                    case 'n':
+                        {
+                            int pos = context.Position;
+                            if (pos < length - 3 &&
+                                str[pos] == 'u' &&
+                                str[pos + 1] == 'l' &&
+                                str[pos + 2] == 'l')
+                            {
+                                result.Add(null);
+                                context.Position += 3;
+                                break;
+                            }
+                            throw new JaysonException(JaysonError.InvalidJsonListItem);
+                        }
+                    case 't':
+                        {
+                            int pos = context.Position;
+                            if (pos < length - 3 &&
+                                str[pos] == 'r' &&
+                                str[pos + 1] == 'u' &&
+                                str[pos + 2] == 'e')
+                            {
+                                result.Add(true);
+                                context.Position += 3;
+                                break;
+                            }
+                            throw new JaysonException(JaysonError.InvalidJsonListItem);
+                        }
+                    case 'f':
+                        {
+                            int pos = context.Position;
+                            if (pos < length - 4 &&
+                                str[pos] == 'a' &&
+                                str[pos + 1] == 'l' &&
+                                str[pos + 2] == 's' &&
+                                str[pos + 3] == 'e')
+                            {
+                                result.Add(false);
+                                context.Position += 4;
+                                break;
+                            }
+                            throw new JaysonException(JaysonError.InvalidJsonListItem);
+                        }
+                    case '[':
+                        context.Position--;
+                        result.Add(ParseList(context));
+                        break;
+                    case '/':
+                        ParseComment(context);
+                        if (startedWithComment)
+                        {
+                            startedWithComment = false;
+                            if (str[context.Position++] != '[')
+                            {
+                                throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                            }
+                        }
+                        continue;
+                    default:
+                        if (!(ch < '0' || ch > '9') || ch == '-')
+                        {
+                            context.Position--;
+                            result.Add(ParseNumber(context, JaysonSerializationToken.Value));
+                            break;
+                        }
+                        if (JaysonCommon.IsWhiteSpace(ch))
+                            continue;
+                        throw new JaysonException(JaysonError.InvalidJsonListItem);
+                }
+            }
 
-			throw new JaysonException(JaysonError.InvalidJsonList);
+            throw new JaysonException(JaysonError.InvalidJsonList);
         }
 
         # endregion Parse List
@@ -937,7 +1110,25 @@ namespace Sweet.Jayson
 
         private static IDictionary<string, object> ParseDictionary(JaysonDeserializationContext context)
         {
-            EatWhitesAndCheckChar(context, '{');
+            string str = context.Text;
+            int length = context.Length;
+
+            bool startedWithComment = false;
+            if (context.Settings.CommentHandling == JaysonCommentHandling.ThrowError)
+            {
+                EatWhitesAndCheckChar(context, '{');
+            }
+            else
+            {
+                EatWhitesAndCheckChars(context, new int[] { '{', '/' });
+                startedWithComment = (str[context.Position - 1] == '/') &&
+                    (str[context.Position] == '/' || str[context.Position] == '*');
+
+                if (startedWithComment)
+                {
+                    context.Position--;
+                }
+            }
 
             context.ObjectDepth++;
             ValidateObjectDepth(context);
@@ -957,132 +1148,156 @@ namespace Sweet.Jayson
             object value;
             string key = null;
 
-            string str = context.Text;
-            int length = context.Length;
-
             JaysonSerializationToken token = JaysonSerializationToken.Key;
             JaysonSerializationToken prevToken = JaysonSerializationToken.Undefined;
 
-			while (context.Position < length) {
-				ch = str [context.Position++];
+            while (context.Position < length)
+            {
+                ch = str[context.Position++];
 
-				switch (token) {
-				case JaysonSerializationToken.Key:
-					switch (ch) {
-					case '"':
-						if (prevToken == JaysonSerializationToken.Value) {
-							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
-						}
+                switch (token)
+                {
+                    case JaysonSerializationToken.Key:
+                        switch (ch)
+                        {
+                            case '"':
+                                if (prevToken == JaysonSerializationToken.Value)
+                                {
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                                }
 
-						key = ParseString (str, ref context.Position);
-						if (key == null) {
-							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
-						}
+                                key = ParseString(str, ref context.Position);
+                                if (key == null)
+                                {
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                                }
 
-						prevToken = token;
-						token = JaysonSerializationToken.Colon;
-						continue;
-					case ',':
-						if (prevToken != JaysonSerializationToken.Value) {
-							throw new JaysonException (JaysonError.InvalidJsonObjectKey);
-						}
-						prevToken = JaysonSerializationToken.Comma;
-						break;
-					case '}':
-						context.ObjectDepth--;
-						return result;
-					default:
-						if (JaysonCommon.IsWhiteSpace (ch))
-							continue;
-						throw new JaysonException (JaysonError.InvalidJsonObjectKey);
-					}
-					break;
-				case JaysonSerializationToken.Colon:
-					if (ch == ':') {
-						prevToken = token;
-						token = JaysonSerializationToken.Value;
-						break;
-					}
-					if (JaysonCommon.IsWhiteSpace (ch))
-						continue;
-					throw new JaysonException (JaysonError.InvalidJsonObjectValue);
-				case JaysonSerializationToken.Value:
-					switch (ch) {
-					case '"':
-						result [key] = ParseString (str, ref context.Position);
-						if (key == "$type") {
-							context.HasTypeInfo = true;
-						}
-						break;
-					case '{':
-						context.Position--;
-						result [key] = ParseDictionary (context);
-						break;
-					case 'n':
-						{
-							int pos = context.Position;
-							if (pos < length - 3 &&
-							    str [pos] == 'u' &&
-							    str [pos + 1] == 'l' &&
-							    str [pos + 2] == 'l') {
-								result [key] = null;
-								context.Position += 3;
-								break;
-							}
-							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
-						}
-					case 't':
-						{
-							int pos = context.Position;
-							if (pos < length - 3 &&
-							    str [pos] == 'r' &&
-							    str [pos + 1] == 'u' &&
-							    str [pos + 2] == 'e') {
-								result [key] = true;
-								context.Position += 3;
-								break;
-							}
-							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
-						}
-					case 'f':
-						{
-							int pos = context.Position;
-							if (pos < length - 4 &&
-							    str [pos] == 'a' &&
-							    str [pos + 1] == 'l' &&
-							    str [pos + 2] == 's' &&
-							    str [pos + 3] == 'e') {
-								result [key] = false;
-								context.Position += 4;
-								break;
-							}
-							throw new JaysonException (JaysonError.InvalidJsonObjectValue);
-						}
-					case '[':
-						context.Position--;
-						result [key] = ParseList (context);
-						break;
-					default:
-						if (!(ch < '0' || ch > '9') || ch == '-') {
-							context.Position--;
-							value = ParseNumber (context, JaysonSerializationToken.Value);
+                                prevToken = token;
+                                token = JaysonSerializationToken.Colon;
+                                continue;
+                            case ',':
+                                if (prevToken != JaysonSerializationToken.Value)
+                                {
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                                }
+                                prevToken = JaysonSerializationToken.Comma;
+                                break;
+                            case '}':
+                                context.ObjectDepth--;
+                                return result;
+                            case '/':
+                                ParseComment(context);
+                                if (startedWithComment)
+                                {
+                                    startedWithComment = false;
+                                    if (str[context.Position++] != '{')
+                                    {
+                                        throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                                    }
+                                }
+                                continue;
+                            default:
+                                if (JaysonCommon.IsWhiteSpace(ch))
+                                    continue;
+                                throw new JaysonException(JaysonError.InvalidJsonObjectKey);
+                        }
+                        break;
+                    case JaysonSerializationToken.Colon:
+                        if (ch == ':')
+                        {
+                            prevToken = token;
+                            token = JaysonSerializationToken.Value;
+                            break;
+                        }
+                        if (JaysonCommon.IsWhiteSpace(ch))
+                            continue;
+                        throw new JaysonException(JaysonError.InvalidJsonObjectValue);
+                    case JaysonSerializationToken.Value:
+                        switch (ch)
+                        {
+                            case '"':
+                                result[key] = ParseString(str, ref context.Position);
+                                if (key == "$type")
+                                {
+                                    context.HasTypeInfo = true;
+                                }
+                                break;
+                            case '{':
+                                context.Position--;
+                                result[key] = ParseDictionary(context);
+                                break;
+                            case 'n':
+                                {
+                                    int pos = context.Position;
+                                    if (pos < length - 3 &&
+                                        str[pos] == 'u' &&
+                                        str[pos + 1] == 'l' &&
+                                        str[pos + 2] == 'l')
+                                    {
+                                        result[key] = null;
+                                        context.Position += 3;
+                                        break;
+                                    }
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectValue);
+                                }
+                            case 't':
+                                {
+                                    int pos = context.Position;
+                                    if (pos < length - 3 &&
+                                        str[pos] == 'r' &&
+                                        str[pos + 1] == 'u' &&
+                                        str[pos + 2] == 'e')
+                                    {
+                                        result[key] = true;
+                                        context.Position += 3;
+                                        break;
+                                    }
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectValue);
+                                }
+                            case 'f':
+                                {
+                                    int pos = context.Position;
+                                    if (pos < length - 4 &&
+                                        str[pos] == 'a' &&
+                                        str[pos + 1] == 'l' &&
+                                        str[pos + 2] == 's' &&
+                                        str[pos + 3] == 'e')
+                                    {
+                                        result[key] = false;
+                                        context.Position += 4;
+                                        break;
+                                    }
+                                    throw new JaysonException(JaysonError.InvalidJsonObjectValue);
+                                }
+                            case '[':
+                                context.Position--;
+                                result[key] = ParseList(context);
+                                break;
+                            case '/':
+                                ParseComment(context);
+                                continue;
+                            default:
+                                if (!(ch < '0' || ch > '9') || ch == '-')
+                                {
+                                    context.Position--;
+                                    value = ParseNumber(context, JaysonSerializationToken.Value);
 
-							result [key] = value;
-							break;
-						}
-						if (JaysonCommon.IsWhiteSpace (ch))
-							continue;
-						throw new JaysonException (JaysonError.InvalidJsonObjectValue);
-					}
+                                    result[key] = value;
+                                    break;
+                                }
+                                if (JaysonCommon.IsWhiteSpace(ch))
+                                    continue;
+                                throw new JaysonException(JaysonError.InvalidJsonObjectValue);
+                        }
 
-					key = null;
-					token = JaysonSerializationToken.Key;
-					prevToken = JaysonSerializationToken.Value;
-					break;
-				}
-			}
+                        key = null;
+                        token = JaysonSerializationToken.Key;
+                        prevToken = JaysonSerializationToken.Value;
+                        break;
+                }
+            }
 
-			throw new JaysonException(JaysonError.InvalidJsonObject);
+            throw new JaysonException(JaysonError.InvalidJsonObject);
         }
 
         # endregion Parse Dictionary
@@ -1091,7 +1306,7 @@ namespace Sweet.Jayson
         {
             if (String.IsNullOrEmpty(str))
             {
-				throw new JaysonException(JaysonError.EmptyString);
+                throw new JaysonException(JaysonError.EmptyString);
             }
 
             using (var context = new JaysonDeserializationContext
@@ -1099,7 +1314,8 @@ namespace Sweet.Jayson
                 Text = str,
                 Length = str.Length,
                 Settings = settings ?? JaysonDeserializationSettings.Default
-            }) {
+            })
+            {
                 return Parse(context);
             }
         }
@@ -1115,9 +1331,9 @@ namespace Sweet.Jayson
                 context.Position++;
             }
 
-            if (context.Position >= length - 1)
+            if (context.Position >= length)
             {
-				throw new JaysonException(JaysonError.InvalidJson);
+                throw new JaysonException(JaysonError.InvalidJson);
             }
 
             char ch = str[context.Position];
@@ -1145,7 +1361,7 @@ namespace Sweet.Jayson
                         {
                             return true;
                         }
-						throw new JaysonException(JaysonError.InvalidJson);
+                        throw new JaysonException(JaysonError.InvalidJson);
                     }
                 case 'f':
                     {
@@ -1158,7 +1374,7 @@ namespace Sweet.Jayson
                         {
                             return false;
                         }
-						throw new JaysonException(JaysonError.InvalidJson);
+                        throw new JaysonException(JaysonError.InvalidJson);
                     }
                 case 'n':
                     {
@@ -1170,7 +1386,17 @@ namespace Sweet.Jayson
                         {
                             return null;
                         }
-						throw new JaysonException(JaysonError.InvalidJson);
+                        throw new JaysonException(JaysonError.InvalidJson);
+                    }
+                case '/':
+                    {
+                        context.Position++;
+                        ParseComment(context);
+                        if (context.Position < length)
+                        {
+                            return Parse(context);
+                        }
+                        return null;
                     }
                 default:
                     if (!(ch < '0' || ch > '9') || ch == '-')
@@ -1179,7 +1405,7 @@ namespace Sweet.Jayson
 
                         return value;
                     }
-					throw new JaysonException(JaysonError.InvalidJson);
+                    throw new JaysonException(JaysonError.InvalidJson);
             }
         }
 
