@@ -2233,7 +2233,7 @@ namespace Sweet.Jayson
 
                                         WriteKeyValueEntry(key: "$k", value: keyObj, expectedValueType: keyType, context: context,
                                             isFirst: true, forceNullValues: true);
-                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: valueType, context: context,
+                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: valueType, context: context, 
                                             isFirst: false, forceNullValues: true);
                                     }
                                     finally
@@ -2734,6 +2734,11 @@ namespace Sweet.Jayson
         private static void WriteISerializable(ISerializable obj, Type objType, JaysonSerializationContext context)
         {
             var settings = context.Settings;
+            if (settings.UseKVModelForISerializable)
+            {
+                WriteISerializableKVMode(obj, objType, context);
+                return;
+            }
 
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
@@ -2795,6 +2800,150 @@ namespace Sweet.Jayson
                             context.CurrentType = null;
                             isFirst = WriteProperty(key, value, null, context, isFirst, true);
                         }
+                    }
+                }
+            }
+            finally
+            {
+                context.ObjectDepth--;
+                if (settings.Formatting)
+                {
+                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                }
+                builder.Append('}');
+            }
+        }
+
+        private static void WriteISerializableKVMode(ISerializable obj, Type objType, JaysonSerializationContext context)
+        {
+            var settings = context.Settings;
+
+            context.ObjectDepth++;
+            StringBuilder builder = context.Builder;
+            try
+            {
+                bool isFirst = !WriteObjectType(objType, context);
+                if (isFirst)
+                {
+                    builder.Append('{');
+                }
+
+                if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                {
+                    return;
+                }
+
+                bool referenced;
+                isFirst = WriteReferenceOrId(obj, context, isFirst, out referenced);
+                if (referenced)
+                {
+                    return;
+                }
+
+                SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+                obj.GetObjectData(info, context.StreamingContext);
+
+                if (info.MemberCount > 0)
+                {
+                    if (!isFirst)
+                    {
+                        builder.Append(',');
+                    }
+
+                    if (settings.Formatting)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+
+                        context.ObjectDepth += 2;
+                        if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
+                        {
+                            return;
+                        }
+
+                        builder.Append("\"$ctx\": [");
+                    }
+                    else
+                    {
+                        builder.Append("\"$ctx\":[");
+                    }
+
+                    try
+                    {
+                        string key;
+                        object value;
+                        string aliasKey;
+
+                        Func<string, object, object> filter = context.Filter;
+                        bool canFilter = (filter != null);
+
+                        var formatting = settings.Formatting;
+                        JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+
+                        var isFirstItem = true;
+
+                        foreach (SerializationEntry se in info)
+                        {
+                            key = se.Name;
+                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                            {
+                                value = se.Value;
+
+                                if ((value != null) && canFilter)
+                                {
+                                    value = filter(key, value);
+                                }
+
+                                if (typeOverride != null)
+                                {
+                                    aliasKey = typeOverride.GetMemberAlias(key);
+                                    if (!String.IsNullOrEmpty(aliasKey))
+                                    {
+                                        key = aliasKey;
+                                    }
+                                }
+
+                                context.CurrentType = null;
+                                // isFirst = WriteProperty(key, value, null, context, isFirst, true);
+                                // isFirst = WriteKeyValueEntry(key, value, null, context, isFirst, true);
+
+                                if (!isFirstItem)
+                                {
+                                    builder.Append(',');
+                                }
+                                if (formatting)
+                                {
+                                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                }
+
+                                try
+                                {
+                                    builder.Append('{');
+
+                                    WriteKeyValueEntry(key: "$k", value: key, expectedValueType: typeof(string), context: context,
+                                        isFirst: true, forceNullValues: true);
+                                    WriteKeyValueEntry(key: "$v", value: value, expectedValueType: null, context: context,
+                                        isFirst: false, forceNullValues: true);
+                                }
+                                finally
+                                {
+                                    isFirstItem = false;
+                                    if (formatting)
+                                    {
+                                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                    }
+                                    builder.Append('}');
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        context.ObjectDepth -= 2;
+                        if (settings.Formatting)
+                        {
+                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        }
+                        builder.Append(']');
                     }
                 }
             }

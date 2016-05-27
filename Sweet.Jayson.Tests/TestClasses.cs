@@ -294,6 +294,8 @@ namespace Sweet.Jayson.Tests
         {
             return new TypedContainerDto
             {
+                Address1 = new Uri("http://address1.com:9091"),
+                Address2 = new Uri("https://address2.com:9092"),
                 Double1 = 1.123456789,
                 Double2 = 0.123456789,
                 Date1 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Utc),
@@ -620,9 +622,9 @@ namespace Sweet.Jayson.Tests
 
         protected ObjectGraph(SerializationInfo info, StreamingContext context)
         {
-            internalCollection = (CustomCollection)info.GetValue("col", typeof(CustomCollection));
-            Data = (DataContainer)info.GetValue("data", typeof(DataContainer));
-            ObjectData = info.GetValue("obj", typeof(object));
+            internalCollection = (CustomCollection)info.GetValue("Col", typeof(CustomCollection));
+            Data = (DataContainer)info.GetValue("Data", typeof(DataContainer));
+            ObjectData = info.GetValue("Obj", typeof(object));
         }
 
         public CustomCollection MyCollection
@@ -657,9 +659,9 @@ namespace Sweet.Jayson.Tests
         [SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("col", internalCollection);
-            info.AddValue("data", Data);
-            info.AddValue("obj", ObjectData);
+            info.AddValue("Col", internalCollection);
+            info.AddValue("Data", Data);
+            info.AddValue("Obj", ObjectData);
         }
 
         #endregion
@@ -860,6 +862,8 @@ namespace Sweet.Jayson.Tests
 
     public class TypedContainerDto
     {
+        public Uri Address1;
+        public Uri Address2 { get; set; }
         [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date1;
         public DateTime Date2;

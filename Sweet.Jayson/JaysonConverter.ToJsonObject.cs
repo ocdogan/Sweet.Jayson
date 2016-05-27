@@ -568,9 +568,13 @@ namespace Sweet.Jayson
 
         private static object AsISerializable(ISerializable obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var settings = context.Settings;
+            if (settings.UseKVModelForISerializable)
+            {
+                return AsISerializableKVMode(obj, objType, context);
+            }
 
-            JaysonSerializationSettings settings = context.Settings;
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (settings.UseObjectReferencing)
             {
@@ -626,6 +630,80 @@ namespace Sweet.Jayson
                             result.Add(key, value);
                         }
                     }
+                }
+            }
+
+            return result;
+        }
+
+        private static object AsISerializableKVMode(ISerializable obj, Type objType, JaysonSerializationContext context)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+
+            JaysonSerializationSettings settings = context.Settings;
+
+            if (settings.UseObjectReferencing)
+            {
+                result.Add("$id", context.ReferenceMap.GetObjectId(obj));
+            }
+
+            SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+            obj.GetObjectData(info, context.StreamingContext);
+
+            if (info.MemberCount > 0)
+            {
+                string key;
+                object value;
+                string aliasKey;
+
+                List<object> ctx = new List<object>(info.MemberCount);
+
+                bool ignoreNullValues = settings.IgnoreNullValues;
+                JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+
+                Func<string, object, object> filter = context.Filter;
+                bool canFilter = (filter != null);
+
+                foreach (SerializationEntry se in info)
+                {
+                    key = se.Name;
+                    if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                    {
+                        value = se.Value;
+
+                        if (value != null)
+                        {
+                            if (canFilter)
+                            {
+                                value = filter(key, value);
+                            }
+
+                            if (value != null)
+                            {
+                                value = ToJsonObject(value, context);
+                            }
+                        }
+
+                        if ((value != null) || !ignoreNullValues)
+                        {
+                            if (typeOverride != null)
+                            {
+                                aliasKey = typeOverride.GetMemberAlias(key);
+                                if (!String.IsNullOrEmpty(aliasKey))
+                                {
+                                    key = aliasKey;
+                                }
+                            }
+
+                            ctx.Add(new Dictionary<string, object>() { { "$k", key} });
+                            ctx.Add(new Dictionary<string, object>() { { "$v", value } });
+                        }
+                    }
+                }
+
+                if (ctx.Count > 0)
+                {
+                    result.Add("$ctx", ctx);
                 }
             }
 

@@ -50,6 +50,93 @@ namespace Sweet.Jayson.Tests
     public class PrimaryTests
     {
         [Test]
+        public static void TestISerializable1a()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.UseKVModelForISerializable = true;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json.Contains("\"$ctx\":"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = false;
+
+            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
+        public static void TestISerializable1b()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.UseKVModelForISerializable = false;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = true;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(!json.Contains("\"$ctx\":"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.CaseSensitive = true;
+
+            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
+        public static void TestISerializable1c()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.UseKVModelForISerializable = false; // Fails on ISerializable objects if CaseSensitive is FALSE and UseKVModelForISerializable is FALSE
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.CaseSensitive = false; // Fails on ISerializable objects if CaseSensitive is FALSE and UseKVModelForISerializable is FALSE
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(!json.Contains("\"$ctx\":"));
+
+            try
+            {
+                JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+                jaysonDeserializationSettings.CaseSensitive = false;
+
+                TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+                Assert.IsNotNull(dto2);
+            }
+            catch (Exception e)
+            {
+                Assert.IsInstanceOf(typeof(System.Runtime.Serialization.SerializationException), e);
+            }
+        }
+
+        [Test]
         public static void TestComment1a()
         {
             var jsonObj = JaysonConverter.ToDictionary("// abc\r\n{\"a\":\"1\\\"\"}");
@@ -1513,6 +1600,18 @@ namespace Sweet.Jayson.Tests
             Assert.IsTrue(jsonObj is Dictionary<string, object>);
         }
 
+        private static object RoundMinute(string memberName, object date)
+        {
+            var d = (DateTime)date;
+            return d.Subtract(new TimeSpan(0, 0, d.Minute - 5 * (d.Minute / 5), d.Second, d.Millisecond));
+        }
+
+        private static object RoundDouble(string memberName, object value)
+        {
+            var dbl = (double)value;
+            return Math.Round(dbl, 3);
+        }
+
         private static void CompareTypedContainerDtos(TypedContainerDto dto1, TypedContainerDto dto2)
         {
             if (dto1 == null)
@@ -1523,10 +1622,16 @@ namespace Sweet.Jayson.Tests
             {
                 Assert.IsNotNull(dto2);
 
+                Assert.AreEqual(dto1.Address1, dto2.Address1);
+                Assert.AreEqual(dto1.Address2, dto2.Address2);
+
                 Assert.AreEqual(dto1.ByteArray, dto2.ByteArray);
-                Assert.AreEqual(dto1.Date1, dto2.Date1);
-                Assert.AreEqual(dto1.Date2, dto2.Date2);
-                Assert.AreEqual(dto1.Date3, dto2.Date3);
+                Assert.AreEqual(RoundMinute("Date1", dto1.Date1), RoundMinute("Date1", dto2.Date1));
+                Assert.AreEqual(RoundMinute("Date2", dto1.Date2), RoundMinute("Date2", dto2.Date2));
+                Assert.AreEqual(RoundMinute("Date3", dto1.Date3), RoundMinute("Date3", dto2.Date3));
+
+                Assert.AreEqual(RoundDouble("Double1", dto1.Double1), RoundDouble("Double1", dto2.Double1));
+                Assert.AreEqual(RoundDouble("Double2", dto1.Double2), RoundDouble("Double2", dto2.Double2));
 
                 Assert.AreEqual(dto1.Enum1, dto2.Enum1);
                 Assert.AreEqual(dto1.Enum2, dto2.Enum2);

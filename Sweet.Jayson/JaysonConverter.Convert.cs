@@ -2313,17 +2313,46 @@ namespace Sweet.Jayson
                             {
                                 JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetISerializableCtorInfo(toType);
 
-                                object paramValue;
                                 SerializationInfo serializationInfo = new SerializationInfo(toType, JaysonCommon.FormatterConverter);
 
                                 string key;
-                                foreach (var kvp in obj)
+                                object paramValue;
+
+                                object ctxObj;
+                                if (!obj.TryGetValue("$ctx", out ctxObj))
                                 {
-                                    key = kvp.Key;
-                                    if (!hasSkeyword || !(key == "$type" || key == "$id"))
+                                    foreach (var kvp in obj)
                                     {
-                                        paramValue = ConvertObject(kvp.Value, typeof(object), context);
-                                        serializationInfo.AddValue(key, paramValue);
+                                        key = kvp.Key;
+                                        if (!hasSkeyword || !(key == "$type" || key == "$id"))
+                                        {
+                                            paramValue = ConvertObject(kvp.Value, typeof(object), context);
+                                            serializationInfo.AddValue(key, paramValue);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var ctx = ctxObj as IList;
+                                    if ((ctx != null) && (ctx.Count > 0))
+                                    {
+                                        object oKey;
+                                        IDictionary<string, object> kvp;
+
+                                        foreach (var kv in ctx)
+                                        {
+                                            kvp = kv as IDictionary<string, object>;
+                                            if ((kvp != null) && kvp.TryGetValue("$k", out oKey))
+                                            {
+                                                key = oKey as string;
+                                                if (!String.IsNullOrEmpty(key) && 
+                                                    kvp.TryGetValue("$v", out paramValue))
+                                                {
+                                                    paramValue = ConvertObject(paramValue, typeof(object), context);
+                                                    serializationInfo.AddValue(key, paramValue);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 

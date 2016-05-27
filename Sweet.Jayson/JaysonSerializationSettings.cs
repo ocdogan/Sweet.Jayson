@@ -63,6 +63,7 @@ namespace Sweet.Jayson
         public bool RaiseErrorOnMaxObjectDepth = true;
         public bool UseEnumNames = true;
         public bool UseGlobalTypeNames = false;
+        public bool UseKVModelForISerializable = true;
         public bool UseKVModelForJsonObjects = true;
         public bool UseObjectReferencing = false;
 
