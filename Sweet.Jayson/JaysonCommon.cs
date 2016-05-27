@@ -1332,6 +1332,47 @@ namespace Sweet.Jayson
             }
         }
 
+        private static MethodInfo GetOverridingMethod(Type overridingType, string overridingMethod)
+        {
+            if (overridingType != null)
+            {
+                return overridingType.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                                        .Where((mi) => mi.ReturnType == typeof(object))
+                                        .Where((mi) => mi.Name.Equals(overridingMethod, StringComparison.OrdinalIgnoreCase))
+                                        .Where((mi) =>
+                                        {
+                                            var prms = mi.GetParameters();
+                                            return (prms != null) && (prms.Length == 2) &&
+                                                (prms[0].ParameterType == typeof(string)) &&
+                                                (prms[1].ParameterType == typeof(object));
+                                        })
+                                        .FirstOrDefault();
+            }
+            return null;
+        }
+
+        public static MethodInfo GetOverridingMethod(MemberInfo memberInf)
+        {
+            if (memberInf != null)
+            {
+                var oAttr = memberInf.GetCustomAttributes(typeof(JaysonMemberOverrideAttribute), true)
+                    .Cast < JaysonMemberOverrideAttribute>()
+                    .Where((attr) => !String.IsNullOrEmpty(attr.OverridingMethod))
+                    .FirstOrDefault();
+
+                if (oAttr != null)
+                {
+                    if (!String.IsNullOrEmpty(oAttr.OverridingType))
+                    {
+                        return GetOverridingMethod(GetType(oAttr.OverridingType), oAttr.OverridingMethod);
+                    }
+
+                    return GetOverridingMethod(memberInf.DeclaringType, oAttr.OverridingMethod);
+                }
+            }
+            return null;
+        }
+
         public static Type GetType(string typeName, SerializationBinder binder = null)
         {
             Type result = null;

@@ -294,9 +294,11 @@ namespace Sweet.Jayson.Tests
         {
             return new TypedContainerDto
             {
-                Date1 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Utc),
-                Date2 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Local),
-                Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
+                Double1 = 1.123456789,
+                Double2 = 0.123456789,
+                Date1 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Utc),
+                Date2 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Local),
+                Date3 = new DateTime(1972, 10, 25, 14, 36, 45),
                 Enum1 = TypedContainerEnum.F,
                 Enum2 = TypedContainerEnum.B | TypedContainerEnum.F,
                 Enum3 = (TypedContainerEnum)5,
@@ -608,6 +610,7 @@ namespace Sweet.Jayson.Tests
     [Serializable]
     public class ObjectGraph : ISerializable
     {
+        [NonSerializedAttribute]
         private readonly CustomCollection internalCollection;
 
         public ObjectGraph()
@@ -857,9 +860,11 @@ namespace Sweet.Jayson.Tests
 
     public class TypedContainerDto
     {
+        [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date1;
         public DateTime Date2;
-        public DateTime Date3;
+        [JaysonMemberOverrideAttribute("RoundMinute")]
+        public DateTime Date3 { get; set; }
         public TypedContainerEnum Enum1;
         public TypedContainerEnum Enum2;
         public TypedContainerEnum Enum3;
@@ -877,6 +882,26 @@ namespace Sweet.Jayson.Tests
         public List<object[]> ObjectArrayList { get; set; }
         public object[][][] Object2DArray { get; set; }
         public int[,] IntArray2D;
+
+        [JaysonMemberOverrideAttribute("RoundDouble", "Sweet.Jayson.Tests.MemberOverrider")]
+        public double Double1;
+        [JaysonMemberOverrideAttribute("RoundDouble", "Sweet.Jayson.Tests.MemberOverrider")]
+        public double Double2 { get; set; }
+
+        private static object RoundMinute(string memberName, object date)
+        {
+            var d = (DateTime)date;
+            return d.Subtract(new TimeSpan(0, 0, d.Minute - 5*(d.Minute / 5), d.Second, d.Millisecond));
+        }
+    }
+
+    internal static class MemberOverrider
+    {
+        private static object RoundDouble(string memberName, object value)
+        {
+            var dbl = (double)value;
+            return Math.Round(dbl, 3);
+        }
     }
 
     // DTOs

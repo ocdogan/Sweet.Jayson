@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -37,6 +38,7 @@ namespace Sweet.Jayson
 
         private bool m_Get;
         private bool m_Set;
+        private bool m_Overriden;
 
         private Type m_MemberType;
         private PropertyInfo m_PropInfo;
@@ -71,6 +73,11 @@ namespace Sweet.Jayson
         public bool CanWrite
         {
             get { return m_CanWrite; }
+        }
+
+        public bool Overriden
+        {
+            get { return m_Overriden; }
         }
 
         public JaysonFastProperty(PropertyInfo pi, bool initGet = true, bool initSet = true)
@@ -112,7 +119,18 @@ namespace Sweet.Jayson
                 Expression callExp = Expression.Call(instanceCast, getMethod);
                 Expression toObjectExp = Expression.TypeAs(callExp, typeof(object));
 
-                m_GetDelegate = Expression.Lambda<Func<object, object>>(toObjectExp, instanceVar).Compile();
+                var overridingMetod = JaysonCommon.GetOverridingMethod(pi);
+                if (overridingMetod != null)
+                {
+                    m_Overriden = true;
+                    var memberName = pi.Name;
+                    var memberNameExp = Expression.Constant(memberName, typeof(string));
+                    callExp = Expression.Call(overridingMetod, memberNameExp, toObjectExp);
+                    toObjectExp = Expression.TypeAs(callExp, typeof(object));
+                }
+
+                var lmd = Expression.Lambda<Func<object, object>>(toObjectExp, instanceVar);
+                m_GetDelegate = lmd.Compile();
             }
         }
 

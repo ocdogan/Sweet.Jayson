@@ -38,6 +38,8 @@ namespace Sweet.Jayson
         private bool m_Get;
         private bool m_Set;
 
+        private bool m_Overriden;
+
         private Type m_MemberType;
         private FieldInfo m_FieldInfo;
 
@@ -67,6 +69,11 @@ namespace Sweet.Jayson
         public bool CanWrite
         {
             get { return m_CanWrite || m_InvokeOnSet; }
+        }
+
+        public bool Overriden
+        {
+            get { return m_Overriden; }
         }
 
         public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true)
@@ -105,7 +112,18 @@ namespace Sweet.Jayson
                 Expression fieldExp = Expression.Field(instanceCast, fi);
                 Expression toObjectExp = Expression.TypeAs(fieldExp, typeof(object));
 
-                m_GetDelegate = Expression.Lambda<Func<object, object>>(toObjectExp, instance).Compile();
+                var overridingMetod = JaysonCommon.GetOverridingMethod(fi);
+                if (overridingMetod != null)
+                {
+                    m_Overriden = true;
+                    var memberName = fi.Name;
+                    var memberNameExp = Expression.Constant(memberName, typeof(string));
+                    var callExp = Expression.Call(overridingMetod, memberNameExp, toObjectExp);
+                    toObjectExp = Expression.TypeAs(callExp, typeof(object));
+                }
+
+                var lmd = Expression.Lambda<Func<object, object>>(toObjectExp, instance);
+                m_GetDelegate = lmd.Compile();
             }
         }
 
