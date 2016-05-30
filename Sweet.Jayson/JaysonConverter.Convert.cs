@@ -1721,19 +1721,9 @@ namespace Sweet.Jayson
                         argType = argTypes[0];
                         int count = obj.Count;
 
-                        if (JaysonCommon.IsOnMono())
+                        for (int i = count - 1; i > -1; i--)
                         {
-                            for (int i = 0; i < count; i++)
-                            {
-                                methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
-                            }
-                        }
-                        else
-                        {
-                            for (int i = count - 1; i > -1; i--)
-                            {
-                                methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
-                            }
+                            methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                         }
                         return;
                     }
@@ -1761,20 +1751,21 @@ namespace Sweet.Jayson
 
         private static void SetObject(object obj, object instance, JaysonDeserializationContext context)
         {
-            if (instance != null && obj != null)
+			if (obj != null && instance != null && !JaysonTypeInfo.IsJPrimitive(instance.GetType()))
             {
-                Type instanceType = instance.GetType();
-                if (!JaysonTypeInfo.IsJPrimitive(instanceType))
-                {
-                    if (obj is IDictionary<string, object>)
-                    {
-                        SetDictionary((IDictionary<string, object>)obj, ref instance, context);
-                    }
-                    else if (obj is IList<object>)
-                    {
-                        SetList((IList<object>)obj, instance, context);
-                    }
-                }
+				var dict = obj as IDictionary<string, object>;
+				if (dict != null) 
+				{
+					SetDictionary (dict, ref instance, context);
+				} 
+				else 
+				{
+					var list = obj as IList<object>;
+					if (list != null) 
+					{
+						SetList (list, instance, context);
+					}
+				}
             }
         }
 
