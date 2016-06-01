@@ -32,8 +32,14 @@ namespace Sweet.Jayson
 
     public class JaysonDeserializationSettings : ICloneable
     {
+        # region Constants
+
         public static readonly JaysonDeserializationSettings Default = new JaysonDeserializationSettings();
         private static readonly JaysonDeserializationSettings Initial = new JaysonDeserializationSettings();
+
+        # endregion Constants
+
+        # region Field Members
 
         private object m_TypeOverrideLock = new object();
         private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
@@ -57,6 +63,8 @@ namespace Sweet.Jayson
 
         public JaysonObjectActivator ObjectActivator;
         public JaysonCtorParamMatcher CtorParamMatcher;
+
+        # endregion Field Members
 
         public JaysonDeserializationSettings()
             : this(null)
@@ -146,13 +154,17 @@ namespace Sweet.Jayson
 
         public JaysonTypeOverride GetTypeOverride(Type type)
         {
-            if (m_TypeOverrides != null)
+            if (m_TypeOverrides == null)
             {
-                JaysonTypeOverride result = null;
-                m_TypeOverrides.TryGetValue(type, out result);
-                return result;
+                return JaysonTypeOverrideGlobal.GetTypeOverride(type);
             }
-            return null;
+
+            JaysonTypeOverride result;
+            if (!m_TypeOverrides.TryGetValue(type, out result))
+            {
+                return JaysonTypeOverrideGlobal.GetTypeOverride(type);
+            }
+            return result;
         }
 
         public JaysonDeserializationSettings AddTypeOverride(JaysonTypeOverride typeOverride)

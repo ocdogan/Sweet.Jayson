@@ -26,12 +26,159 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
 using System.Threading.Tasks;
 #endif
 
 namespace Sweet.Jayson
 {
+    public static class JaysonTypeOverrideGlobal
+    {
+        # region Static Members
+
+        private static readonly ReaderWriterLock s_GlobalTypeOverrideLock = new ReaderWriterLock();
+        private static readonly Dictionary<Type, JaysonTypeOverride> s_GlobalTypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+
+        # endregion Static Members
+
+        # region Methods
+
+        public static JaysonTypeOverride GetTypeOverride(Type type)
+        {
+            if (type != null)
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    if (s_GlobalTypeOverrides.Count > 0)
+                    {
+                        JaysonTypeOverride overrider;
+                        s_GlobalTypeOverrides.TryGetValue(type, out overrider);
+
+                        return overrider;
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return null;
+        }
+
+        public static void SetMemberAlias(Type type, string memberName, string alias)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName) && !String.IsNullOrEmpty(alias))
+            {
+                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        s_GlobalTypeOverrides[type] = overrider;
+                    }
+
+                    overrider.SetMemberAlias(memberName, alias);
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
+                }
+            }
+        }
+
+        public static string GetMemberAlias(Type type, string memberName)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        return overrider.GetMemberAlias(memberName);
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return memberName;
+        }
+
+        public static string GetAliasMember(Type type, string alias)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(alias))
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        return overrider.GetAliasMember(alias);
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return null;
+        }
+
+        public static void IgnoreMember(Type type, string memberName)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        s_GlobalTypeOverrides[type] = overrider;
+                    }
+
+                    overrider.IgnoreMember(memberName);
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
+                }
+            }
+        }
+
+        public static bool IsMemberIgnored(Type type, string memberName)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        return overrider.IsMemberIgnored(memberName);
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return false;
+        }
+
+        # endregion Methods
+    }
+
     public class JaysonTypeOverride : ICloneable
     {
         # region Field Members
@@ -67,29 +214,31 @@ namespace Sweet.Jayson
             m_BindToType = bindToType;
         }
 
-        public bool IsMemberIgnored(string memberName)
+        public bool IsGlobal { get; internal set; }
+
+        public virtual bool IsMemberIgnored(string memberName)
         {
             bool result;
-            if (m_IgnoredMembers.TryGetValue(memberName, out result))
+            if (!m_IgnoredMembers.TryGetValue(memberName, out result) && !IsGlobal)
             {
-                return result;
+                return JaysonTypeOverrideGlobal.IsMemberIgnored(m_Type, null);
             }
             return false;
         }
 
-        public JaysonTypeOverride IgnoreMember(string memberName)
+        public virtual JaysonTypeOverride IgnoreMember(string memberName)
         {
             m_IgnoredMembers[memberName] = true;
             return this;
         }
 
-        public JaysonTypeOverride IncludeMember(string memberName)
+        public virtual JaysonTypeOverride IncludeMember(string memberName)
         {
             m_IgnoredMembers[memberName] = false;
             return this;
         }
 
-        public JaysonTypeOverride SetMemberAlias(string memberName, string alias)
+        public virtual JaysonTypeOverride SetMemberAlias(string memberName, string alias)
         {
             if (!String.IsNullOrEmpty(alias))
             {
@@ -100,7 +249,7 @@ namespace Sweet.Jayson
             return RemoveMemberAlias(memberName);
         }
 
-        public JaysonTypeOverride RemoveMemberAlias(string memberName)
+        public virtual JaysonTypeOverride RemoveMemberAlias(string memberName)
         {
             lock (m_SyncRoot)
             {
@@ -117,21 +266,27 @@ namespace Sweet.Jayson
             return this;
         }
 
-        public string GetMemberAlias(string memberName)
+        public virtual string GetMemberAlias(string memberName)
         {
             string result;
-            m_MemberNameToAlias.TryGetValue(memberName, out result);
+            if (!m_MemberNameToAlias.TryGetValue(memberName, out result) && !IsGlobal)
+            {
+                return JaysonTypeOverrideGlobal.GetMemberAlias(m_Type, memberName);
+            }
             return result;
         }
 
-        public string GetAliasMember(string alias)
+        public virtual string GetAliasMember(string alias)
         {
             string result;
-            m_AliasToMemberName.TryGetValue(alias, out result);
+            if (!m_AliasToMemberName.TryGetValue(alias, out result) && !IsGlobal)
+            {
+                return JaysonTypeOverrideGlobal.GetAliasMember(m_Type, alias);
+            }
             return result;
         }
 
-        public object Clone()
+        public virtual object Clone()
         {
             JaysonTypeOverride result = new JaysonTypeOverride(m_Type, m_BindToType);
             foreach (var iKvp in m_IgnoredMembers)
@@ -152,7 +307,7 @@ namespace Sweet.Jayson
             return result;
         }
 
-        public JaysonTypeOverride Clone(Type insteadType)
+        public virtual JaysonTypeOverride Clone(Type insteadType)
         {
             JaysonTypeOverride result = (JaysonTypeOverride)Clone();
             result.m_BindToType = insteadType;

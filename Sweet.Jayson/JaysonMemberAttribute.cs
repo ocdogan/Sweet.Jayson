@@ -23,34 +23,41 @@
 # endregion License
 
 using System;
+using System.Collections.Generic;
 
 namespace Sweet.Jayson
 {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple=false)]
-	public class JaysonMemberAttribute : Attribute
-	{
-		public string Alias { get; set; }
-		public bool Ignored { get; set; }
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+    public class JaysonMemberAttribute : Attribute
+    {
+        # region Field Members
 
-		public JaysonMemberAttribute()
-		{
-		}
+        private string m_Alias;
 
-		public JaysonMemberAttribute (string alias)
-		{
-			Alias = alias;
-		}
+        # endregion Field Members
 
-		public JaysonMemberAttribute (bool ignored)
-		{
-			Ignored = ignored;
-		}
-
-		public JaysonMemberAttribute (string alias, bool ignored)
+        public JaysonMemberAttribute(string alias = null)
+        {
+            Alias = alias;
+        }
+        
+        public JaysonMemberAttribute(bool ignored, string alias = null)
 		{
 			Alias = alias;
 			Ignored = ignored;
 		}
-	}
+
+        public bool Ignored { get; set; }
+
+        public string Alias
+        {
+            get { return m_Alias; }
+            set
+            {
+                value = (value ?? String.Empty).Trim();
+                m_Alias = (value == String.Empty) ? null : value;
+            }
+        }
+    }
 }
 

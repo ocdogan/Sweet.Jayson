@@ -862,6 +862,7 @@ namespace Sweet.Jayson.Tests
 
     public class TypedContainerDto
     {
+        [JaysonMember("addr1")]
         public Uri Address1;
         public Uri Address2 { get; set; }
         [JaysonMemberOverrideAttribute("RoundMinute")]
@@ -870,6 +871,7 @@ namespace Sweet.Jayson.Tests
         [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date3 { get; set; }
         public TypedContainerEnum Enum1;
+        [JaysonMember("enm2")]
         public TypedContainerEnum Enum2;
         public TypedContainerEnum Enum3;
         public Guid Guid1;
@@ -889,6 +891,7 @@ namespace Sweet.Jayson.Tests
 
         [JaysonMemberOverrideAttribute("RoundDouble", "Sweet.Jayson.Tests.MemberOverrider")]
         public double Double1;
+        [JaysonMember("dbl2")]
         [JaysonMemberOverrideAttribute("RoundDouble", "Sweet.Jayson.Tests.MemberOverrider")]
         public double Double2 { get; set; }
 

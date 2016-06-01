@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="JaysonDeserializationReferenceMap.cs" />
+    <Compile Include="JaysonMemberAttribute.cs" />
     <Compile Include="JaysonOrderedDictionary.cs" />
     <Compile Include="JaysonSerializationReferenceMap.cs" />
     <Compile Include="JaysonTuple.cs" />

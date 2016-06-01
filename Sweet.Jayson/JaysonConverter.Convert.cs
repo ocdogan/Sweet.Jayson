@@ -1008,7 +1008,7 @@ namespace Sweet.Jayson
                     memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
                     if (!hasSkeyword || !(memberName == "$type" || memberName == "$id" || memberName == "$ref"))
                     {
-                        if (!members.TryGetValue(memberName, out member) && typeOverride != null)
+                        if (!members.TryGetValue(memberName, out member) && (typeOverride != null))
                         {
                             memberName = typeOverride.GetAliasMember(memberName);
                             if (!String.IsNullOrEmpty(memberName))
@@ -1023,7 +1023,7 @@ namespace Sweet.Jayson
 
                         if (member != null)
                         {
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
                             {
                                 if (member.CanWrite)
                                 {
