@@ -33,6 +33,9 @@ namespace Sweet.Jayson
         JaysonFastMemberType Type { get; }
         Type MemberType { get; }
 
+        string Name { get; }
+        object DefaultValue { get; }
+
         bool CanRead { get; }
         bool CanWrite { get; }
 

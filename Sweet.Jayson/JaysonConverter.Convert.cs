@@ -1003,6 +1003,12 @@ namespace Sweet.Jayson
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
                 bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
 
+                IDictionary<string, bool> existingValues = null;
+                if (settings.UseDefaultValues)
+                {
+                    existingValues = new Dictionary<string, bool>();
+                }
+
                 foreach (var entry in obj)
                 {
                     memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
@@ -1023,6 +1029,11 @@ namespace Sweet.Jayson
 
                         if (member != null)
                         {
+                            if (existingValues != null)
+                            {
+                                existingValues[member.Name] = true;
+                            }
+
                             if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
                             {
                                 if (member.CanWrite)
@@ -1042,6 +1053,40 @@ namespace Sweet.Jayson
                         else if (raiseErrorOnMissingMember)
                         {
                             throw new JaysonException(JaysonError.MissingMember + entry.Key);
+                        }
+                    }
+                }
+
+                if ((existingValues != null) && (existingValues.Count < members.Count))
+                {
+                    string key;
+                    object value;
+                    object defaultValue;
+
+                    foreach (var memberKvp in members)
+                    {
+                        if (memberKvp.Value.CanWrite)
+                        {
+                            key = memberKvp.Key;
+                            if (!existingValues.ContainsKey(key))
+                            {
+                                defaultValue = null;
+                                member = memberKvp.Value;
+
+                                if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                {
+                                    defaultValue = member.DefaultValue;
+                                }
+
+                                if (defaultValue != null)
+                                {
+                                    value = member.Get(instance);
+                                    if (!value.Equals(defaultValue))
+                                    {
+                                        member.Set(ref instance, defaultValue);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

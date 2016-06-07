@@ -32,80 +32,32 @@ namespace Sweet.Jayson
 {
     # region JaysonFastProperty
 
-    internal sealed class JaysonFastProperty : IJaysonFastMember
+    internal sealed class JaysonFastProperty : JaysonFastMember
     {
-        private delegate void ByRefAction(ref object instance, object value);
-
-        private bool m_Get;
-        private bool m_Set;
-        private bool m_Overriden;
-
-        private Type m_MemberType;
-        private PropertyInfo m_PropInfo;
-
-        private bool m_CanRead;
-        private bool m_CanWrite;
-#if (NET3500 || NET3000 || NET2000)
-        private bool m_IsValueType;
-#endif
-
-        private ByRefAction m_SetRefDelegate;
-        private Func<object, object> m_GetDelegate;
 #if (NET3500 || NET3000 || NET2000)
 		private Action<object, object> m_SetDelegate;
 #endif
 
-        public JaysonFastMemberType Type
-        {
-            get { return JaysonFastMemberType.Property; }
-        }
-
-        public Type MemberType
-        {
-            get { return m_MemberType; }
-        }
-
-        public bool CanRead
-        {
-            get { return m_CanRead; }
-        }
-
-        public bool CanWrite
-        {
-            get { return m_CanWrite; }
-        }
-
-        public bool Overriden
-        {
-            get { return m_Overriden; }
-        }
-
         public JaysonFastProperty(PropertyInfo pi, bool initGet = true, bool initSet = true)
+            : base(pi, initGet, initSet)
+        { }
+
+        protected override void Init(bool initGet, bool initSet)
         {
-            m_PropInfo = pi;
-            m_MemberType = m_PropInfo.PropertyType;
-#if (NET3500 || NET3000 || NET2000)
-            m_IsValueType = pi.DeclaringType.IsValueType;
-#endif
-
-            m_CanRead = m_PropInfo.CanRead;
-            m_CanWrite = m_PropInfo.CanWrite;
-
-            if (initGet)
-            {
-                m_Get = true;
-                InitializeGet(pi);
-            }
-
-            if (initSet)
-            {
-                m_Set = true;
-                InitializeSet(pi);
-            }
+            m_MemberType = ((PropertyInfo)m_MemberInfo).PropertyType;
+            base.Init(initGet, initSet);
         }
 
-        private void InitializeGet(PropertyInfo pi)
+        protected override void InitCanReadWrite()
         {
+            var pi = (PropertyInfo)m_MemberInfo;
+            m_CanRead = pi.CanRead;
+            m_CanWrite = pi.CanWrite;
+        }
+
+        protected override void InitializeGet()
+        {
+            var pi = (PropertyInfo)m_MemberInfo;
             MethodInfo getMethod = pi.GetGetMethod();
             if (getMethod != null)
             {
@@ -134,9 +86,11 @@ namespace Sweet.Jayson
             }
         }
 
-        private void InitializeSet(PropertyInfo pi)
+        protected override void InitializeSet()
         {
+            var pi = (PropertyInfo)m_MemberInfo;
             MethodInfo setMethod = pi.GetSetMethod();
+
             if (setMethod != null)
             {
                 Type declaringT = pi.DeclaringType;
@@ -144,7 +98,7 @@ namespace Sweet.Jayson
 #if (NET3500 || NET3000 || NET2000)
 				if (declaringT.IsValueType) {
 					m_SetRefDelegate = delegate(ref object instance, object value) {
-						m_PropInfo.SetValue (instance, value, null);
+						pi.SetValue (instance, value, null);
 					};
 				} else {
 					var instanceExp = Expression.Parameter (typeof(object), "instance");
@@ -191,34 +145,20 @@ namespace Sweet.Jayson
 
                 Expression blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
 
-                m_SetRefDelegate = Expression.Lambda<ByRefAction>(blockExp,
-                    new ParameterExpression[] { instanceExp, valueExp }).Compile();
+                var lmd = Expression.Lambda<ByRefAction>(blockExp, new ParameterExpression[] { instanceExp, valueExp });
+                m_SetRefDelegate = lmd.Compile();
 #endif
             }
         }
 
-        public object Get(object instance)
-        {
-            if (m_CanRead)
-            {
-                if (!m_Get)
-                {
-                    m_Get = true;
-                    InitializeGet(m_PropInfo);
-                }
-                return m_GetDelegate(instance);
-            }
-            return null;
-        }
-
-        public void Set(ref object instance, object value)
+        public override void Set(ref object instance, object value)
         {
             if (m_CanWrite)
             {
                 if (!m_Set)
                 {
                     m_Set = true;
-                    InitializeSet(m_PropInfo);
+                    InitializeSet();
                 }
 #if (NET3500 || NET3000 || NET2000)
                 if (m_IsValueType) {

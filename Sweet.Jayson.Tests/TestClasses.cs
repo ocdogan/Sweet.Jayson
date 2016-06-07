@@ -873,9 +873,11 @@ namespace Sweet.Jayson.Tests
         public TypedContainerEnum Enum1;
         [JaysonMember("enm2")]
         public TypedContainerEnum Enum2;
+        [JaysonMember(defaultValue: (TypedContainerEnum)5)]
         public TypedContainerEnum Enum3;
         public Guid Guid1;
         public Guid Guid2;
+        public Guid Guid3;
         public ReadOnlyCollection<object> P1 { get; set; }
         public ReadOnlyCollection<int?> P2 { get; set; }
         public byte[] ByteArray { get; set; }

@@ -53,6 +53,7 @@ namespace Sweet.Jayson
         public bool ConvertDecimalToDouble = false;
         public bool IgnoreAnonymousTypes = true;
         public bool RaiseErrorOnMissingMember = false;
+        public bool UseDefaultValues = false;
 
         public int MaxObjectDepth;
 
@@ -100,6 +101,7 @@ namespace Sweet.Jayson
             destination.MaxObjectDepth = MaxObjectDepth;
             destination.ObjectActivator = ObjectActivator;
             destination.RaiseErrorOnMissingMember = RaiseErrorOnMissingMember;
+            destination.UseDefaultValues = UseDefaultValues;
 
             AssignTypeOverridesTo(destination);
         }

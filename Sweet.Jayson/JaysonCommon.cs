@@ -1357,7 +1357,7 @@ namespace Sweet.Jayson
             if (memberInf != null)
             {
                 var oAttr = memberInf.GetCustomAttributes(typeof(JaysonMemberOverrideAttribute), true)
-                    .Cast < JaysonMemberOverrideAttribute>()
+                    .Cast<JaysonMemberOverrideAttribute>()
                     .Where((attr) => !String.IsNullOrEmpty(attr.OverridingMethod))
                     .FirstOrDefault();
 

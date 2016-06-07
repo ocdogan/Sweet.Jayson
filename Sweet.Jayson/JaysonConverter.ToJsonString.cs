@@ -1845,6 +1845,7 @@ namespace Sweet.Jayson
             string key;
             object value;
             object keyObj;
+
             bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
             Func<string, object, object> filter = context.Filter;
@@ -2113,6 +2114,7 @@ namespace Sweet.Jayson
         private static void WriteDictionaryObject(IDictionary obj, Type keyType, Type valueType, JaysonSerializationContext context)
         {
             var settings = context.Settings;
+            
             bool formatting = settings.Formatting;
 
             context.ObjectDepth++;
@@ -2233,7 +2235,7 @@ namespace Sweet.Jayson
 
                                         WriteKeyValueEntry(key: "$k", value: keyObj, expectedValueType: keyType, context: context,
                                             isFirst: true, forceNullValues: true);
-                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: valueType, context: context, 
+                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: valueType, context: context,
                                             isFirst: false, forceNullValues: true);
                                     }
                                     finally
@@ -2687,7 +2689,10 @@ namespace Sweet.Jayson
                         members = members.OrderBy(kvp => kvp.Key);
                     }
 
+                    object defaultValue;
+                    bool ignoreDefaultValues = settings.IgnoreDefaultValues;
                     bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
+
                     JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
                     foreach (var memberKvp in members)
@@ -2698,6 +2703,17 @@ namespace Sweet.Jayson
                             if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                             {
                                 value = memberKvp.Value.Get(obj);
+                                if (ignoreDefaultValues && (value != null))
+                                {
+                                    defaultValue = null;
+                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                    {
+                                        defaultValue = memberKvp.Value.DefaultValue;
+                                    }
+
+                                    if ((defaultValue != null) && value.Equals(defaultValue))
+                                        continue;
+                                }
 
                                 if ((value != null) && canFilter)
                                 {
@@ -3508,7 +3524,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                int count = obj.Count;
+                var count = obj.Count;
                 if (count > 0)
                 {
                     bool isFirst = true;

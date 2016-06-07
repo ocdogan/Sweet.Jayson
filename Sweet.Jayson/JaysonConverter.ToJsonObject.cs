@@ -408,8 +408,12 @@ namespace Sweet.Jayson
                 object value;
                 string aliasKey;
 
+                object defaultValue;
+
+                bool ignoreDefaultValues = settings.IgnoreDefaultValues;
                 bool ignoreNullValues = settings.IgnoreNullValues;
                 bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
+
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
                 Func<string, object, object> filter = context.Filter;
@@ -426,6 +430,18 @@ namespace Sweet.Jayson
 
                             if (value != null)
                             {
+                                if (ignoreDefaultValues)
+                                {
+                                    defaultValue = null;
+                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                    {
+                                        defaultValue = memberKvp.Value.DefaultValue;
+                                    }
+
+                                    if ((defaultValue != null) && value.Equals(defaultValue))
+                                        continue;
+                                }
+
                                 if (canFilter)
                                 {
                                     value = filter(key, value);

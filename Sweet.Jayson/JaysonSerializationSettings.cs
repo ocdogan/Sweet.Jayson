@@ -50,6 +50,7 @@ namespace Sweet.Jayson
         public bool Formatting = false;
         public bool GuidAsByteArray = false;
         public bool IgnoreAnonymousTypes = true;
+        public bool IgnoreDefaultValues = false;
 #if !(NET3500 || NET3000 || NET2000)
         public bool IgnoreDynamicObjects = false;
         public bool IgnoreExpandoObjects = false;
@@ -102,15 +103,16 @@ namespace Sweet.Jayson
             destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
             destination.DateTimeZoneType = DateTimeZoneType;
             destination.TimeSpanFormat = TimeSpanFormat;
+            destination.EscapeChars = EscapeChars;
+            destination.EscapeUnicodeChars = EscapeUnicodeChars;
+            destination.Formatting = Formatting;
+            destination.GuidAsByteArray = GuidAsByteArray;
             destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
 #if !(NET3500 || NET3000 || NET2000)
             destination.IgnoreDynamicObjects = IgnoreDynamicObjects;
             destination.IgnoreExpandoObjects = IgnoreExpandoObjects;
 #endif
-            destination.EscapeChars = EscapeChars;
-            destination.EscapeUnicodeChars = EscapeUnicodeChars;
-            destination.Formatting = Formatting;
-            destination.GuidAsByteArray = GuidAsByteArray;
+            destination.IgnoreDefaultValues = IgnoreDefaultValues;
             destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
             destination.IgnoreNullListItems = IgnoreNullListItems;
             destination.IgnoreNullValues = IgnoreNullValues;
@@ -122,6 +124,7 @@ namespace Sweet.Jayson
             destination.RaiseErrorOnMaxObjectDepth = RaiseErrorOnMaxObjectDepth;
             destination.UseEnumNames = UseEnumNames;
             destination.UseGlobalTypeNames = UseGlobalTypeNames;
+            destination.UseKVModelForISerializable = UseKVModelForISerializable;
             destination.UseKVModelForJsonObjects = UseKVModelForJsonObjects;
             destination.UseObjectReferencing = UseObjectReferencing;
             destination.TypeNameInfo = TypeNameInfo;

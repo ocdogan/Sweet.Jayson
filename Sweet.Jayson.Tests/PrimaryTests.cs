@@ -50,6 +50,69 @@ namespace Sweet.Jayson.Tests
     public class PrimaryTests
     {
         [Test]
+        public static void TestIgnoreAndUseDefaultValues1a()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.UseKVModelForISerializable = true;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreDefaultValues = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(!json.Contains("\"Enum3\":"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
+        public static void TestIgnoreAndUseDefaultValues1b()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            var defaultGuid = new Guid("{4B2AFF22-0CD6-472D-A830-258C57DE8AD3}");
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.UseKVModelForISerializable = true;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.IgnoreDefaultValues = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
+            jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
+            jaysonSerializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
+                .SetDefaultValue("Guid3", Guid.Empty));
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(!json.Contains("\"Enum3\":"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+            jaysonDeserializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
+                .SetDefaultValue("Guid3", defaultGuid));
+
+            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.AreEqual(dto2.Guid3, defaultGuid);
+
+            dto2.Guid3 = Guid.Empty;
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
         public static void TestISerializable1a()
         {
             var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;

@@ -176,6 +176,72 @@ namespace Sweet.Jayson
             return false;
         }
 
+        public static void SetDefaultValue(Type type, string memberName, object defaultValue)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        s_GlobalTypeOverrides[type] = overrider;
+                    }
+
+                    overrider.SetDefaultValue(memberName, defaultValue);
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
+                }
+            }
+        }
+
+        public static object GetDefaultValue(Type type, string memberName)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        return overrider.GetDefaultValue(memberName);
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return null;
+        }
+
+        public static bool TryGetDefaultValue(Type type, string memberName, out object defaultValue)
+        {
+            defaultValue = null;
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                    {
+                        return overrider.TryGetDefaultValue(memberName, out defaultValue);
+                    }
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                }
+            }
+            return false;
+        }
+
         # endregion Methods
     }
 
@@ -190,6 +256,7 @@ namespace Sweet.Jayson
         private Dictionary<string, bool> m_IgnoredMembers = new Dictionary<string, bool>();
         private Dictionary<string, string> m_AliasToMemberName = new Dictionary<string, string>();
         private Dictionary<string, string> m_MemberNameToAlias = new Dictionary<string, string>();
+        private Dictionary<string, object> m_MemberDefaultValues = new Dictionary<string, object>();
 
         # endregion Field Members
 
@@ -286,6 +353,53 @@ namespace Sweet.Jayson
             return result;
         }
 
+        public virtual JaysonTypeOverride SetDefaultValue(string memberName, object defaultValue)
+        {
+            if (defaultValue != null)
+            {
+                m_MemberDefaultValues[memberName] = defaultValue;
+                return this;
+            }
+            return RemoveDefaultValue(memberName);
+        }
+
+        public virtual JaysonTypeOverride RemoveDefaultValue(string memberName)
+        {
+            lock (m_SyncRoot)
+            {
+                object defaultValue;
+                if (m_MemberDefaultValues.TryGetValue(memberName, out defaultValue))
+                {
+                    m_MemberDefaultValues.Remove(memberName);
+                }
+            }
+            return this;
+        }
+
+        public virtual object GetDefaultValue(string memberName)
+        {
+            object result;
+            if (!m_MemberDefaultValues.TryGetValue(memberName, out result) && !IsGlobal)
+            {
+                return JaysonTypeOverrideGlobal.GetDefaultValue(m_Type, memberName);
+            }
+            return result;
+        }
+
+        public virtual bool TryGetDefaultValue(string memberName, out object defaultValue)
+        {
+            defaultValue = null;
+            if (!m_MemberDefaultValues.TryGetValue(memberName, out defaultValue))
+            {
+                if (!IsGlobal)
+                {
+                    return JaysonTypeOverrideGlobal.TryGetDefaultValue(m_Type, memberName, out defaultValue);
+                }
+                return false;
+            }
+            return true;
+        }
+
         public virtual object Clone()
         {
             JaysonTypeOverride result = new JaysonTypeOverride(m_Type, m_BindToType);
@@ -302,6 +416,11 @@ namespace Sweet.Jayson
             foreach (var aKvp in m_MemberNameToAlias)
             {
                 result.m_MemberNameToAlias.Add(aKvp.Key, aKvp.Value);
+            }
+
+            foreach (var iKvp in m_MemberDefaultValues)
+            {
+                result.m_MemberDefaultValues.Add(iKvp.Key, iKvp.Value);
             }
 
             return result;

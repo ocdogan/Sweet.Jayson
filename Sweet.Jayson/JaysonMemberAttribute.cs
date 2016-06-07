@@ -36,16 +36,20 @@ namespace Sweet.Jayson
 
         # endregion Field Members
 
-        public JaysonMemberAttribute(string alias = null)
+        public JaysonMemberAttribute(string alias = null, object defaultValue = null)
         {
             Alias = alias;
+            DefaultValue = defaultValue;
         }
         
-        public JaysonMemberAttribute(bool ignored, string alias = null)
+        public JaysonMemberAttribute(bool ignored, string alias = null, object defaultValue = null)
 		{
 			Alias = alias;
 			Ignored = ignored;
+            DefaultValue = defaultValue;
 		}
+
+        public object DefaultValue { get; set; }
 
         public bool Ignored { get; set; }
 
@@ -54,7 +58,7 @@ namespace Sweet.Jayson
             get { return m_Alias; }
             set
             {
-                value = (value ?? String.Empty).Trim();
+                value = (!String.IsNullOrEmpty(value) ? value.Trim() : null);
                 m_Alias = (value == String.Empty) ? null : value;
             }
         }
