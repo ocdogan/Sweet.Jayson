@@ -2741,7 +2741,7 @@ namespace Sweet.Jayson
                                         defaultValue = memberKvp.Value.DefaultValue;
                                     }
 
-                                    if ((defaultValue != null) && value.Equals(defaultValue))
+									if ((defaultValue != null) && defaultValue.Equals(value))
                                         continue;
                                 }
 

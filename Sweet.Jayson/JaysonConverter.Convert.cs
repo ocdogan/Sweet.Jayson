@@ -1081,7 +1081,7 @@ namespace Sweet.Jayson
                                 if (defaultValue != null)
                                 {
                                     value = member.Get(instance);
-                                    if (!value.Equals(defaultValue))
+									if (!defaultValue.Equals(value))
                                     {
                                         member.Set(ref instance, defaultValue);
                                     }
