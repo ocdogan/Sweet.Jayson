@@ -284,10 +284,6 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         private static Dictionary<string, object> AsDynamicObject(DynamicObject obj, Type objType, JaysonSerializationContext context)
         {
-            string key;
-            object value;
-            string aliasKey;
-
             JaysonSerializationSettings settings = context.Settings;
 
             bool ignoreNullValues = settings.IgnoreNullValues;
@@ -295,7 +291,7 @@ namespace Sweet.Jayson
 
             Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
-            if (context.Settings.UseObjectReferencing)
+            if (settings.UseObjectReferencing)
             {
                 result.Add("$id", context.ReferenceMap.GetObjectId(obj));
             }
@@ -303,10 +299,16 @@ namespace Sweet.Jayson
             Func<string, object, object> filter = context.Filter;
             bool canFilter = (filter != null);
 
+            string key;
+            object value;
+            string aliasKey;
+
+            bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
+
             var members = JaysonFastMemberCache.GetMembers(obj.GetType());
             if (members.Count > 0)
             {
-                bool ignoreReadOnlyMembers = context.Settings.IgnoreReadOnlyMembers;
+                bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
 
                 foreach (var memberKvp in members)
                 {
@@ -332,6 +334,15 @@ namespace Sweet.Jayson
 
                             if ((value != null) || !ignoreNullValues)
                             {
+                                if (ignoreEmptyCollections)
+                                {
+                                    var collection = value as ICollection;
+                                    if ((collection != null) && (collection.Count == 0))
+                                    {
+                                        continue;
+                                    }
+                                }
+
                                 if (typeOverride != null)
                                 {
                                     aliasKey = typeOverride.GetMemberAlias(key);
@@ -372,6 +383,15 @@ namespace Sweet.Jayson
 
                     if ((value != null) || !ignoreNullValues)
                     {
+                        if (ignoreEmptyCollections)
+                        {
+                            var collection = value as ICollection;
+                            if ((collection != null) && (collection.Count == 0))
+                            {
+                                continue;
+                            }
+                        }
+
                         if (typeOverride != null)
                         {
                             aliasKey = typeOverride.GetMemberAlias(key);
@@ -413,6 +433,7 @@ namespace Sweet.Jayson
                 bool ignoreDefaultValues = settings.IgnoreDefaultValues;
                 bool ignoreNullValues = settings.IgnoreNullValues;
                 bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
+                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
 
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
@@ -455,6 +476,15 @@ namespace Sweet.Jayson
 
                             if ((value != null) || !ignoreNullValues)
                             {
+                                if (ignoreEmptyCollections)
+                                {
+                                    var collection = value as ICollection;
+                                    if ((collection != null) && (collection.Count == 0))
+                                    {
+                                        continue;
+                                    }
+                                }
+
                                 if (typeOverride != null)
                                 {
                                     aliasKey = typeOverride.GetMemberAlias(key);
@@ -948,6 +978,8 @@ namespace Sweet.Jayson
                             Func<string, object, object> filter = context.Filter;
                             bool canFilter = (filter != null);
 
+                            bool ignoreEmptyCollections = context.Settings.IgnoreEmptyCollections;
+
                             while (enumerator.MoveNext())
                             {
                                 keyObj = keyFm.Get(enumerator.Current);
@@ -971,6 +1003,15 @@ namespace Sweet.Jayson
 
                                     if ((value != null) || !ignoreNullValues)
                                     {
+                                        if (ignoreEmptyCollections)
+                                        {
+                                            var collection = value as ICollection;
+                                            if ((collection != null) && (collection.Count == 0))
+                                            {
+                                                continue;
+                                            }
+                                        }
+
                                         result[key] = value;
                                     }
                                 }

@@ -717,6 +717,15 @@ namespace Sweet.Jayson
                 StringBuilder builder = context.Builder;
                 JaysonSerializationSettings settings = context.Settings;
 
+                if (settings.IgnoreEmptyCollections)
+                {
+                    var collection = value as ICollection;
+                    if ((collection != null) && (collection.Count == 0))
+                    {
+                        return isFirst;
+                    }
+                }
+
                 if (!isFirst)
                 {
                     builder.Append(',');
@@ -2561,6 +2570,8 @@ namespace Sweet.Jayson
 
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
+                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
+
                 var fastDict = JaysonFastMemberCache.GetMembers(objType);
                 if (fastDict.Count > 0)
                 {
@@ -2592,6 +2603,15 @@ namespace Sweet.Jayson
                                     if (!String.IsNullOrEmpty(aliasKey))
                                     {
                                         key = aliasKey;
+                                    }
+                                }
+
+                                if (ignoreEmptyCollections)
+                                {
+                                    var collection = value as ICollection;
+                                    if ((collection != null) && (collection.Count == 0))
+                                    {
+                                        continue;
                                     }
                                 }
 
@@ -2628,6 +2648,15 @@ namespace Sweet.Jayson
                             if (!String.IsNullOrEmpty(aliasKey))
                             {
                                 key = aliasKey;
+                            }
+                        }
+
+                        if (ignoreEmptyCollections)
+                        {
+                            var collection = value as ICollection;
+                            if ((collection != null) && (collection.Count == 0))
+                            {
+                                continue;
                             }
                         }
 
@@ -2692,6 +2721,7 @@ namespace Sweet.Jayson
                     object defaultValue;
                     bool ignoreDefaultValues = settings.IgnoreDefaultValues;
                     bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
+                    bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
 
                     JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
@@ -2726,6 +2756,15 @@ namespace Sweet.Jayson
                                     if (!String.IsNullOrEmpty(aliasKey))
                                     {
                                         key = aliasKey;
+                                    }
+                                }
+
+                                if (ignoreEmptyCollections)
+                                {
+                                    var collection = value as ICollection;
+                                    if ((collection != null) && (collection.Count == 0))
+                                    {
+                                        continue;
                                     }
                                 }
 
@@ -3680,6 +3719,8 @@ namespace Sweet.Jayson
                                 Func<string, object, object> filter = context.Filter;
                                 bool canFilter = (filter != null);
 
+                                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
+
                                 while (enumerator.MoveNext())
                                 {
                                     keyObj = keyFm.Get(enumerator.Current);
@@ -3691,6 +3732,15 @@ namespace Sweet.Jayson
                                         if ((value != null) && canFilter)
                                         {
                                             value = filter(key, value);
+                                        }
+
+                                        if (ignoreEmptyCollections)
+                                        {
+                                            var collection = value as ICollection;
+                                            if ((collection != null) && (collection.Count == 0))
+                                            {
+                                                continue;
+                                            }
                                         }
 
                                         context.CurrentType = valueFm.MemberType;

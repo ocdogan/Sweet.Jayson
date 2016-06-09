@@ -870,6 +870,7 @@ namespace Sweet.Jayson.Tests
         public DateTime Date2;
         [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date3 { get; set; }
+        public List<string> EmptyList1 = new List<string>();
         public TypedContainerEnum Enum1;
         [JaysonMember("enm2")]
         public TypedContainerEnum Enum2;

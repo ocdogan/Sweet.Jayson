@@ -55,6 +55,7 @@ namespace Sweet.Jayson
         public bool IgnoreDynamicObjects = false;
         public bool IgnoreExpandoObjects = false;
 #endif
+        public bool IgnoreEmptyCollections = false;
         public bool IgnorePrimitiveTypeNames = true;
         public bool IgnoreReadOnlyMembers = false;
         public bool IgnoreNullValues = true;
