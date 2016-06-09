@@ -871,6 +871,8 @@ namespace Sweet.Jayson.Tests
         [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date3 { get; set; }
         public List<string> EmptyList1 = new List<string>();
+        [DefaultValueOverride(typeof(EmptyCollectionComparer))]
+        public List<string> EmptyList2 = new List<string>();
         public TypedContainerEnum Enum1;
         [JaysonMember("enm2")]
         public TypedContainerEnum Enum2;
