@@ -1028,6 +1028,8 @@ namespace Sweet.Jayson
                     }
                 }
 
+                int builderLen = builder.Length;
+
                 context.ObjectDepth++;
                 try
                 {
@@ -1137,7 +1139,7 @@ namespace Sweet.Jayson
                             }
                             finally
                             {
-                                if (formatting)
+                                if (formatting && (colCount > 0))
                                 {
                                     builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
                                 }
@@ -1153,7 +1155,7 @@ namespace Sweet.Jayson
                 finally
                 {
                     context.ObjectDepth--;
-                    if (formatting)
+                    if (formatting && (builder.Length > builderLen))
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                     }
@@ -1201,6 +1203,8 @@ namespace Sweet.Jayson
                 builder.Append(":[");
             }
 
+            int builderLen = builder.Length;
+
             context.ObjectDepth++;
             try
             {
@@ -1237,7 +1241,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (formatting)
+                if (formatting && (builder.Length > builderLen))
                 {
                     builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                 }
@@ -1281,6 +1285,8 @@ namespace Sweet.Jayson
                         builder.Append(",\"Cols\":[");
                     }
                 }
+
+                int builderLen = builder.Length;
 
                 context.ObjectDepth++;
                 try
@@ -1423,7 +1429,7 @@ namespace Sweet.Jayson
                 finally
                 {
                     context.ObjectDepth--;
-                    if (formatting)
+                    if (formatting && (builder.Length > builderLen))
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                     }
@@ -1564,6 +1570,8 @@ namespace Sweet.Jayson
                 }
             }
 
+            int builderLen = builder.Length;
+
             context.ObjectDepth++;
             try
             {
@@ -1664,7 +1672,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (formatting)
+                if (formatting && (builder.Length > builderLen))
                 {
                     builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                 }
@@ -1715,6 +1723,8 @@ namespace Sweet.Jayson
                 }
             }
 
+            int builderLen = builder.Length;
+
             context.ObjectDepth++;
             try
             {
@@ -1740,7 +1750,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (formatting)
+                if (formatting && (builder.Length > builderLen))
                 {
                     builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                 }
@@ -2159,6 +2169,8 @@ namespace Sweet.Jayson
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                     }
 
+                    int builderLen = 0;
+
                     context.ObjectDepth++;
                     try
                     {
@@ -2170,6 +2182,8 @@ namespace Sweet.Jayson
                         {
                             builder.Append("\"$kv\":[");
                         }
+
+                        builderLen = builder.Length;
 
                         context.ObjectDepth++;
                         try
@@ -2267,7 +2281,7 @@ namespace Sweet.Jayson
                     finally
                     {
                         context.ObjectDepth--;
-                        if (formatting)
+                        if (formatting && (builder.Length > builderLen))
                         {
                             builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                         }
@@ -2905,7 +2919,8 @@ namespace Sweet.Jayson
                         builder.Append(',');
                     }
 
-                    if (settings.Formatting)
+                    var formatting = settings.Formatting;
+                    if (formatting)
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
 
@@ -2922,6 +2937,7 @@ namespace Sweet.Jayson
                         builder.Append("\"$ctx\":[");
                     }
 
+                    int builderLen = builder.Length;
                     try
                     {
                         string key;
@@ -2931,7 +2947,6 @@ namespace Sweet.Jayson
                         Func<string, object, object> filter = context.Filter;
                         bool canFilter = (filter != null);
 
-                        var formatting = settings.Formatting;
                         JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
 
                         var isFirstItem = true;
@@ -2994,7 +3009,7 @@ namespace Sweet.Jayson
                     finally
                     {
                         context.ObjectDepth -= 2;
-                        if (settings.Formatting)
+                        if (formatting && (builder.Length > builderLen))
                         {
                             builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                         }
@@ -3230,6 +3245,7 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool objectStarted = WriteListTypeAndId(obj, context);
 
+            int builderLen = 0;
             StringBuilder builder = context.Builder;
             bool formatting = settings.Formatting;
             try
@@ -3247,6 +3263,8 @@ namespace Sweet.Jayson
                 {
                     return;
                 }
+
+                builderLen = builder.Length;
 
                 int objectDepth = context.ObjectDepth;
                 JaysonFormatter formatter = context.Formatter;
@@ -3319,7 +3337,10 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    if (builder.Length > builderLen)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
                     builder.Append(']');
 
                     if (objectStarted)
@@ -3341,6 +3362,8 @@ namespace Sweet.Jayson
             int length = rankLengths[currRank];
             bool formatting = settings.Formatting;
 
+            int builderLen = 0;
+
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
             try
@@ -3354,6 +3377,8 @@ namespace Sweet.Jayson
                 {
                     return;
                 }
+
+                builderLen = builder.Length;
 
                 bool isFirstInner = true;
                 for (int i = 0; i < length; i++)
@@ -3387,7 +3412,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (currRank > 0)
                 {
-                    if (formatting && length > 0)
+                    if (formatting && (length > 0) && (builder.Length > builderLen))
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                     }
@@ -3405,6 +3430,8 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool objectStarted = WriteListTypeAndId(obj, context);
 
+            int builderLen = 0;
+
             bool isEmpty = true;
             StringBuilder builder = context.Builder;
             try
@@ -3419,6 +3446,8 @@ namespace Sweet.Jayson
                 {
                     return;
                 }
+
+                builderLen = builder.Length;
 
                 int rank = obj.Rank;
                 int[] rankLengths = new int[rank];
@@ -3438,7 +3467,7 @@ namespace Sweet.Jayson
             {
                 if (!objectStarted)
                 {
-                    if (settings.Formatting && !isEmpty)
+                    if (settings.Formatting && !isEmpty && (builder.Length > builderLen))
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                     }
@@ -3453,7 +3482,7 @@ namespace Sweet.Jayson
                     }
                     else
                     {
-                        if (!isEmpty)
+                        if (!isEmpty && (builder.Length > builderLen))
                         {
                             builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
                         }
@@ -3492,10 +3521,10 @@ namespace Sweet.Jayson
                 builder.Append(']');
                 if (objectStarted)
                 {
-                    if (context.Settings.Formatting)
+                    /* if (context.Settings.Formatting)
                     {
                         builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
-                    }
+                    } */
                     builder.Append('}');
                 }
             }
@@ -3546,6 +3575,8 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool objectStarted = WriteListTypeAndId(obj, context);
 
+            int builderLen = 0;
+
             StringBuilder builder = context.Builder;
             try
             {
@@ -3562,6 +3593,8 @@ namespace Sweet.Jayson
                 {
                     return;
                 }
+
+                builderLen = builder.Length;
 
                 var count = obj.Count;
                 if (count > 0)
@@ -3589,7 +3622,10 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    if (builder.Length > builderLen)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
                     builder.Append(']');
 
                     if (objectStarted)
@@ -3639,6 +3675,8 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool objectStarted = WriteListTypeAndId(obj, context);
 
+            int builderLen = 0;
+
             StringBuilder builder = context.Builder;
             try
             {
@@ -3655,6 +3693,8 @@ namespace Sweet.Jayson
                 {
                     return;
                 }
+
+                builderLen = builder.Length;
 
                 if (!isEmpty)
                 {
@@ -3782,7 +3822,10 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    if (builder.Length > builderLen)
+                    {
+                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    }
                     builder.Append(']');
 
                     if (objectStarted)
