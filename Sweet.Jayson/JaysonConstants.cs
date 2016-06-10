@@ -75,6 +75,9 @@ namespace Sweet.Jayson
         public static readonly object[] EmptyObjArray = new object[0];
 
         public static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
+
+        public static readonly Type DefaultArrayType = typeof(object[]);
+        public static readonly Type DefaultListType = typeof(List<object>);
         public static readonly Type DefaultDictionaryType = typeof(Dictionary<string, object>);
 
         public static readonly decimal LongMaxValueAsDecimal = Convert.ToDecimal(long.MaxValue);

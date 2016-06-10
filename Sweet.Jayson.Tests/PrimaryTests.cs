@@ -4322,7 +4322,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestIncludeTypeInfoAuto()
+        public static void TestIncludeTypeInfoAuto1a()
         {
             var dto1 = new SimpleObj
             {
@@ -4340,6 +4340,34 @@ namespace Sweet.Jayson.Tests
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
             Assert.AreEqual(json, @"{""$type"":""Sweet.Jayson.Tests.SimpleObj"",""Value2"":""World"",""Value1"":""Hello""}");
+        }
+
+
+        [Test]
+        public static void TestIncludeTypeInfoAuto1b()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+                {
+                    Formatting = false,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
+
+            string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            Assert.IsTrue(!json.Contains("System.Object[], mscorlib"));
+            Assert.IsTrue(!json.Contains("System.Collections.Generic.List`1[[System.Object[], mscorlib]], mscorlib"));
+            Assert.IsTrue(!json.Contains("System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[System.Object, mscorlib]], mscorlib"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
         }
 
         [Test]

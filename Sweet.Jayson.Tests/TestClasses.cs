@@ -871,6 +871,12 @@ namespace Sweet.Jayson.Tests
         public DateTime Date2;
         [JaysonMemberOverrideAttribute("RoundMinute")]
         public DateTime Date3 { get; set; }
+        public Dictionary<string, object> DefaultDictionary1;
+        public Dictionary<string, object> DefaultDictionary2 = new Dictionary<string, object>{{"a", 1}, {"b", 2}};
+        public List<object> DefaultList1;
+        public List<object> DefaultList2 = new List<object>{1, 2, 3, 4, 5};
+        public object[] DefaultArray1;
+        public object[] DefaultArray2 = new object[10];
         public List<string> EmptyList1 = new List<string>();
         [DefaultValueOverride(typeof(EmptyCollectionComparer))]
         public List<string> EmptyList2 = new List<string>();

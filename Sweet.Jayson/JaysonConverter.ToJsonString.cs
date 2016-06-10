@@ -394,7 +394,8 @@ namespace Sweet.Jayson
                             Type objType = obj.GetType();
 
                             if (objType != context.CurrentType &&
-                                objType != JaysonConstants.DefaultDictionaryType)
+                                objType != JaysonConstants.DefaultArrayType &&
+                                objType != JaysonConstants.DefaultListType)
                             {
                                 WriteListTypeNameAndId(obj, objType, context);
                                 return true;
@@ -460,7 +461,8 @@ namespace Sweet.Jayson
                     case JaysonTypeNameSerialization.Auto:
                         {
                             if (objType != context.CurrentType &&
-                                objType != JaysonConstants.DefaultDictionaryType)
+                                objType != JaysonConstants.DefaultArrayType &&
+                                objType != JaysonConstants.DefaultListType)
                             {
                                 WriteListTypeName(objType, context);
                                 return true;
