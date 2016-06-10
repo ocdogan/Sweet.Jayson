@@ -4357,7 +4357,7 @@ namespace Sweet.Jayson.Tests
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.IsTrue(!json.Contains("System.Object[], mscorlib"));
+            Assert.IsTrue(json.Contains("System.Object[], mscorlib"));
             Assert.IsTrue(!json.Contains("System.Collections.Generic.List`1[[System.Object[], mscorlib]], mscorlib"));
             Assert.IsTrue(!json.Contains("System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[System.Object, mscorlib]], mscorlib"));
 
