@@ -46,15 +46,31 @@ namespace Sweet.Jayson
 
         # region Write Type Name
 
+        private static void WriteIndent(JaysonSerializationContext context)
+        {
+            context.Builder.Append(context.Settings.FormatIndentationWithTab ?
+                JaysonConstants.IndentationTabbed[context.ObjectDepth] :
+                JaysonConstants.Indentation[context.ObjectDepth]);
+        }
+
+        private static void WriteIndent(JaysonSerializationContext context, int indentBy)
+        {
+            context.Builder.Append(context.Settings.FormatIndentationWithTab ?
+                JaysonConstants.IndentationTabbed[indentBy] :
+                JaysonConstants.Indentation[indentBy]);
+        }
+
         private static void WriteObjectTypeName(Type objType, JaysonSerializationContext context)
         {
+            var settings = context.Settings;
+
             StringBuilder builder = context.Builder;
-            if (context.Settings.Formatting)
+            if (settings.Formatting)
             {
                 builder.Append('{');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
 
-                if (context.Settings.UseGlobalTypeNames)
+                if (settings.UseGlobalTypeNames)
                 {
                     builder.Append("\"$type\": ");
                     builder.Append(context.GlobalTypes.Register(objType));
@@ -62,13 +78,13 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("\"$type\": \"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append('"');
                 }
             }
             else
             {
-                if (context.Settings.UseGlobalTypeNames)
+                if (settings.UseGlobalTypeNames)
                 {
                     builder.Append("{\"$type\":");
                     builder.Append(context.GlobalTypes.Register(objType));
@@ -76,7 +92,7 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("{\"$type\":\"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append('"');
                 }
             }
@@ -88,7 +104,7 @@ namespace Sweet.Jayson
             if (context.Settings.Formatting)
             {
                 builder.Append('{');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
 
                 if (context.Settings.UseGlobalTypeNames)
                 {
@@ -103,7 +119,7 @@ namespace Sweet.Jayson
                 }
 
                 builder.Append(',');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 builder.Append("\"$values\": [");
             }
             else
@@ -130,7 +146,7 @@ namespace Sweet.Jayson
             if (context.Settings.Formatting)
             {
                 builder.Append('{');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
 
                 if (context.Settings.UseGlobalTypeNames)
                 {
@@ -147,14 +163,14 @@ namespace Sweet.Jayson
                 if (context.Settings.UseObjectReferencing)
                 {
                     builder.Append(',');
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
 
                     builder.Append("\"$id\": ");
                     JaysonFormatter.Format(context.ReferenceMap.GetObjectId(obj), builder);
                 }
 
                 builder.Append(',');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 builder.Append("\"$values\": [");
             }
             else
@@ -195,7 +211,7 @@ namespace Sweet.Jayson
                 if (context.Settings.Formatting)
                 {
                     builder.Append('{');
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
 
                     if (context.Settings.UseGlobalTypeNames)
                     {
@@ -210,7 +226,7 @@ namespace Sweet.Jayson
                     }
 
                     builder.Append(',');
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                     builder.Append("\"$value\": ");
                 }
                 else
@@ -545,11 +561,11 @@ namespace Sweet.Jayson
             if (context.Settings.Formatting)
             {
                 builder.Append('{');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth + 1]);
+                WriteIndent(context, context.ObjectDepth + 1);
 
                 builder.Append("\"$ref\": ");
                 JaysonFormatter.Format(id, builder);
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 builder.Append('}');
             }
             else
@@ -566,13 +582,13 @@ namespace Sweet.Jayson
             if (context.Settings.Formatting)
             {
                 builder.Append('{');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
 
                 builder.Append("\"$id\": ");
                 JaysonFormatter.Format(id, builder);
 
                 builder.Append(',');
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 builder.Append("\"$values\": [");
             }
             else
@@ -598,7 +614,7 @@ namespace Sweet.Jayson
                         builder.Append(',');
                     }
 
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                     builder.Append(referenced ? "\"$ref\": " : "\"$id\": ");
                 }
                 else
@@ -661,7 +677,7 @@ namespace Sweet.Jayson
             }
             if (settings.Formatting)
             {
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
             }
 
             builder.Append('"');
@@ -734,7 +750,7 @@ namespace Sweet.Jayson
                 }
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
 
                 builder.Append('"');
@@ -787,7 +803,7 @@ namespace Sweet.Jayson
                         {
                             if (context.Settings.Formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                             }
                             builder.Append('}');
                         }
@@ -809,7 +825,7 @@ namespace Sweet.Jayson
                 }
                 if (context.Settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
 
                 builder.Append('"');
@@ -843,7 +859,7 @@ namespace Sweet.Jayson
                 }
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
 
                 builder.Append('"');
@@ -905,7 +921,7 @@ namespace Sweet.Jayson
                         {
                             if (context.Settings.Formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                             }
                             builder.Append('}');
                         }
@@ -927,7 +943,7 @@ namespace Sweet.Jayson
                 }
                 if (context.Settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
 
                 builder.Append('"');
@@ -969,7 +985,7 @@ namespace Sweet.Jayson
                     }
                     if (context.Settings.Formatting)
                     {
-                        context.Builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
 
                     WriteJsonObject(value, valueType, null, context);
@@ -984,7 +1000,7 @@ namespace Sweet.Jayson
                 }
                 if (context.Settings.Formatting)
                 {
-                    context.Builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
 
                 context.Builder.Append(JaysonConstants.Null);
@@ -1008,7 +1024,7 @@ namespace Sweet.Jayson
                 if (formatting)
                 {
                     builder.Append(',');
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                     if (!settings.CaseSensitive)
                     {
                         builder.Append("\"rows\": [");
@@ -1075,7 +1091,7 @@ namespace Sweet.Jayson
                             }
                             if (formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                WriteIndent(context, context.ObjectDepth - 1);
                             }
                             builder.Append('[');
 
@@ -1090,7 +1106,7 @@ namespace Sweet.Jayson
                                     }
                                     if (formatting)
                                     {
-                                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                        WriteIndent(context);
                                     }
 
                                     columnInfo = columnsInfo[j];
@@ -1143,7 +1159,7 @@ namespace Sweet.Jayson
                             {
                                 if (formatting && (colCount > 0))
                                 {
-                                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                    WriteIndent(context, context.ObjectDepth - 1);
                                 }
                                 builder.Append(']');
                             }
@@ -1159,7 +1175,7 @@ namespace Sweet.Jayson
                     context.ObjectDepth--;
                     if (formatting && (builder.Length > builderLen))
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
                 }
@@ -1186,7 +1202,7 @@ namespace Sweet.Jayson
             }
             if (formatting)
             {
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
             }
             if (!settings.CaseSensitive)
             {
@@ -1226,7 +1242,7 @@ namespace Sweet.Jayson
                     }
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
 
                     column = columns[i];
@@ -1245,7 +1261,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (formatting && (builder.Length > builderLen))
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append(']');
             }
@@ -1266,7 +1282,7 @@ namespace Sweet.Jayson
                 if (formatting)
                 {
                     builder.Append(',');
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                     if (!settings.CaseSensitive)
                     {
                         builder.Append("\"cols\": [");
@@ -1316,7 +1332,7 @@ namespace Sweet.Jayson
                         }
                         if (formatting)
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
                         builder.Append('{');
 
@@ -1422,7 +1438,7 @@ namespace Sweet.Jayson
                             context.ObjectDepth--;
                             if (formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                             }
                             builder.Append('}');
                         }
@@ -1433,7 +1449,7 @@ namespace Sweet.Jayson
                     context.ObjectDepth--;
                     if (formatting && (builder.Length > builderLen))
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
                 }
@@ -1524,7 +1540,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -1550,7 +1566,7 @@ namespace Sweet.Jayson
             }
             if (formatting)
             {
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 if (!settings.CaseSensitive)
                 {
                     builder.Append("\"rel\": [");
@@ -1600,7 +1616,7 @@ namespace Sweet.Jayson
                         }
                         if (formatting)
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                            WriteIndent(context, context.ObjectDepth - 1);
                         }
                         builder.Append('{');
 
@@ -1660,7 +1676,7 @@ namespace Sweet.Jayson
                         {
                             if (formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                WriteIndent(context, context.ObjectDepth - 1);
                             }
                             builder.Append('}');
                         }
@@ -1676,7 +1692,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (formatting && (builder.Length > builderLen))
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append(']');
             }
@@ -1703,7 +1719,7 @@ namespace Sweet.Jayson
             }
             if (formatting)
             {
-                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                WriteIndent(context);
                 if (!settings.CaseSensitive)
                 {
                     builder.Append("\"tab\": [");
@@ -1743,7 +1759,7 @@ namespace Sweet.Jayson
                     }
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
 
                     WriteDataTable(tables[i], context);
@@ -1754,7 +1770,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (formatting && (builder.Length > builderLen))
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append(']');
             }
@@ -1852,7 +1868,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -1925,7 +1941,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -1971,7 +1987,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2011,7 +2027,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2068,7 +2084,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2126,7 +2142,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2168,7 +2184,7 @@ namespace Sweet.Jayson
                     }
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
 
                     int builderLen = 0;
@@ -2202,7 +2218,7 @@ namespace Sweet.Jayson
                                     }
                                     if (formatting)
                                     {
-                                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                        WriteIndent(context, context.ObjectDepth - 1);
                                     }
 
                                     try
@@ -2219,7 +2235,7 @@ namespace Sweet.Jayson
                                         isFirstItem = false;
                                         if (formatting)
                                         {
-                                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                            WriteIndent(context, context.ObjectDepth - 1);
                                         }
                                         builder.Append('}');
                                     }
@@ -2251,7 +2267,7 @@ namespace Sweet.Jayson
                                     }
                                     if (formatting)
                                     {
-                                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                        WriteIndent(context, context.ObjectDepth - 1);
                                     }
 
                                     try
@@ -2268,7 +2284,7 @@ namespace Sweet.Jayson
                                         isFirstItem = false;
                                         if (formatting)
                                         {
-                                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                            WriteIndent(context, context.ObjectDepth - 1);
                                         }
                                         builder.Append('}');
                                     }
@@ -2285,7 +2301,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (formatting && (builder.Length > builderLen))
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
                         builder.Append(']');
                     }
@@ -2296,7 +2312,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2374,7 +2390,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2476,7 +2492,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2542,7 +2558,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2685,7 +2701,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2798,7 +2814,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2881,7 +2897,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -2926,7 +2942,7 @@ namespace Sweet.Jayson
                     var formatting = settings.Formatting;
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
 
                         context.ObjectDepth += 2;
                         if (!ValidObjectDepth(context.ObjectDepth, settings.MaxObjectDepth, settings.RaiseErrorOnMaxObjectDepth))
@@ -2986,7 +3002,7 @@ namespace Sweet.Jayson
                                 }
                                 if (formatting)
                                 {
-                                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                    WriteIndent(context, context.ObjectDepth - 1);
                                 }
 
                                 try
@@ -3003,7 +3019,7 @@ namespace Sweet.Jayson
                                     isFirstItem = false;
                                     if (formatting)
                                     {
-                                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth - 1]);
+                                        WriteIndent(context, context.ObjectDepth - 1);
                                     }
                                     builder.Append('}');
                                 }
@@ -3015,7 +3031,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth -= 2;
                         if (formatting && (builder.Length > builderLen))
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
                         builder.Append(']');
                     }
@@ -3026,7 +3042,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -3113,7 +3129,7 @@ namespace Sweet.Jayson
                 context.ObjectDepth--;
                 if (context.Settings.Formatting)
                 {
-                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                    WriteIndent(context);
                 }
                 builder.Append('}');
             }
@@ -3151,7 +3167,7 @@ namespace Sweet.Jayson
                     context.ObjectDepth--;
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append('}');
                 }
@@ -3228,14 +3244,14 @@ namespace Sweet.Jayson
                 {
                     if (length > 0)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
 
                     if (objectStarted)
                     {
                         context.ObjectDepth--;
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                         builder.Append('}');
                     }
                 }
@@ -3343,14 +3359,14 @@ namespace Sweet.Jayson
                 {
                     if (builder.Length > builderLen)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
 
                     if (objectStarted)
                     {
                         context.ObjectDepth--;
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                         builder.Append('}');
                     }
                 }
@@ -3402,7 +3418,7 @@ namespace Sweet.Jayson
 
                         if (formatting)
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
 
                         WriteMultiDimensionalArray(obj, objType, isRoot, rankLengths, rankIndices,
@@ -3418,7 +3434,7 @@ namespace Sweet.Jayson
                 {
                     if (formatting && (length > 0) && (builder.Length > builderLen))
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
                 }
@@ -3473,7 +3489,7 @@ namespace Sweet.Jayson
                 {
                     if (settings.Formatting && !isEmpty && (builder.Length > builderLen))
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
                 }
@@ -3488,12 +3504,12 @@ namespace Sweet.Jayson
                     {
                         if (!isEmpty && (builder.Length > builderLen))
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
                         builder.Append(']');
 
                         context.ObjectDepth--;
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append('}');
                 }
@@ -3527,7 +3543,7 @@ namespace Sweet.Jayson
                 {
                     /* if (context.Settings.Formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     } */
                     builder.Append('}');
                 }
@@ -3628,14 +3644,14 @@ namespace Sweet.Jayson
                 {
                     if (builder.Length > builderLen)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
 
                     if (objectStarted)
                     {
                         context.ObjectDepth--;
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                         builder.Append('}');
                     }
                 }
@@ -3828,14 +3844,14 @@ namespace Sweet.Jayson
                 {
                     if (builder.Length > builderLen)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append(']');
 
                     if (objectStarted)
                     {
                         context.ObjectDepth--;
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                         builder.Append('}');
                     }
                 }
@@ -3935,7 +3951,7 @@ namespace Sweet.Jayson
                         {
                             if (context.Settings.Formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                             }
                             builder.Append('}');
                         }
@@ -4177,7 +4193,7 @@ namespace Sweet.Jayson
                         {
                             builder.Append(',');
                         }
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                         builder.Append("\"$types\": {");
                     }
                     else
@@ -4212,7 +4228,7 @@ namespace Sweet.Jayson
                                     {
                                         builder.Append(',');
                                     }
-                                    builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                    WriteIndent(context);
                                     builder.Append('"');
                                     builder.Append(kvp.Key.ToString(JaysonConstants.InvariantCulture));
                                     builder.Append("\": ");
@@ -4246,7 +4262,7 @@ namespace Sweet.Jayson
                 {
                     if (formatting)
                     {
-                        builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                        WriteIndent(context);
                     }
                     builder.Append('}');
                     context.ObjectDepth--;
@@ -4315,7 +4331,7 @@ namespace Sweet.Jayson
                             if (settings.Formatting)
                             {
                                 builder.Append('{');
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                                 builder.Append("\"$value\": ");
                             }
                             else
@@ -4343,7 +4359,7 @@ namespace Sweet.Jayson
 
                             if (settings.Formatting)
                             {
-                                builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                                WriteIndent(context);
                             }
                             builder.Append('}');
                         }
@@ -4377,7 +4393,7 @@ namespace Sweet.Jayson
                         if (settings.Formatting)
                         {
                             builder.Append('{');
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                             builder.Append("\"$value\": ");
                         }
                         else
@@ -4396,7 +4412,7 @@ namespace Sweet.Jayson
 
                         if (settings.Formatting)
                         {
-                            builder.Append(JaysonConstants.Indentation[context.ObjectDepth]);
+                            WriteIndent(context);
                         }
                         builder.Append('}');
                     }

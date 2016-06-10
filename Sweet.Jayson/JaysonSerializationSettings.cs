@@ -48,6 +48,7 @@ namespace Sweet.Jayson
         public bool EscapeChars = true;
         public bool EscapeUnicodeChars = false;
         public bool Formatting = false;
+        public bool FormatIndentationWithTab = true;
         public bool GuidAsByteArray = false;
         public bool IgnoreAnonymousTypes = true;
         public bool IgnoreDefaultValues = false;

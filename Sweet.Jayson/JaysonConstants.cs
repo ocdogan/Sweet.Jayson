@@ -88,6 +88,7 @@ namespace Sweet.Jayson
 
         public static readonly char[] NewLine = Environment.NewLine.ToCharArray();
         public static readonly string[] Indentation = new string[61];
+        public static readonly string[] IndentationTabbed = new string[61];
 
         public static readonly TimeZone CurrentTimeZone = TimeZone.CurrentTimeZone;
 
@@ -175,9 +176,12 @@ namespace Sweet.Jayson
             string newLine = Environment.NewLine;
 
             Indentation[0] = newLine;
+            IndentationTabbed[0] = newLine;
+
             for (int i = 1; i < Indentation.Length; i++)
             {
                 Indentation[i] = newLine.PadRight(newLine.Length + (4 * i), ' ');
+                IndentationTabbed[i] = newLine.PadRight(newLine.Length + i, '\t');
             }
         }
     }
