@@ -449,20 +449,21 @@ namespace Sweet.Jayson
                         {
                             value = memberKvp.Value.Get(obj);
 
-                            if (value != null)
+                            if (ignoreDefaultValues)
                             {
-                                if (ignoreDefaultValues)
+                                defaultValue = null;
+                                if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || 
+                                    ReferenceEquals(defaultValue, null))
                                 {
-                                    defaultValue = null;
-                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
-                                    {
-                                        defaultValue = memberKvp.Value.DefaultValue;
-                                    }
-
-									if ((defaultValue != null) && defaultValue.Equals(value))
-                                        continue;
+                                    defaultValue = memberKvp.Value.DefaultValue;
                                 }
 
+                                if (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value))
+                                    continue;
+                            }
+
+                            if (value != null)
+                            {
                                 if (canFilter)
                                 {
                                     value = filter(key, value);

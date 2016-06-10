@@ -2747,15 +2747,17 @@ namespace Sweet.Jayson
                             if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                             {
                                 value = memberKvp.Value.Get(obj);
-                                if (ignoreDefaultValues && (value != null))
+
+                                if (ignoreDefaultValues)
                                 {
                                     defaultValue = null;
-                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || 
+                                        ReferenceEquals(defaultValue, null))
                                     {
                                         defaultValue = memberKvp.Value.DefaultValue;
                                     }
 
-									if ((defaultValue != null) && defaultValue.Equals(value))
+                                    if (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value))
                                         continue;
                                 }
 

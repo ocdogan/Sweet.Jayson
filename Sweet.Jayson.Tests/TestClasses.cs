@@ -26,6 +26,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 #if !(NET3500 || NET3000 || NET2000)
 using System.Dynamic;
@@ -884,6 +885,9 @@ namespace Sweet.Jayson.Tests
         public ReadOnlyCollection<object> P1 { get; set; }
         public ReadOnlyCollection<int?> P2 { get; set; }
         public byte[] ByteArray { get; set; }
+        [DefaultValue(null)]
+        public string Null1;
+        public string Null2;
         public object ObjectProperty { get; set; }
 #if !(NET3500 || NET3000 || NET2000)
         public dynamic DynamicProperty { get; set; }

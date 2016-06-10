@@ -122,9 +122,8 @@ namespace Sweet.Jayson
 
         protected virtual void SetDefaultValue()
         {
-            var mAttr = m_MemberInfo.GetCustomAttributes(typeof(JaysonMemberAttribute), true)
-                .Cast<JaysonMemberAttribute>()
-                .Where((attr) => attr.DefaultValue != null)
+            var mAttr = m_MemberInfo.GetCustomAttributes<JaysonMemberAttribute>(true)
+                .Where((attr) => !ReferenceEquals(attr.DefaultValue, null))
                 .FirstOrDefault();
 
             if (mAttr != null)
@@ -133,14 +132,12 @@ namespace Sweet.Jayson
             }
             else
             {
-                var dAttr = m_MemberInfo.GetCustomAttributes(typeof(DefaultValueAttribute), true)
-                    .Cast<DefaultValueAttribute>()
-                    .Where((attr) => attr.Value != null)
+                var dAttr = m_MemberInfo.GetCustomAttributes<DefaultValueAttribute>(true)
                     .FirstOrDefault();
 
                 if (dAttr != null)
                 {
-                    m_DefaultValue = dAttr.Value;
+                    m_DefaultValue = ReferenceEquals(dAttr.Value, null) ? JaysonNull.Value : dAttr.Value;
                 }
             }
         }

@@ -122,6 +122,8 @@ namespace Sweet.Jayson.Tests
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             Assert.True(!json.Contains("\"Enum3\":"));
+            Assert.True(!json.Contains("\"Null1\":"));
+            Assert.True(json.Contains("\"Null2\":"));
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
@@ -149,10 +151,13 @@ namespace Sweet.Jayson.Tests
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
             jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffff%K";
             jaysonSerializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
-                .SetDefaultValue("Guid3", Guid.Empty));
+                .SetDefaultValue("Guid3", Guid.Empty)
+                .SetDefaultValue("Null2", JaysonNull.Value));
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             Assert.True(!json.Contains("\"Enum3\":"));
+            Assert.True(!json.Contains("\"Null1\":"));
+            Assert.True(!json.Contains("\"Null2\":"));
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
