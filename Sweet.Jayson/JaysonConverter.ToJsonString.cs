@@ -684,10 +684,7 @@ namespace Sweet.Jayson
             {
                 builder.Append(',');
             }
-            if (settings.Formatting != JaysonFormatting.None)
-            {
-                WriteIndent(context);
-            }
+            WriteIndent(context);
 
             builder.Append('"');
             builder.Append(settings.CaseSensitive ? key : JaysonCommon.AsciiToLower(key));
@@ -757,10 +754,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
 
                 builder.Append('"');
                 builder.Append(settings.CaseSensitive ? propertyName : JaysonCommon.AsciiToLower(propertyName));
@@ -810,10 +804,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting != JaysonFormatting.None)
-                            {
-                                WriteIndent(context);
-                            }
+                            WriteIndent(context);
                             builder.Append('}');
                         }
                     }
@@ -832,10 +823,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (context.Settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
 
                 builder.Append('"');
                 builder.Append(settings.CaseSensitive ? propertyName : JaysonCommon.AsciiToLower(propertyName));
@@ -866,10 +854,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
 
                 builder.Append('"');
 
@@ -928,10 +913,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting != JaysonFormatting.None)
-                            {
-                                WriteIndent(context);
-                            }
+                            WriteIndent(context);
                             builder.Append('}');
                         }
                     }
@@ -950,10 +932,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (context.Settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
 
                 builder.Append('"');
 
@@ -992,10 +971,7 @@ namespace Sweet.Jayson
                     {
                         context.Builder.Append(',');
                     }
-                    if (context.Settings.Formatting != JaysonFormatting.None)
-                    {
-                        WriteIndent(context);
-                    }
+                    WriteIndent(context);
 
                     WriteJsonObject(value, valueType, null, context);
                     return false; // isFirst
@@ -1007,10 +983,7 @@ namespace Sweet.Jayson
                 {
                     context.Builder.Append(',');
                 }
-                if (context.Settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
 
                 context.Builder.Append(JaysonConstants.Null);
                 return false; // isFirst
@@ -1547,10 +1520,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -1948,10 +1918,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -1994,10 +1961,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2034,10 +1998,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2091,10 +2052,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2149,10 +2107,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2397,10 +2352,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2499,10 +2451,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2565,10 +2514,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2708,10 +2654,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2821,10 +2764,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -2904,10 +2844,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -3049,10 +2986,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting != JaysonFormatting.None)
-                {
-                    WriteIndent(context);
-                }
+                WriteIndent(context);
                 builder.Append('}');
             }
         }
@@ -4355,10 +4289,7 @@ namespace Sweet.Jayson
                         formatter.Format(obj, objType, builder);
 
                         context.ObjectDepth--;
-                        if (settings.Formatting != JaysonFormatting.None)
-                        {
-                            builder.Append(JaysonConstants.Indentation[0]);
-                        }
+                        WriteIndent(context);
                         builder.Append('}');
 
                         if (settings.UseGlobalTypeNames)
@@ -4367,10 +4298,7 @@ namespace Sweet.Jayson
 
                             WriteGlobalTypes(context, false);
 
-                            if (settings.Formatting != JaysonFormatting.None)
-                            {
-                                WriteIndent(context);
-                            }
+                            WriteIndent(context);
                             builder.Append('}');
                         }
                     }
@@ -4420,10 +4348,7 @@ namespace Sweet.Jayson
 
                         WriteGlobalTypes(context, false);
 
-                        if (settings.Formatting != JaysonFormatting.None)
-                        {
-                            WriteIndent(context);
-                        }
+                        WriteIndent(context);
                         builder.Append('}');
                     }
                 }
