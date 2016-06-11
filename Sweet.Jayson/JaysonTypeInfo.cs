@@ -690,7 +690,7 @@ namespace Sweet.Jayson
             return info.SerializationType;
         }
 
-        public static TypeCode GetTypeTode(Type type)
+        public static TypeCode GetTypeCode(Type type)
         {
             JaysonTypeInfo info;
             if (!s_InfoCache.TryGetValue(type, out info))
