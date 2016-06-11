@@ -48,16 +48,22 @@ namespace Sweet.Jayson
 
         private static void WriteIndent(JaysonSerializationContext context)
         {
-            context.Builder.Append(context.Settings.FormatIndentationWithTab ?
-                JaysonConstants.IndentationTabbed[context.ObjectDepth] :
-                JaysonConstants.Indentation[context.ObjectDepth]);
+            if (context.Settings.Formatting != JaysonFormatting.None)
+            {
+                context.Builder.Append(context.Settings.Formatting == JaysonFormatting.Tab ?
+                    JaysonConstants.IndentationTabbed[context.ObjectDepth] :
+                    JaysonConstants.Indentation[context.ObjectDepth]);
+            }
         }
 
         private static void WriteIndent(JaysonSerializationContext context, int indentBy)
         {
-            context.Builder.Append(context.Settings.FormatIndentationWithTab ?
-                JaysonConstants.IndentationTabbed[indentBy] :
-                JaysonConstants.Indentation[indentBy]);
+            if (context.Settings.Formatting != JaysonFormatting.None)
+            {
+                context.Builder.Append(context.Settings.Formatting == JaysonFormatting.Tab ?
+                    JaysonConstants.IndentationTabbed[indentBy] :
+                    JaysonConstants.Indentation[indentBy]);
+            }
         }
 
         private static void WriteObjectTypeName(Type objType, JaysonSerializationContext context)
@@ -65,7 +71,7 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             StringBuilder builder = context.Builder;
-            if (settings.Formatting)
+            if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
                 WriteIndent(context);
@@ -100,13 +106,15 @@ namespace Sweet.Jayson
 
         private static void WriteListTypeName(Type objType, JaysonSerializationContext context)
         {
+            var settings = context.Settings;
+
             StringBuilder builder = context.Builder;
-            if (context.Settings.Formatting)
+            if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
                 WriteIndent(context);
 
-                if (context.Settings.UseGlobalTypeNames)
+                if (settings.UseGlobalTypeNames)
                 {
                     builder.Append("\"$type\": ");
                     builder.Append(context.GlobalTypes.Register(objType));
@@ -114,7 +122,7 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("\"$type\": \"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append('"');
                 }
 
@@ -124,7 +132,7 @@ namespace Sweet.Jayson
             }
             else
             {
-                if (context.Settings.UseGlobalTypeNames)
+                if (settings.UseGlobalTypeNames)
                 {
                     builder.Append("{\"$type\":");
                     builder.Append(context.GlobalTypes.Register(objType));
@@ -133,7 +141,7 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("{\"$type\":\"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append("\",\"$values\":[");
                 }
             }
@@ -141,14 +149,15 @@ namespace Sweet.Jayson
 
         private static void WriteListTypeNameAndId(object obj, Type objType, JaysonSerializationContext context)
         {
-            StringBuilder builder = context.Builder;
+            var settings = context.Settings;
 
-            if (context.Settings.Formatting)
+            StringBuilder builder = context.Builder;
+            if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
                 WriteIndent(context);
 
-                if (context.Settings.UseGlobalTypeNames)
+                if (settings.UseGlobalTypeNames)
                 {
                     builder.Append("\"$type\": ");
                     builder.Append(context.GlobalTypes.Register(objType));
@@ -156,7 +165,7 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("\"$type\": \"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append('"');
                 }
 
@@ -183,7 +192,7 @@ namespace Sweet.Jayson
                 else
                 {
                     builder.Append("{\"$type\":\"");
-                    builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                    builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                     builder.Append('"');
                 }
 
@@ -207,13 +216,15 @@ namespace Sweet.Jayson
                     return false;
                 }
 
+                var settings = context.Settings;
+
                 StringBuilder builder = context.Builder;
-                if (context.Settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append('{');
                     WriteIndent(context);
 
-                    if (context.Settings.UseGlobalTypeNames)
+                    if (settings.UseGlobalTypeNames)
                     {
                         builder.Append("\"$type\": ");
                         builder.Append(context.GlobalTypes.Register(objType));
@@ -221,7 +232,7 @@ namespace Sweet.Jayson
                     else
                     {
                         builder.Append("\"$type\": \"");
-                        builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                        builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                         builder.Append('"');
                     }
 
@@ -231,7 +242,7 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    if (context.Settings.UseGlobalTypeNames)
+                    if (settings.UseGlobalTypeNames)
                     {
                         builder.Append("{\"$type\":");
                         builder.Append(context.GlobalTypes.Register(objType));
@@ -240,7 +251,7 @@ namespace Sweet.Jayson
                     else
                     {
                         builder.Append("{\"$type\":\"");
-                        builder.Append(JaysonTypeInfo.GetTypeName(objType, context.Settings.TypeNameInfo));
+                        builder.Append(JaysonTypeInfo.GetTypeName(objType, settings.TypeNameInfo));
                         builder.Append("\",\"$value\":");
                     }
                 }
@@ -556,7 +567,7 @@ namespace Sweet.Jayson
         private static void WriteObjectRefence(int id, JaysonSerializationContext context)
         {
             StringBuilder builder = context.Builder;
-            if (context.Settings.Formatting)
+            if (context.Settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
                 WriteIndent(context, context.ObjectDepth + 1);
@@ -577,7 +588,7 @@ namespace Sweet.Jayson
         private static void WriteListObjectId(int id, JaysonSerializationContext context)
         {
             StringBuilder builder = context.Builder;
-            if (context.Settings.Formatting)
+            if (context.Settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
                 WriteIndent(context);
@@ -605,7 +616,7 @@ namespace Sweet.Jayson
                 StringBuilder builder = context.Builder;
 
                 int id = context.ReferenceMap.GetObjectId(obj, out referenced);
-                if (context.Settings.Formatting)
+                if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     if (!isFirst)
                     {
@@ -666,14 +677,14 @@ namespace Sweet.Jayson
 
         private static void WriteKeyFast(string key, JaysonSerializationContext context, bool isFirst)
         {
-            StringBuilder builder = context.Builder;
-            JaysonSerializationSettings settings = context.Settings;
+            var settings = context.Settings;
 
+            StringBuilder builder = context.Builder;
             if (!isFirst)
             {
                 builder.Append(',');
             }
-            if (settings.Formatting)
+            if (settings.Formatting != JaysonFormatting.None)
             {
                 WriteIndent(context);
             }
@@ -681,7 +692,7 @@ namespace Sweet.Jayson
             builder.Append('"');
             builder.Append(settings.CaseSensitive ? key : JaysonCommon.AsciiToLower(key));
 
-            if (settings.Formatting)
+            if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append("\": ");
             }
@@ -746,7 +757,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -754,7 +765,7 @@ namespace Sweet.Jayson
                 builder.Append('"');
                 builder.Append(settings.CaseSensitive ? propertyName : JaysonCommon.AsciiToLower(propertyName));
 
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append("\": ");
                 }
@@ -799,7 +810,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting)
+                            if (context.Settings.Formatting != JaysonFormatting.None)
                             {
                                 WriteIndent(context);
                             }
@@ -821,7 +832,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (context.Settings.Formatting)
+                if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -829,7 +840,7 @@ namespace Sweet.Jayson
                 builder.Append('"');
                 builder.Append(settings.CaseSensitive ? propertyName : JaysonCommon.AsciiToLower(propertyName));
 
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append("\": null");
                 }
@@ -855,7 +866,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -872,7 +883,7 @@ namespace Sweet.Jayson
                         key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
                 }
 
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append("\": ");
                 }
@@ -917,7 +928,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting)
+                            if (context.Settings.Formatting != JaysonFormatting.None)
                             {
                                 WriteIndent(context);
                             }
@@ -939,7 +950,7 @@ namespace Sweet.Jayson
                 {
                     builder.Append(',');
                 }
-                if (context.Settings.Formatting)
+                if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -956,7 +967,7 @@ namespace Sweet.Jayson
                         key.ToLower(JaysonConstants.InvariantCulture), builder, settings.EscapeUnicodeChars);
                 }
 
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append("\": null");
                 }
@@ -981,7 +992,7 @@ namespace Sweet.Jayson
                     {
                         context.Builder.Append(',');
                     }
-                    if (context.Settings.Formatting)
+                    if (context.Settings.Formatting != JaysonFormatting.None)
                     {
                         WriteIndent(context);
                     }
@@ -996,7 +1007,7 @@ namespace Sweet.Jayson
                 {
                     context.Builder.Append(',');
                 }
-                if (context.Settings.Formatting)
+                if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -1016,7 +1027,7 @@ namespace Sweet.Jayson
             if (rows.Count > 0)
             {
                 JaysonSerializationSettings settings = context.Settings;
-                bool formatting = settings.Formatting;
+                bool formatting = settings.Formatting != JaysonFormatting.None;
 
                 StringBuilder builder = context.Builder;
                 if (formatting)
@@ -1189,7 +1200,7 @@ namespace Sweet.Jayson
             }
 
             var settings = context.Settings;
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             StringBuilder builder = context.Builder;
             JaysonFormatter formatter = context.Formatter;
@@ -1274,7 +1285,7 @@ namespace Sweet.Jayson
             if (columnCount > 0)
             {
                 JaysonSerializationSettings settings = context.Settings;
-                bool formatting = settings.Formatting;
+                bool formatting = settings.Formatting != JaysonFormatting.None;
 
                 StringBuilder builder = context.Builder;
                 if (formatting)
@@ -1536,7 +1547,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -1556,7 +1567,7 @@ namespace Sweet.Jayson
 
             StringBuilder builder = context.Builder;
             JaysonSerializationSettings settings = context.Settings;
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             if (!isFirst)
             {
@@ -1709,7 +1720,7 @@ namespace Sweet.Jayson
 
             StringBuilder builder = context.Builder;
             var settings = context.Settings;
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             if (!isFirst)
             {
@@ -1778,7 +1789,7 @@ namespace Sweet.Jayson
         private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
         {
             var settings = context.Settings;
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
@@ -1937,7 +1948,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -1983,7 +1994,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2023,7 +2034,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2080,7 +2091,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2138,7 +2149,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2150,7 +2161,7 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
             
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             context.ObjectDepth++;
             StringBuilder builder = context.Builder;
@@ -2386,7 +2397,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2488,7 +2499,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2554,7 +2565,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2697,7 +2708,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2810,7 +2821,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2893,7 +2904,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -2937,7 +2948,7 @@ namespace Sweet.Jayson
                         builder.Append(',');
                     }
 
-                    var formatting = settings.Formatting;
+                    bool formatting = settings.Formatting != JaysonFormatting.None;
                     if (formatting)
                     {
                         WriteIndent(context);
@@ -3038,7 +3049,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (settings.Formatting)
+                if (settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -3125,7 +3136,7 @@ namespace Sweet.Jayson
             finally
             {
                 context.ObjectDepth--;
-                if (context.Settings.Formatting)
+                if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     WriteIndent(context);
                 }
@@ -3138,7 +3149,7 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool typeWritten = WriteByteArrayType(context);
 
-            bool formatting = context.Settings.Formatting;
+            bool formatting = context.Settings.Formatting != JaysonFormatting.None;
             StringBuilder builder = context.Builder;
             try
             {
@@ -3177,7 +3188,7 @@ namespace Sweet.Jayson
             context.ObjectDepth++;
             bool objectStarted = WriteListType(typeof(DBNull[]), context);
 
-            bool formatting = context.Settings.Formatting;
+            bool formatting = context.Settings.Formatting != JaysonFormatting.None;
             StringBuilder builder = context.Builder;
             try
             {
@@ -3265,7 +3276,7 @@ namespace Sweet.Jayson
 
             int builderLen = 0;
             StringBuilder builder = context.Builder;
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
             try
             {
                 if (!objectStarted)
@@ -3343,7 +3354,7 @@ namespace Sweet.Jayson
             {
                 context.ObjectDepth--;
 
-                if (!settings.Formatting)
+                if (!formatting)
                 {
                     builder.Append(']');
 
@@ -3378,7 +3389,7 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             int length = rankLengths[currRank];
-            bool formatting = settings.Formatting;
+            bool formatting = settings.Formatting != JaysonFormatting.None;
 
             int builderLen = 0;
 
@@ -3485,7 +3496,8 @@ namespace Sweet.Jayson
             {
                 if (!objectStarted)
                 {
-                    if (settings.Formatting && !isEmpty && (builder.Length > builderLen))
+                    if (settings.Formatting != JaysonFormatting.None && 
+                        !isEmpty && (builder.Length > builderLen))
                     {
                         WriteIndent(context);
                     }
@@ -3493,7 +3505,7 @@ namespace Sweet.Jayson
                 }
                 else
                 {
-                    if (!settings.Formatting)
+                    if (settings.Formatting == JaysonFormatting.None)
                     {
                         builder.Append(']');
                         context.ObjectDepth--;
@@ -3539,7 +3551,7 @@ namespace Sweet.Jayson
                 builder.Append(']');
                 if (objectStarted)
                 {
-                    /* if (context.Settings.Formatting)
+                    /* if (context.Settings.Formatting != JaysonFormatting.None)
                     {
                         WriteIndent(context);
                     } */
@@ -3628,7 +3640,7 @@ namespace Sweet.Jayson
             {
                 context.ObjectDepth--;
 
-                if (!settings.Formatting)
+                if (settings.Formatting == JaysonFormatting.None)
                 {
                     builder.Append(']');
 
@@ -3828,7 +3840,7 @@ namespace Sweet.Jayson
             {
                 context.ObjectDepth--;
 
-                if (!settings.Formatting)
+                if (settings.Formatting == JaysonFormatting.None)
                 {
                     builder.Append(']');
 
@@ -3947,7 +3959,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting)
+                            if (context.Settings.Formatting != JaysonFormatting.None)
                             {
                                 WriteIndent(context);
                             }
@@ -4179,7 +4191,7 @@ namespace Sweet.Jayson
         {
             if (context.GlobalTypes != null)
             {
-                bool formatting = context.Settings.Formatting;
+                bool formatting = context.Settings.Formatting != JaysonFormatting.None;
 
                 context.ObjectDepth++;
                 StringBuilder builder = context.Builder;
@@ -4326,7 +4338,7 @@ namespace Sweet.Jayson
                         {
                             context.ObjectDepth++;
 
-                            if (settings.Formatting)
+                            if (settings.Formatting != JaysonFormatting.None)
                             {
                                 builder.Append('{');
                                 WriteIndent(context);
@@ -4343,7 +4355,7 @@ namespace Sweet.Jayson
                         formatter.Format(obj, objType, builder);
 
                         context.ObjectDepth--;
-                        if (settings.Formatting)
+                        if (settings.Formatting != JaysonFormatting.None)
                         {
                             builder.Append(JaysonConstants.Indentation[0]);
                         }
@@ -4355,7 +4367,7 @@ namespace Sweet.Jayson
 
                             WriteGlobalTypes(context, false);
 
-                            if (settings.Formatting)
+                            if (settings.Formatting != JaysonFormatting.None)
                             {
                                 WriteIndent(context);
                             }
@@ -4388,7 +4400,7 @@ namespace Sweet.Jayson
                     {
                         context.ObjectDepth++;
 
-                        if (settings.Formatting)
+                        if (settings.Formatting != JaysonFormatting.None)
                         {
                             builder.Append('{');
                             WriteIndent(context);
@@ -4408,7 +4420,7 @@ namespace Sweet.Jayson
 
                         WriteGlobalTypes(context, false);
 
-                        if (settings.Formatting)
+                        if (settings.Formatting != JaysonFormatting.None)
                         {
                             WriteIndent(context);
                         }

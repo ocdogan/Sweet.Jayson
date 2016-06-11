@@ -57,7 +57,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.IgnoreEmptyCollections = true; // <--
@@ -85,7 +85,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.IgnoreEmptyCollections = false; // <--
@@ -113,7 +113,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -144,7 +144,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -183,7 +183,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -217,7 +217,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -244,7 +244,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = false;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = true;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -271,7 +271,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = false; // Fails on ISerializable objects if CaseSensitive is FALSE and UseKVModelForISerializable is FALSE
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false; // Fails on ISerializable objects if CaseSensitive is FALSE and UseKVModelForISerializable is FALSE
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -411,7 +411,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseGlobalTypeNames = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = true;
             jaysonSerializationSettings.UseEnumNames = true;
@@ -439,7 +439,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseGlobalTypeNames = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = true;
             jaysonSerializationSettings.UseEnumNames = false;
@@ -865,7 +865,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.UseObjectReferencing = true;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
@@ -922,7 +922,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.UseObjectReferencing = true;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
@@ -1951,7 +1951,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseGlobalTypeNames = true;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = true;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -1976,7 +1976,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2003,7 +2003,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2033,7 +2033,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2069,7 +2069,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2101,7 +2101,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2145,7 +2145,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2189,7 +2189,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2221,7 +2221,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2251,7 +2251,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2281,7 +2281,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2313,7 +2313,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2351,7 +2351,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2387,7 +2387,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2423,7 +2423,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2459,7 +2459,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2495,7 +2495,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2531,7 +2531,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2566,7 +2566,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2588,7 +2588,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2610,7 +2610,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2632,7 +2632,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2654,7 +2654,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2676,7 +2676,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2698,7 +2698,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2725,7 +2725,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2752,7 +2752,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2779,7 +2779,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2806,7 +2806,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.AllButNoPrimitive;
-            jaysonSerializationSettings.Formatting = false;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.None;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -2833,7 +2833,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -2858,7 +2858,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -2891,7 +2891,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -2917,7 +2917,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -2972,7 +2972,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -3000,7 +3000,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
 
@@ -3043,7 +3043,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateTimeFormat = "dd/MM/yyyy HH:mm:ss.fff%K";
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.CustomDate;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
@@ -3067,7 +3067,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3087,7 +3087,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3107,7 +3107,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3131,7 +3131,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3156,7 +3156,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3181,7 +3181,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3202,7 +3202,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3224,7 +3224,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3246,7 +3246,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Iso8601;
             jaysonSerializationSettings.DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
 
@@ -3269,7 +3269,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
             var dcml2 = JaysonConverter.ToObject(json);
@@ -3287,7 +3287,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
             var dcml2 = JaysonConverter.ToObject(json);
@@ -3309,7 +3309,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
@@ -3334,7 +3334,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
             var list2 = JaysonConverter.ToObject(json);
@@ -3372,7 +3372,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
             var list2 = JaysonConverter.ToObject(json);
@@ -3410,7 +3410,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
             var list2 = JaysonConverter.ToObject(json);
@@ -3448,7 +3448,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.Array;
@@ -3484,7 +3484,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3511,7 +3511,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.Array;
@@ -3538,7 +3538,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3565,7 +3565,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3585,7 +3585,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3607,7 +3607,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3629,7 +3629,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3652,7 +3652,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3675,7 +3675,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3696,7 +3696,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3720,7 +3720,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3741,7 +3741,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3766,7 +3766,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3787,7 +3787,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3822,7 +3822,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3857,7 +3857,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3889,7 +3889,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3915,7 +3915,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -3948,7 +3948,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -4005,7 +4005,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -4036,7 +4036,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -4077,7 +4077,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -4142,7 +4142,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.ArrayType = ArrayDeserializationType.ArrayDefined;
@@ -4178,7 +4178,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(list1, jaysonSerializationSettings);
             var list2 = JaysonConverter.ToObject(json);
@@ -4225,7 +4225,7 @@ namespace Sweet.Jayson.Tests
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
             string json = JaysonConverter.ToJsonString(dict1, jaysonSerializationSettings);
             var dict2 = JaysonConverter.ToObject(json);
@@ -4291,9 +4291,9 @@ namespace Sweet.Jayson.Tests
             };
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false
-            };
+                {
+                    Formatting = JaysonFormatting.None
+                };
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
@@ -4311,9 +4311,9 @@ namespace Sweet.Jayson.Tests
             };
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true
-            };
+                {
+                    Formatting = JaysonFormatting.Tab
+                };
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
@@ -4331,11 +4331,11 @@ namespace Sweet.Jayson.Tests
             };
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeName,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
+                {
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeName,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
@@ -4350,7 +4350,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
                 {
-                    Formatting = false,
+                    Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                     TypeNames = JaysonTypeNameSerialization.Auto
                 };
@@ -4380,11 +4380,11 @@ namespace Sweet.Jayson.Tests
             };
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeName,
-                TypeNames = JaysonTypeNameSerialization.All
-            };
+                {
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeName,
+                    TypeNames = JaysonTypeNameSerialization.All
+                };
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
@@ -4401,11 +4401,11 @@ namespace Sweet.Jayson.Tests
             };
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.All
-            };
+                {
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.All
+                };
 
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
@@ -4436,11 +4436,11 @@ namespace Sweet.Jayson.Tests
 				}});
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
 
             string json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
 
@@ -4472,11 +4472,11 @@ namespace Sweet.Jayson.Tests
             ds.Tables.Add(dt1);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
 
             string json = JaysonConverter.ToJsonString(ds, jaysonSerializationSettings);
 
@@ -4517,11 +4517,11 @@ namespace Sweet.Jayson.Tests
             dt1.ExtendedProperties.Add(7, 8m);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
+                {
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -4590,11 +4590,11 @@ namespace Sweet.Jayson.Tests
             dt1.ExtendedProperties.Add(7, 8m);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = false,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.All
-            };
+                {
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.All
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -4662,11 +4662,11 @@ namespace Sweet.Jayson.Tests
             ds1.Tables.Add(dt1);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.Auto
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -4760,11 +4760,11 @@ namespace Sweet.Jayson.Tests
             ds1.Relations.Add(new DataRelation("dr1", dt1.Columns[0], dt2.Columns[1], true));
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.All
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.All
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -4868,11 +4868,11 @@ namespace Sweet.Jayson.Tests
             ds1.ExtendedProperties.Add("x4", true);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.All
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.All
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -4945,11 +4945,11 @@ namespace Sweet.Jayson.Tests
             ds1.ExtendedProperties.Add("x4", true);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.None
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.None
+                };
 
             JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
@@ -5022,11 +5022,11 @@ namespace Sweet.Jayson.Tests
             ds1.ExtendedProperties.Add("x4", true);
 
             JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
-            {
-                Formatting = true,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.None
-            };
+                {
+                    Formatting = JaysonFormatting.Tab,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.None
+                };
 
             var jsonObj = JaysonConverter.ToJsonObject(ds1, jaysonSerializationSettings);
 
@@ -5046,7 +5046,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -5077,7 +5077,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -5108,7 +5108,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -5144,7 +5144,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -5180,7 +5180,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = true;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.CaseSensitive = false;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;

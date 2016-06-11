@@ -47,8 +47,6 @@ namespace Sweet.Jayson
         public bool ConvertDecimalToDouble = false;
         public bool EscapeChars = true;
         public bool EscapeUnicodeChars = false;
-        public bool Formatting = false;
-        public bool FormatIndentationWithTab = true;
         public bool GuidAsByteArray = false;
         public bool IgnoreAnonymousTypes = true;
         public bool IgnoreDefaultValues = false;
@@ -72,6 +70,7 @@ namespace Sweet.Jayson
 
         public int MaxObjectDepth;
 
+        public JaysonFormatting Formatting = JaysonFormatting.None;
         public JaysonDateFormatType DateFormatType = JaysonDateFormatType.Iso8601;
         public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
         public JaysonTypeNameSerialization TypeNames = JaysonTypeNameSerialization.None;

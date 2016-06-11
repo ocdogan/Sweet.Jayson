@@ -98,6 +98,7 @@
     <Compile Include="JaysonError.cs" />
     <Compile Include="JaysonCommentHandling.cs" />
     <Compile Include="JaysonNull.cs" />
+    <Compile Include="JaysonFormatting.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
