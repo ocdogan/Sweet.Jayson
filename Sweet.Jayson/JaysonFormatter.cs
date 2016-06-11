@@ -257,9 +257,9 @@ namespace Sweet.Jayson
 
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append("\"/Date(");
+                                builder.Append("\"\\/Date(");
                                 builder.Append(chArr, index, 24 - index);
-                                builder.Append(")/\"");
+                                builder.Append(")\\/\"");
                             }
                             else
                             {
@@ -434,9 +434,9 @@ namespace Sweet.Jayson
 
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append("\"/Date(");
+                                builder.Append("\"\\/Date(");
                                 builder.Append(chArr, index, 24 - index);
-                                builder.Append(")/\"");
+                                builder.Append(")\\/\"");
                             }
                             else
                             {

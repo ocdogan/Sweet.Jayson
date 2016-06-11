@@ -54,7 +54,7 @@ namespace Sweet.Jayson
         internal const string LongMinValue = "-9223372036854775808";
 
         internal const string JScriptDateZero = "new Date(0)";
-        internal const string MicrosoftDateZero = "\"/Date(0)/\"";
+        internal const string MicrosoftDateZero = "\"\\/Date(0)\\/\"";
 
         # endregion Constants
 
