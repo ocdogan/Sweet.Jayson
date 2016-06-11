@@ -90,7 +90,7 @@ namespace Sweet.Jayson
                                 {
                                     m_TypeNames[0] = m_Type.ToString();
                                 }
-                                m_TypeNames[1] = m_TypeNames[0] + ", " + m_Type.Assembly.GetName().Name;
+                                m_TypeNames[1] = m_TypeNames[0] + ", " + JaysonCommon.GetAssemblyName(m_Type.Assembly);
                             }
                             else
                             {

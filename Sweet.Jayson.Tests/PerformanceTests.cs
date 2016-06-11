@@ -30,6 +30,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
@@ -43,6 +44,88 @@ namespace Sweet.Jayson.Tests
 {
     public static class PerformanceTests
     {
+        private const int LoopCount = 1000;
+
+        public static void TestAssembly1()
+        {
+            Stopwatch sw = new Stopwatch();
+
+            string name;
+            Assembly asm = Assembly.GetExecutingAssembly();
+
+            sw.Reset();
+            sw.Start();
+            for (int i = 0; i < 100000; i++)
+            {
+                name = asm.GetName().Name;
+            }
+            sw.Stop();
+            Console.WriteLine("Assembly GetName() direct {0} ms", sw.ElapsedMilliseconds);
+
+            Dictionary<Assembly, string> asmCache = new Dictionary<Assembly, string>();
+
+            sw.Reset();
+            sw.Start();
+            for (int i = 0; i < 100000; i++)
+            {
+                if (!asmCache.TryGetValue(asm, out name)) {
+                    name = asm.GetName().Name;
+                    asmCache[asm] = name;
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("Assembly GetName() cached {0} ms", sw.ElapsedMilliseconds);
+        }
+
+        public static void TestAssembly2()
+        {
+            Stopwatch sw = new Stopwatch();
+
+            Assembly asm = Assembly.GetExecutingAssembly();
+            string asmName = asm.GetName().Name;
+
+            AppDomain domain = AppDomain.CurrentDomain;
+
+            sw.Reset();
+            sw.Start();
+            for (int i = 0; i < 100000; i++)
+            {
+                foreach (Assembly a in domain.GetAssemblies())
+                {
+                    if (String.Equals(a.GetName().Name, asmName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        break;
+                    }
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("Find Assembly direct {0} ms", sw.ElapsedMilliseconds);
+
+            Dictionary<Assembly, string> asmCache = new Dictionary<Assembly, string>();
+
+            string name;
+
+            sw.Reset();
+            sw.Start();
+            for (int i = 0; i < 100000; i++)
+            {
+                foreach (Assembly a in domain.GetAssemblies())
+                {
+                    if (!asmCache.TryGetValue(a, out name)) {
+                        name = asm.GetName().Name;
+                        asmCache[asm] = name;
+                    }
+
+                    if (String.Equals(name, asmName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        break;
+                    }
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("Find Assembly cached {0} ms", sw.ElapsedMilliseconds);
+        }
+
         public static void Test1()
         {
             Stopwatch sw = new Stopwatch();
@@ -63,7 +146,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
             }
@@ -74,7 +157,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.Parse(s, jaysonDeserializationSettings);
             }
@@ -85,7 +168,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
             }
@@ -116,7 +199,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 s = JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
             }
@@ -127,7 +210,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.Parse(s, jaysonDeserializationSettings);
             }
@@ -138,7 +221,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
             }
@@ -169,7 +252,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
             }
@@ -180,7 +263,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.Parse(s, jaysonDeserializationSettings);
             }
@@ -191,7 +274,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
             }
@@ -223,7 +306,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            var pResult = Parallel.For(0, 10000, i =>
+            var pResult = Parallel.For(0, LoopCount, i =>
             {
                 JaysonConverter.ToJsonString(obj, jaysonSerializationSettings);
             });
@@ -236,7 +319,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            pResult = Parallel.For(0, 10000, i =>
+            pResult = Parallel.For(0, LoopCount, i =>
             {
                 JaysonConverter.Parse(s, jaysonDeserializationSettings);
             });
@@ -249,7 +332,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            pResult = Parallel.For(0, 10000, i =>
+            pResult = Parallel.For(0, LoopCount, i =>
             {
                 JaysonConverter.ToObject<TypedContainerDto>(s, jaysonDeserializationSettings);
             });
@@ -295,7 +378,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 json = JaysonConverter.ToJsonString(dt1, jaysonSerializationSettings);
             }
@@ -306,7 +389,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<DataTable>(json, jaysonDeserializationSettings);
             }
@@ -353,7 +436,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 json = JaysonConverter.ToJsonString(ds1, jaysonSerializationSettings);
             }
@@ -364,7 +447,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<DataSet>(json, jaysonDeserializationSettings);
             }
@@ -390,7 +473,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
             }
@@ -401,7 +484,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
             }
@@ -427,7 +510,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 json = JaysonConverter.ToJsonString(dto, jaysonSerializationSettings);
             }
@@ -438,7 +521,7 @@ namespace Sweet.Jayson.Tests
 
             sw.Reset();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < LoopCount; i++)
             {
                 JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
             }

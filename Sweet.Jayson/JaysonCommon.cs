@@ -69,6 +69,8 @@ namespace Sweet.Jayson
 #endif
 
         private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
+        private static readonly Dictionary<string, Assembly> s_AssemblyCache = new Dictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<Assembly, string> s_AssemblyNameCache = new Dictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
 
         private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
         private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
@@ -1374,6 +1376,42 @@ namespace Sweet.Jayson
             return null;
         }
 
+        public static string GetAssemblyName(Assembly asm)
+        {
+            if (asm != null)
+            {
+                string name;
+                if (!s_AssemblyNameCache.TryGetValue(asm, out name)) {
+                    name = asm.GetName().Name;
+
+                    s_AssemblyCache[name] = asm;
+                    s_AssemblyNameCache[asm] = name;
+                }
+                return name;
+            }
+            return null;
+        }
+
+        public static Assembly FindAssembly(string assemblyName)
+        {
+            if (!String.IsNullOrEmpty(assemblyName))
+            {
+                Assembly result;
+                if (!s_AssemblyCache.TryGetValue(assemblyName, out result))
+                {
+                    foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        if (GetAssemblyName(asm).Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return asm;
+                        }
+                    }
+                }
+                return result;
+            }
+            return null;
+        }
+
         public static Type GetType(string typeName, SerializationBinder binder = null)
         {
             Type result = null;
@@ -1407,9 +1445,10 @@ namespace Sweet.Jayson
                                 if (!String.IsNullOrEmpty(assemblyNameStart))
                                 {
                                     Type typeRef;
+
                                     foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                                     {
-                                        if (asm.GetName().Name.StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
+                                        if (GetAssemblyName(asm).StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
                                         {
                                             typeRef = asm.GetType(typeName, false, true);
                                             if (typeRef != null)
@@ -1432,8 +1471,7 @@ namespace Sweet.Jayson
                             typeName = (typeName.Substring(0, asmNameSepPos) ?? String.Empty).Trim();
                             if (!String.IsNullOrEmpty(typeName))
                             {
-                                var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(asm =>
-                                    String.Equals(asm.GetName().Name, assemblyName, StringComparison.OrdinalIgnoreCase));
+                                var assembly = FindAssembly(assemblyName);
 
                                 if (assembly == null)
                                 {
@@ -1447,71 +1485,80 @@ namespace Sweet.Jayson
                                 if (assembly != null)
                                 {
                                     result = assembly.GetType(typeName, false, true);
+                                    s_TypeCache[typeName] = result;
                                 }
                             }
                         }
                         #else
                         result = Type.GetType(typeName,
                             (assemblyRef) =>
-                            {
-                                if (assemblyRef != null || !String.IsNullOrEmpty(assemblyRef.Name))
                                 {
-                                    try
+                                    if (assemblyRef != null || !String.IsNullOrEmpty(assemblyRef.Name))
                                     {
-                                        var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(asm => 
-                                            String.Equals(asm.GetName().Name, assemblyRef.Name, StringComparison.OrdinalIgnoreCase));
-                                        if (assembly == null)
+                                        try
                                         {
-                                            try
+                                            var assembly = FindAssembly(assemblyRef.Name);
+                                            if (assembly == null)
                                             {
-                                                assembly = Assembly.Load(assemblyRef);
-                                            }
-                                            catch (Exception)
-                                            {
-                                                var assemblyName = assemblyRef.Name;
-                                                if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                                                try
                                                 {
-                                                    assemblyName += ".dll";
-                                                }
-                                                assembly = Assembly.Load(assemblyName);
-                                            }
-                                        }
-                                        return assembly;
-                                    }
-                                    catch (Exception)
-                                    { }
-                                }
-                                return (Assembly)null;
-                            },
-                            (assembly, name, ignoreCase) =>
-                            {
-                                if (assembly != null)
-                                {
-                                    return assembly.GetType(name, false, ignoreCase);
-                                }
+                                                    assembly = Assembly.Load(assemblyRef);
 
-                                int pos = name.IndexOf('.');
-                                if (pos > -1)
-                                {
-                                    string assemblyNameStart = name.Substring(0, pos + 1);
-                                    if (!String.IsNullOrEmpty(assemblyNameStart))
-                                    {
-                                        Type typeRef;
-                                        foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-                                        {
-                                            if (asm.GetName().Name.StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                typeRef = asm.GetType(name, false, ignoreCase);
-                                                if (typeRef != null)
+                                                }
+                                                catch (Exception)
                                                 {
-                                                    return typeRef;
+                                                    var assemblyName = assemblyRef.Name;
+                                                    if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        assemblyName += ".dll";
+                                                    }
+
+                                                    assembly = Assembly.Load(assemblyName);
+                                                }
+
+                                                if (assembly != null)
+                                                {
+                                                    s_AssemblyCache[assemblyRef.Name] = assembly;
+                                                    s_AssemblyNameCache[assembly] = assemblyRef.Name;
+                                                }
+                                            }
+                                            return assembly;
+                                        }
+                                        catch (Exception)
+                                        { }
+                                    }
+                                    return (Assembly)null;
+                                },
+                            (assembly, name, ignoreCase) =>
+                                {
+                                    if (assembly != null)
+                                    {
+                                        return assembly.GetType(name, false, ignoreCase);
+                                    }
+
+                                    int pos = name.IndexOf('.');
+                                    if (pos > -1)
+                                    {
+                                        string assemblyNameStart = name.Substring(0, pos + 1);
+                                        if (!String.IsNullOrEmpty(assemblyNameStart))
+                                        {
+                                            Type typeRef;
+
+                                            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                                            {
+                                                if (GetAssemblyName(asm).StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    typeRef = asm.GetType(name, false, ignoreCase);
+                                                    if (typeRef != null)
+                                                    {                                                        
+                                                        return typeRef;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                return (Type)null;
-                            });
+                                    return (Type)null;
+                                });
 #endif
                     }
 
