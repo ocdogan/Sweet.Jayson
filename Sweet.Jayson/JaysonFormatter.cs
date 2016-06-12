@@ -534,7 +534,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.Bool:
                     {
-                        builder.Append((bool)obj ? "true" : "false");
+                        builder.Append((bool)obj ? JaysonConstants.True : JaysonConstants.False);
                         break;
                     }
                 case JaysonTypeCode.Long:
@@ -565,7 +565,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.BoolNullable:
                     {
-                        builder.Append(((bool?)obj).Value ? "true" : "false");
+                        builder.Append(((bool?)obj).Value ? JaysonConstants.True : JaysonConstants.False);
                         break;
                     }
                 case JaysonTypeCode.LongNullable:
@@ -812,7 +812,7 @@ namespace Sweet.Jayson
                 case JaysonTypeCode.Int:
                     return Format((int)obj);
                 case JaysonTypeCode.Bool:
-                    return (bool)obj ? "true" : "false";
+                    return (bool)obj ? JaysonConstants.True : JaysonConstants.False;
                 case JaysonTypeCode.Long:
                     return Format((long)obj);
                 case JaysonTypeCode.DateTime:
@@ -835,7 +835,7 @@ namespace Sweet.Jayson
                 case JaysonTypeCode.IntNullable:
                     return Format(((int?)obj).Value);
                 case JaysonTypeCode.BoolNullable:
-                    return ((bool?)obj).Value ? "true" : "false";
+                    return ((bool?)obj).Value ? JaysonConstants.True : JaysonConstants.False;
                 case JaysonTypeCode.LongNullable:
                     return Format(((long?)obj).Value);
                 case JaysonTypeCode.Byte:
@@ -1421,7 +1421,7 @@ namespace Sweet.Jayson
             // Do not change the check order
             if (objType == typeof(bool))
             {
-                return (bool)obj ? "true" : "false";
+                return (bool)obj ? JaysonConstants.True : JaysonConstants.False;
             }
 
             // Do not change the check order
@@ -1458,7 +1458,7 @@ namespace Sweet.Jayson
             // Do not change the check order
             if (objType == typeof(bool?))
             {
-                return ((bool?)obj).Value ? "true" : "false";
+                return ((bool?)obj).Value ? JaysonConstants.True : JaysonConstants.False;
             }
 
             // Do not change the check order

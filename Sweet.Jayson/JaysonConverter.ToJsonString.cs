@@ -703,7 +703,7 @@ namespace Sweet.Jayson
         private static bool WriteKeyValueEntryFast(string key, bool value, JaysonSerializationContext context, bool isFirst)
         {
             WriteKeyFast(key, context, isFirst);
-            context.Builder.Append(value ? "true" : "false");
+            context.Builder.Append(value ? JaysonConstants.True : JaysonConstants.False);
             return false; // isFirst
         }
 
@@ -1109,10 +1109,10 @@ namespace Sweet.Jayson
                                                     escapeChars, escapeUnicodeChars);
                                                 break;
                                             case JaysonTypeCode.Bool:
-                                                builder.Append((bool)cellValue ? "true" : "false");
+                                                builder.Append((bool)cellValue ? JaysonConstants.True : JaysonConstants.False);
                                                 break;
                                             case JaysonTypeCode.BoolNullable:
-                                                builder.Append(((bool?)cellValue).Value ? "true" : "false");
+                                                builder.Append(((bool?)cellValue).Value ? JaysonConstants.True : JaysonConstants.False);
                                                 break;
                                             case JaysonTypeCode.DateTime:
                                                 formatter.Format((DateTime)cellValue, builder);

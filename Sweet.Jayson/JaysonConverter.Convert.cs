@@ -236,7 +236,7 @@ namespace Sweet.Jayson
                     }
                     else if (propValue is string)
                     {
-                        dataTable.CaseSensitive = (string)propValue == "true";
+                        dataTable.CaseSensitive = (string)propValue == JaysonConstants.True;
                     }
                 }
 
@@ -392,7 +392,7 @@ namespace Sweet.Jayson
                         else
                             if (propValue is string)
                             {
-                                column.AllowDBNull = (string)propValue == "true";
+                                column.AllowDBNull = (string)propValue == JaysonConstants.True;
                             }
                     }
 
@@ -405,7 +405,7 @@ namespace Sweet.Jayson
                         else
                             if (propValue is string)
                             {
-                                column.AutoIncrement = (string)propValue == "true";
+                                column.AutoIncrement = (string)propValue == JaysonConstants.True;
                             }
                     }
 
@@ -482,7 +482,7 @@ namespace Sweet.Jayson
                         else
                             if (propValue is string)
                             {
-                                column.ReadOnly = (string)propValue == "true";
+                                column.ReadOnly = (string)propValue == JaysonConstants.True;
                             }
                     }
 
@@ -495,7 +495,7 @@ namespace Sweet.Jayson
                         else
                             if (propValue is string)
                             {
-                                column.Unique = (string)propValue == "true";
+                                column.Unique = (string)propValue == JaysonConstants.True;
                             }
                     }
 
@@ -767,7 +767,7 @@ namespace Sweet.Jayson
                 else
                     if (propValue is string)
                     {
-                        dataSet.CaseSensitive = (string)propValue == "true";
+                        dataSet.CaseSensitive = (string)propValue == JaysonConstants.True;
                     }
             }
 
@@ -785,7 +785,7 @@ namespace Sweet.Jayson
                 else
                     if (propValue is string)
                     {
-                        dataSet.EnforceConstraints = (string)propValue == "true";
+                        dataSet.EnforceConstraints = (string)propValue == JaysonConstants.True;
                     }
             }
 

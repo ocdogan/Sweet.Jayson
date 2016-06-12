@@ -271,7 +271,7 @@ namespace Sweet.Jayson.Tests
             var d = new Dictionary<string, object> {
 				{ "1", 2m },
 				{ "a", "b" },
-				{ "true", false }
+                { JaysonConstants.True, false }
 			};
 
             d["#self"] = d;
