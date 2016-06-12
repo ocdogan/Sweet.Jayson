@@ -89,7 +89,8 @@ namespace Sweet.Jayson
             TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat :
                 JaysonConstants.TimeSpanDefaultFormat);
             DateTimeFormat = ((dateTimeFormat != null && dateTimeFormat.Length > 0) ? dateTimeFormat :
-                (dateFormatType == JaysonDateFormatType.CustomUnixEpoch ? JaysonConstants.DateMicrosoftJsonFormat :
+                (dateFormatType == JaysonDateFormatType.CustomUnixEpoch ? 
+                    (escapeChars ? JaysonConstants.DateMicrosoftJsonFormatEscaped : JaysonConstants.DateMicrosoftJsonFormat) :
                     JaysonConstants.DateIso8601Format));
         }
 
@@ -219,7 +220,7 @@ namespace Sweet.Jayson
                         {
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append(JaysonConstants.MicrosoftDateZero);
+                                builder.Append(EscapeChars ? JaysonConstants.MicrosoftDateZeroEscaped : JaysonConstants.MicrosoftDateZero);
                             }
                             else
                             {
@@ -257,9 +258,18 @@ namespace Sweet.Jayson
 
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append("\"\\/Date(");
-                                builder.Append(chArr, index, 24 - index);
-                                builder.Append(")\\/\"");
+                                if (EscapeChars)
+                                {
+                                    builder.Append("\"\\/Date(");
+                                    builder.Append(chArr, index, 24 - index);
+                                    builder.Append(")\\/\"");
+                                } 
+                                else
+                                {
+                                    builder.Append("\"/Date(");
+                                    builder.Append(chArr, index, 24 - index);
+                                    builder.Append(")/\"");
+                                }
                             }
                             else
                             {
@@ -396,7 +406,7 @@ namespace Sweet.Jayson
                         {
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append(JaysonConstants.MicrosoftDateZero);
+                                builder.Append(EscapeChars ? JaysonConstants.MicrosoftDateZeroEscaped : JaysonConstants.MicrosoftDateZero);
                             }
                             else
                             {
@@ -434,9 +444,18 @@ namespace Sweet.Jayson
 
                             if (DateFormatType == JaysonDateFormatType.Microsoft)
                             {
-                                builder.Append("\"\\/Date(");
-                                builder.Append(chArr, index, 24 - index);
-                                builder.Append(")\\/\"");
+                                if (EscapeChars)
+                                {
+                                    builder.Append("\"\\/Date(");
+                                    builder.Append(chArr, index, 24 - index);
+                                    builder.Append(")\\/\"");
+                                } 
+                                else
+                                {
+                                    builder.Append("\"/Date(");
+                                    builder.Append(chArr, index, 24 - index);
+                                    builder.Append(")/\"");
+                                }
                             }
                             else
                             {
@@ -1042,6 +1061,20 @@ namespace Sweet.Jayson
                         return null;
                     }
             }
+        }
+
+        public static string EscapeChar(char ch)
+        {
+            string result = ToJsonChar(ch, true);
+            if (result == null)
+            {
+                return ch.ToString();
+            }
+            if (result.Length == 4)
+            {
+                return "\\u" + result;
+            }
+            return result;
         }
 
         public static bool NeedsEscape(string str, bool escapeUnicodeChars, out int escapePosition)

@@ -40,7 +40,8 @@ namespace Sweet.Jayson
         public const string TimeSpanDefaultFormat = "c";
         public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
         public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";
-        public const string DateMicrosoftJsonFormat = "\\/Date({0})\\/";
+        public const string DateMicrosoftJsonFormat = "/Date({0})/";
+        public const string DateMicrosoftJsonFormatEscaped = "\\/Date({0})\\/";
 
         public const string SingleCommentTag = "//";
         public const string MultiCommentTag = "/**/";
@@ -54,7 +55,8 @@ namespace Sweet.Jayson
         internal const string LongMinValue = "-9223372036854775808";
 
         internal const string JScriptDateZero = "new Date(0)";
-        internal const string MicrosoftDateZero = "\"\\/Date(0)\\/\"";
+        internal const string MicrosoftDateZero = "\"/Date(0)/\"";
+        internal const string MicrosoftDateZeroEscaped = "\"\\/Date(0)\\/\"";
 
         # endregion Constants
 
