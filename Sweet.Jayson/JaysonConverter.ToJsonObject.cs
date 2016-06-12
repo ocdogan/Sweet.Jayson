@@ -1469,7 +1469,7 @@ namespace Sweet.Jayson
                     return null;
                 }
 
-                JaysonStackList stack = null;
+                JaysonStackList<object> stack = null;
                 if (info.Class)
                 {
                     stack = context.Stack;
@@ -1613,7 +1613,7 @@ namespace Sweet.Jayson
         public static object ToJsonObject(object obj, JaysonSerializationSettings settings = null,
             Func<string, object, object> filter = null)
         {
-            JaysonStackList stack = JaysonStackList.Get();
+            JaysonStackList<object> stack = JaysonStackList<object>.Get();
             try
             {
                 using (var context = new JaysonSerializationContext(filter: filter,
@@ -1626,7 +1626,7 @@ namespace Sweet.Jayson
             }
             finally
             {
-                JaysonStackList.Release(stack);
+                JaysonStackList<object>.Release(stack);
             }
         }
 

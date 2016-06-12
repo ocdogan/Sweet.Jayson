@@ -29,7 +29,7 @@ namespace Sweet.Jayson
 {
     # region JaysonStackList
 
-    internal sealed class JaysonStackList
+    internal sealed class JaysonStackList<T> where T : class
     {
         # region Constants
 
@@ -42,13 +42,13 @@ namespace Sweet.Jayson
 
         private static int s_QueueIndex = -1;
         private static object s_QueueLock = new object();
-        private static JaysonStackList[] s_Queue = new JaysonStackList[QueueLength];
+        private static JaysonStackList<T>[] s_Queue = new JaysonStackList<T>[QueueLength];
 
         # endregion Static Members
 
         private int m_Index = -1;
         private int m_Length = FrameSize;
-        private object[] m_Items = new object[FrameSize];
+        private T[] m_Items = new T[FrameSize];
 
         private JaysonStackList()
         {
@@ -60,26 +60,26 @@ namespace Sweet.Jayson
             m_Index = -1;
             if (!ctor && m_Length > 2 * FrameSize)
             {
-                m_Items = new object[FrameSize];
+                m_Items = new T[FrameSize];
                 m_Length = FrameSize;
             }
         }
 
-        public static JaysonStackList Get()
+        public static JaysonStackList<T> Get()
         {
             lock (s_QueueLock)
             {
                 if (s_QueueIndex > -1)
                 {
-                    JaysonStackList result = s_Queue[s_QueueIndex];
+                    JaysonStackList<T> result = s_Queue[s_QueueIndex];
                     s_Queue[s_QueueIndex--] = null;
                     return result;
                 }
             }
-            return new JaysonStackList();
+            return new JaysonStackList<T>();
         }
 
-        public static void Release(JaysonStackList stack)
+        public static void Release(JaysonStackList<T> stack)
         {
             if (stack != null)
             {
@@ -100,13 +100,13 @@ namespace Sweet.Jayson
             {
                 m_Length += FrameSize;
 
-                object[] newArray = new object[m_Length];
+                T[] newArray = new T[m_Length];
                 Array.Copy(m_Items, 0, newArray, 0, m_Items.Length);
                 m_Items = newArray;
             }
         }
 
-        public void Push(object obj)
+        public void Push(T obj)
         {
             EnsureCapacity();
             m_Items[++m_Index] = obj;
@@ -116,11 +116,19 @@ namespace Sweet.Jayson
         {
             if (m_Index > -1)
             {
-                m_Items[m_Index--] = null;
+                m_Items[m_Index--] = default(T);
             }
         }
 
-        public bool Contains(object obj)
+        public T Peek()
+        {
+            if (m_Index > -1) {
+                return m_Items[m_Index];
+            }
+            return default(T);
+        }
+
+        public bool Contains(T obj)
         {
             if (obj != null)
             {

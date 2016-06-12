@@ -3907,7 +3907,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            JaysonStackList stack = null;
+            JaysonStackList<object> stack = null;
             if (info.Class)
             {
                 if (obj == DBNull.Value)
@@ -4256,7 +4256,7 @@ namespace Sweet.Jayson
                     return builder;
                 }
 
-                JaysonStackList primeStack = JaysonStackList.Get();
+                JaysonStackList<object> primeStack = JaysonStackList<object>.Get();
                 try
                 {
                     using (var context = new JaysonSerializationContext(
@@ -4306,11 +4306,11 @@ namespace Sweet.Jayson
                 }
                 finally
                 {
-                    JaysonStackList.Release(primeStack);
+                    JaysonStackList<object>.Release(primeStack);
                 }
             }
 
-            JaysonStackList stack = JaysonStackList.Get();
+            JaysonStackList<object> stack = JaysonStackList<object>.Get();
             try
             {
                 builder = builder ?? new StringBuilder(2048, int.MaxValue);
@@ -4356,7 +4356,7 @@ namespace Sweet.Jayson
             }
             finally
             {
-                JaysonStackList.Release(stack);
+                JaysonStackList<object>.Release(stack);
             }
         }
 

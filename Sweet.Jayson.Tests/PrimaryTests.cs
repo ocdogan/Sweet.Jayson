@@ -56,7 +56,7 @@ namespace Sweet.Jayson.Tests
 
             JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.UseKVModelForISerializable = true;
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.Auto;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.IgnoreDefaultValues = true;
             jaysonSerializationSettings.IgnoreNullValues = false;
