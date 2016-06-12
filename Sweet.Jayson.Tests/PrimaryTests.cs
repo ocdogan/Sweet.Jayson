@@ -3163,7 +3163,7 @@ namespace Sweet.Jayson.Tests
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-            Assert.IsTrue(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
+            Assert.IsTrue(json.Contains("\\/Date(") && (json.Contains("+") || json.Contains("-")));
             Assert.IsNotNull(dto2);
             Assert.IsNotNull(dto2.Value);
             Assert.IsTrue(dto2.Value is DateTime);
@@ -3188,7 +3188,7 @@ namespace Sweet.Jayson.Tests
             string json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-            Assert.IsTrue(json.Contains("/Date(") && (json.Contains("+") || json.Contains("-")));
+            Assert.IsTrue(json.Contains("\\/Date(") && (json.Contains("+") || json.Contains("-")));
             Assert.IsNotNull(dto2);
             Assert.IsNotNull(dto2.Value);
             Assert.IsTrue(dto2.Value is DateTime);

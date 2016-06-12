@@ -885,22 +885,24 @@ namespace Sweet.Jayson
 
                         if (!(EscapeChars || EscapeUnicodeChars))
                         {
-                            return "\"" + ch + "\"";
+                            return new string(new char[3] { '"', ch, '"' });
                         }
                         else
                         {
                             string chStr = ToJsonChar(ch, EscapeUnicodeChars);
                             if (chStr == null)
                             {
-                                return "\"" + ch + "\"";
+                                return new string(new char[3] { '"', ch, '"' });
                             }
 
                             if (chStr.Length == 4)
                             {
-                                return "\"\\u" + chStr + "\"";
+                                return new string(new char[8] { '"', '\\', 'u', chStr[0], chStr[1],
+                                    chStr[2], chStr[3], '"'
+                                });
                             }
 
-                            return "\"" + chStr + "\"";
+                            return new string(new char[4] { '"', chStr[0], chStr[1], '"' });
                         }
                     }
                 case JaysonTypeCode.UInt:
@@ -1072,7 +1074,8 @@ namespace Sweet.Jayson
             }
             if (result.Length == 4)
             {
-                return "\\u" + result;
+                return new string(new char[6] { '\\', 'u', result[0], result[1],
+                    result[2], result[3] });
             }
             return result;
         }
