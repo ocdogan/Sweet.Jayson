@@ -3094,7 +3094,7 @@ namespace Sweet.Jayson
 
                 if (!ValidObjectDepth(context))
                 {
-                    builder.Append("\"\"");
+                    builder.Append(JaysonConstants.EmptyJsonString);
                     return;
                 }
 

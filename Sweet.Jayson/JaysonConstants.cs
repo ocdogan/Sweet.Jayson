@@ -40,6 +40,8 @@ namespace Sweet.Jayson
         public const string True = "true";
         public const string False = "false";
 
+        public const string EmptyJsonString = "\"\"";
+
         public const string TimeSpanDefaultFormat = "c";
         public const string DateIso8601Format = "yyyy-MM-ddTHH:mm%K";
         public const string DateDefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffffff%K";

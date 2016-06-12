@@ -799,7 +799,7 @@ namespace Sweet.Jayson
                         string str = (string)obj;
                         if (str.Length == 0)
                         {
-                            return "\"\"";
+                            return JaysonConstants.EmptyJsonString;
                         }
 
                         if (!(EscapeChars || EscapeUnicodeChars))
