@@ -1072,21 +1072,27 @@ namespace Sweet.Jayson
             }
 
             char ch;
-            int len;
             int start = 0;
+            char[] chArray = null;
 
-            StringBuilder builder = new StringBuilder(20, int.MaxValue);
             for (int i = 0; i < length; i++)
             {
                 ch = asciiStr[i];
                 if (ch >= 'A' && ch <= 'Z')
                 {
-                    len = i - start;
-                    if (len > 0)
+                    if (chArray == null)
                     {
-                        builder.Append(asciiStr, start, len);
+                        chArray = new char[length];
                     }
-                    builder.Append((char)((int)ch + LowerCaseDif));
+
+                    if (i > start)
+                    {
+                        for (var j = start; j < i; j++)
+                        {
+                            chArray[j] = asciiStr[j];
+                        }
+                    }
+                    chArray[i] = (char)((int)ch + LowerCaseDif);
                     start = i + 1;
                 }
             }
@@ -1098,9 +1104,17 @@ namespace Sweet.Jayson
 
             if (start < length)
             {
-                builder.Append(asciiStr, start, length - start);
+                if (chArray == null)
+                {
+                    chArray = new char[length];
+                }
+
+                for (int i = start; i < length; i++)
+                {
+                    chArray[i] = asciiStr[i];
+                }
             }
-            return builder.ToString();
+            return new string(chArray);
         }
 
         public static string AsciiToUpper(string asciiStr)
@@ -1117,21 +1131,27 @@ namespace Sweet.Jayson
             }
 
             char ch;
-            int len;
             int start = 0;
+            char[] chArray = null;
 
-            StringBuilder builder = new StringBuilder(20, int.MaxValue);
             for (int i = 0; i < length; i++)
             {
                 ch = asciiStr[i];
                 if (ch >= 'a' && ch <= 'z')
                 {
-                    len = i - start;
-                    if (len > 0)
+                    if (chArray == null)
                     {
-                        builder.Append(asciiStr, start, len);
+                        chArray = new char[length];
                     }
-                    builder.Append((char)((int)ch - LowerCaseDif));
+
+                    if (i > start)
+                    {
+                        for (var j = start; j < i; j++)
+                        {
+                            chArray[j] = asciiStr[j];
+                        }
+                    }
+                    chArray[i] = (char)((int)ch - LowerCaseDif);
                     start = i + 1;
                 }
             }
@@ -1143,9 +1163,17 @@ namespace Sweet.Jayson
 
             if (start < length)
             {
-                builder.Append(asciiStr, start, length - start);
+                if (chArray == null)
+                {
+                    chArray = new char[length];
+                }
+
+                for (int i = start; i < length; i++)
+                {
+                    chArray[i] = asciiStr[i];
+                }
             }
-            return builder.ToString();
+            return new string(chArray);
         }
 
         public static bool ParseBoolean(string str)
@@ -1493,39 +1521,42 @@ namespace Sweet.Jayson
                         result = Type.GetType(typeName,
                             (assemblyRef) =>
                                 {
-                                    if (assemblyRef != null || !String.IsNullOrEmpty(assemblyRef.Name))
+                                    if (assemblyRef != null)
                                     {
-                                        try
+                                        string assemblyName = assemblyRef.Name;
+                                        if (!String.IsNullOrEmpty(assemblyName))
                                         {
-                                            var assembly = FindAssembly(assemblyRef.Name);
-                                            if (assembly == null)
+                                            try
                                             {
-                                                try
+                                                var assembly = FindAssembly(assemblyName);
+                                                if (assembly == null)
                                                 {
-                                                    assembly = Assembly.Load(assemblyRef);
-
-                                                }
-                                                catch (Exception)
-                                                {
-                                                    var assemblyName = assemblyRef.Name;
-                                                    if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                                                    try
                                                     {
-                                                        assemblyName += ".dll";
+                                                        assembly = Assembly.Load(assemblyRef);
+                                                    }
+                                                    catch (Exception)
+                                                    {
+                                                        string assemblyFile = assemblyName;
+                                                        if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            assemblyFile += ".dll";
+                                                        }
+
+                                                        assembly = Assembly.Load(assemblyFile);
                                                     }
 
-                                                    assembly = Assembly.Load(assemblyName);
+                                                    if (assembly != null)
+                                                    {
+                                                        s_AssemblyCache[assemblyName] = assembly;
+                                                        s_AssemblyNameCache[assembly] = assemblyName;
+                                                    }
                                                 }
-
-                                                if (assembly != null)
-                                                {
-                                                    s_AssemblyCache[assemblyRef.Name] = assembly;
-                                                    s_AssemblyNameCache[assembly] = assemblyRef.Name;
-                                                }
+                                                return assembly;
                                             }
-                                            return assembly;
+                                            catch (Exception)
+                                            { }
                                         }
-                                        catch (Exception)
-                                        { }
                                     }
                                     return (Assembly)null;
                                 },

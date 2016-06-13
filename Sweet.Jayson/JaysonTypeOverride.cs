@@ -77,7 +77,7 @@ namespace Sweet.Jayson
                     JaysonTypeOverride overrider;
                     if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
                     {
-                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        overrider = JaysonTypeOverride.NewGlobal(type, null);
                         s_GlobalTypeOverrides[type] = overrider;
                     }
 
@@ -142,7 +142,7 @@ namespace Sweet.Jayson
                     JaysonTypeOverride overrider;
                     if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
                     {
-                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        overrider = JaysonTypeOverride.NewGlobal(type, null);
                         s_GlobalTypeOverrides[type] = overrider;
                     }
 
@@ -186,7 +186,7 @@ namespace Sweet.Jayson
                     JaysonTypeOverride overrider;
                     if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
                     {
-                        overrider = new JaysonTypeOverride(type, null) { IsGlobal = true };
+                        overrider = JaysonTypeOverride.NewGlobal(type, null);
                         s_GlobalTypeOverrides[type] = overrider;
                     }
 
@@ -281,7 +281,12 @@ namespace Sweet.Jayson
             m_BindToType = bindToType;
         }
 
-        public bool IsGlobal { get; internal set; }
+        internal static JaysonTypeOverride NewGlobal(Type type, Type bindToType = null)
+        {
+            return new JaysonTypeOverride(type, bindToType) { IsGlobal = true };
+        }
+
+        public bool IsGlobal { get; private set; }
 
         public virtual bool IsMemberIgnored(string memberName)
         {

@@ -639,15 +639,21 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.Guid:
                     {
+                        Guid guid = (Guid)obj;
+
                         builder.Append('"');
                         if (GuidAsByteArray)
                         {
                             builder.Append('!');
-                            builder.Append(Convert.ToBase64String(((Guid)obj).ToByteArray()));
+                            builder.Append(Convert.ToBase64String(guid.ToByteArray()));
+                        }
+                        else if (guid == Guid.Empty)
+                        {
+                            builder.Append(JaysonConstants.GuidEmpty);
                         }
                         else
                         {
-                            builder.Append(JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D")));
+                            builder.Append(JaysonCommon.AsciiToUpper(guid.ToString("D")));
                         }
                         builder.Append('"');
                         break;
@@ -751,15 +757,21 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.GuidNullable:
                     {
+                        Guid guid = ((Guid?)obj).Value;
+
                         builder.Append('"');
                         if (GuidAsByteArray)
                         {
                             builder.Append('!');
-                            builder.Append(Convert.ToBase64String(((Guid?)obj).Value.ToByteArray()));
+                            builder.Append(Convert.ToBase64String(guid.ToByteArray()));
+                        }
+                        else if (guid == Guid.Empty)
+                        {
+                            builder.Append(JaysonConstants.GuidEmpty);
                         }
                         else
                         {
-                            builder.Append(JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D")));
+                            builder.Append(JaysonCommon.AsciiToUpper(guid.ToString("D")));
                         }
                         builder.Append('"');
                         break;
@@ -827,11 +839,18 @@ namespace Sweet.Jayson
                 case JaysonTypeCode.Short:
                     return ((short)obj).ToString(FormatingCulture);
                 case JaysonTypeCode.Guid:
-                    if (GuidAsByteArray)
                     {
-                        return "\"!" + Convert.ToBase64String(((Guid)obj).ToByteArray()) + "\"";
+                        Guid guid = (Guid)obj;
+                        if (GuidAsByteArray)
+                        {
+                            return "\"!" + Convert.ToBase64String(guid.ToByteArray()) + "\"";
+                        }
+                        if (guid == Guid.Empty)
+                        {
+                            return JaysonConstants.GuidEmptyStr;
+                        }
+                        return "\"" + JaysonCommon.AsciiToUpper(guid.ToString("D")) + "\"";
                     }
-                    return "\"" + JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D")) + "\"";
                 case JaysonTypeCode.IntNullable:
                     return Format(((int?)obj).Value);
                 case JaysonTypeCode.BoolNullable:
@@ -934,11 +953,18 @@ namespace Sweet.Jayson
                 case JaysonTypeCode.SByteNullable:
                     return ((sbyte?)obj).Value.ToString(FormatingCulture);
                 case JaysonTypeCode.GuidNullable:
-                    if (GuidAsByteArray)
                     {
-                        return "\"!" + Convert.ToBase64String(((Guid?)obj).Value.ToByteArray()) + "\"";
+                        Guid guid = ((Guid?)obj).Value;
+                        if (GuidAsByteArray)
+                        {
+                            return "\"!" + Convert.ToBase64String(guid.ToByteArray()) + "\"";
+                        }
+                        if (guid == Guid.Empty)
+                        {
+                            return JaysonConstants.GuidEmptyStr;
+                        }
+                        return "\"" + JaysonCommon.AsciiToUpper(guid.ToString("D")) + "\"";
                     }
-                    return "\"" + JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D")) + "\"";
                 case JaysonTypeCode.DateTimeOffset:
                     return "\"" + ((DateTimeOffset)obj).ToString(FormatingCulture) + "\"";
                 case JaysonTypeCode.DateTimeOffsetNullable:
@@ -1596,13 +1622,23 @@ namespace Sweet.Jayson
             // Do not change the check order
             if (objType == typeof(Guid))
             {
-                return JaysonCommon.AsciiToUpper(((Guid)obj).ToString("D"));
+                Guid guid = (Guid)obj;
+                if (guid == Guid.Empty)
+                {
+                    return JaysonConstants.GuidEmpty;
+                }
+                return JaysonCommon.AsciiToUpper(guid.ToString("D"));
             }
 
             // Do not change the check order
             if (objType == typeof(Guid?))
             {
-                return JaysonCommon.AsciiToUpper(((Guid?)obj).Value.ToString("D"));
+                Guid guid = ((Guid?)obj).Value;
+                if (guid == Guid.Empty)
+                {
+                    return JaysonConstants.GuidEmpty;
+                }
+                return JaysonCommon.AsciiToUpper(guid.ToString("D"));
             }
 
             // Do not change the check order

@@ -63,6 +63,9 @@ namespace Sweet.Jayson
         internal const string MicrosoftDateZero = "\"/Date(0)/\"";
         internal const string MicrosoftDateZeroEscaped = "\"\\/Date(0)\\/\"";
 
+        public const string GuidEmpty = "00000000-0000-0000-0000-000000000000";
+        public const string GuidEmptyStr = "\"" + JaysonConstants.GuidEmpty + "\"";
+
         # endregion Constants
 
         # region Static Members

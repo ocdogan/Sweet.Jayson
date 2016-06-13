@@ -122,7 +122,13 @@ namespace Sweet.Jayson
 
         protected virtual void SetDefaultValue()
         {
-            var mAttr = m_MemberInfo.GetCustomAttributes<JaysonMemberAttribute>(true)
+            var mAttr = m_MemberInfo
+#if (NET4000 || NET3500 || NET3000 || NET2000)
+                .GetCustomAttributes(typeof(JaysonMemberAttribute), true)
+                .Cast<JaysonMemberAttribute>()
+#else
+                .GetCustomAttributes<JaysonMemberAttribute>(true)
+#endif
                 .Where((attr) => !ReferenceEquals(attr.DefaultValue, null))
                 .FirstOrDefault();
 
@@ -132,7 +138,13 @@ namespace Sweet.Jayson
             }
             else
             {
-                var dAttr = m_MemberInfo.GetCustomAttributes<DefaultValueAttribute>(true)
+                var dAttr = m_MemberInfo
+#if (NET4000 || NET3500 || NET3000 || NET2000)
+                    .GetCustomAttributes(typeof(DefaultValueAttribute), true)
+                    .Cast<DefaultValueAttribute>()
+#else
+                    .GetCustomAttributes<DefaultValueAttribute>(true)
+#endif
                     .FirstOrDefault();
 
                 if (dAttr != null)
