@@ -144,6 +144,7 @@ namespace Sweet.Jayson
         private InfoItem<Type> m_ElementType = new InfoItem<Type>();
         private InfoItem<Type> m_ElementRootType = new InfoItem<Type>();
         private InfoItem<Type> m_GenericTypeDefinition = new InfoItem<Type>();
+        private InfoItem<Type> m_UnderlyingType = new InfoItem<Type>();
 
         private object m_SyncRoot;
 
@@ -574,6 +575,19 @@ namespace Sweet.Jayson
             }
         }
 
+        public Type UnderlyingType
+        {
+            get
+            {
+                if (!m_UnderlyingType.HasValue)
+                {
+                    m_UnderlyingType.Value = Nullable ? System.Nullable.GetUnderlyingType(Type) : null;
+                    m_UnderlyingType.HasValue = true;
+                }
+                return m_UnderlyingType.Value;
+            }
+        }
+
         public bool ValueType
         {
             get
@@ -721,6 +735,17 @@ namespace Sweet.Jayson
                 s_InfoCache[type] = info;
             }
             return info.TypeName[(int)nameInfo];
+        }
+
+        public static Type GetUnderlyingType(Type type)
+        {
+            JaysonTypeInfo info;
+            if (!s_InfoCache.TryGetValue(type, out info))
+            {
+                info = new JaysonTypeInfo(type);
+                s_InfoCache[type] = info;
+            }
+            return info.UnderlyingType;
         }
 
         public static bool HasDefaultJConstructor(Type type)
