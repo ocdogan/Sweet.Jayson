@@ -99,6 +99,7 @@
     <Compile Include="JaysonCommentHandling.cs" />
     <Compile Include="JaysonNull.cs" />
     <Compile Include="JaysonFormatting.cs" />
+    <Compile Include="JaysonNullable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

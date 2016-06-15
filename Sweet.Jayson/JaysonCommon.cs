@@ -1756,10 +1756,9 @@ namespace Sweet.Jayson
                                 JaysonTypeInfo uInfo = JaysonTypeInfo.GetTypeInfo(uType);
                                 if (uInfo.Enum)
                                 {
+                                    converted = true;
                                     object result = ToEnum(value, uType);
-
-                                    JaysonCtorInfo ctor = JaysonCtorInfo.GetDefaultCtorInfo(toPrimitiveType);
-                                    return ctor.New(new object[] { result });
+                                    return JaysonNullable.New(uType, result);
                                 }
                             }
                         }

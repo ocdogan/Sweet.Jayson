@@ -305,6 +305,7 @@ namespace Sweet.Jayson.Tests
                 Enum1 = TypedContainerEnum.F,
                 Enum2 = TypedContainerEnum.B | TypedContainerEnum.F,
                 Enum3 = (TypedContainerEnum)5,
+                Enum5 = TypedContainerEnum.G,
                 Guid1 = Guid.Empty,
                 Guid2 = Guid.NewGuid(),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
@@ -885,6 +886,8 @@ namespace Sweet.Jayson.Tests
         public TypedContainerEnum Enum2;
         [JaysonMember(defaultValue: (TypedContainerEnum)5)]
         public TypedContainerEnum Enum3;
+        public Nullable<TypedContainerEnum> Enum4;
+        public Nullable<TypedContainerEnum> Enum5;
         public Guid Guid1;
         public Guid Guid2;
         public Guid Guid3;
