@@ -39,6 +39,7 @@ namespace Sweet.Jayson
         private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
         public string DateTimeFormat;
+        public string DateTimeUTCFormat;
         public string DateTimeOffsetFormat;
         public string NumberFormat;
         public string TimeSpanFormat;
@@ -101,6 +102,7 @@ namespace Sweet.Jayson
             destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
             destination.DateFormatType = DateFormatType;
             destination.DateTimeFormat = DateTimeFormat;
+            destination.DateTimeUTCFormat = DateTimeUTCFormat;
             destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
             destination.DateTimeZoneType = DateTimeZoneType;
             destination.TimeSpanFormat = TimeSpanFormat;
@@ -194,7 +196,7 @@ namespace Sweet.Jayson
                 JaysonTypeOverride result;
                 while (type != null)
                 {
-                    if (!m_TypeOverrides.TryGetValue(type, out result))
+                    if (m_TypeOverrides.TryGetValue(type, out result))
                     {
                         return result;
                     }

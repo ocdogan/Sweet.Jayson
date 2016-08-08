@@ -291,53 +291,63 @@ namespace Sweet.Jayson.Tests
             };
         }
 
-        public static object GetTypedContainerDto()
+        private static TypedContainerDto SetTypedContainerDtoProperties(TypedContainerDto tcDto)
         {
-            return new TypedContainerDto
-            {
-                Address1 = new Uri("http://address1.com:9091"),
-                Address2 = new Uri("https://address2.com:9092"),
-                Double1 = 1.123456789,
-                Double2 = 0.123456789,
-                Date1 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Utc),
-                Date2 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Local),
-                Date3 = new DateTime(1972, 10, 25, 14, 36, 45),
-                Enum1 = TypedContainerEnum.F,
-                Enum2 = TypedContainerEnum.B | TypedContainerEnum.F,
-                Enum3 = (TypedContainerEnum)5,
-                Enum5 = TypedContainerEnum.G,
-                Guid1 = Guid.Empty,
-                Guid2 = Guid.NewGuid(),
-                P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
-                P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
+            tcDto.Address1 = new Uri("http://address1.com:9091");
+            tcDto.Address2 = new Uri("https://address2.com:9092");
+            tcDto.Double1 = 1.123456789;
+            tcDto.Double2 = 0.123456789;
+            tcDto.Date1 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Utc);
+            tcDto.Date2 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Local);
+            tcDto.Date3 = new DateTime(1972, 10, 25, 14, 36, 45);
+            tcDto.Enum1 = TypedContainerEnum.F;
+            tcDto.Enum2 = TypedContainerEnum.B | TypedContainerEnum.F;
+            tcDto.Enum3 = (TypedContainerEnum)5;
+            tcDto.Enum5 = TypedContainerEnum.G;
+            tcDto.Guid1 = Guid.Empty;
+            tcDto.Guid2 = Guid.NewGuid();
+            tcDto.P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true });
+            tcDto.P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 });
 #if !(NET4000 || NET3500 || NET3000 || NET2000)
-                ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
-					{"op", new List<dynamic> { "a", 1 } } }),
+            tcDto.ObjectProperty = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>{ 
+					{"op", new List<dynamic> { "a", 1 } } });
 #else
-				ObjectProperty = new Dictionary<string, object>{ 
-					{"op", new List<object> { "a", 1 } } },
+	        tcDto.ObjectProperty = new Dictionary<string, object>{ 
+					{"op", new List<object> { "a", 1 } } };
 #endif
 #if !(NET3500 || NET3000 || NET2000)
-                DynamicProperty = 12,
+            tcDto.DynamicProperty = 12;
 #endif
-                ByteArray = Encoding.UTF8.GetBytes("Hello world!"),
-                Source = new List<TextElementDto> { new TextElementDto {
+            tcDto.ByteArray = Encoding.UTF8.GetBytes("Hello world!");
+            tcDto.Source = new List<TextElementDto> { new TextElementDto {
 						ElementId = "text_1",
 						ElementType = "text",
 						// Raw nesting - won't be escaped
 						Content = new ElementContentDto { ElementId = "text_1", Content = "text goes here" },
 						Action = new ElementActionDto { ElementId = "text_2", Action = "action goes here" }
 					}
-				},
-                Destination = "Here is the destionation",
-                ObjectArrayList = new List<object[]> { 
+				};
+            tcDto.Destination = "Here is the destionation";
+            tcDto.ObjectArrayList = new List<object[]> { 
 					new object[] { 1, 3.0123456789m, "item1", new ElementContentDto { 
 							ElementId = "text_1", Content = "text goes here" } }, 
-					new object[] { 2, 3, 4, 5 } },
-                Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
-					new object[2][] { new object[] { 4, 5, 6 }, new object[] { 7, 8 } } },
-                IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } }
-            };
+					new object[] { 2, 3, 4, 5 } };
+            tcDto.Object2DArray = new object[2][][] { new object[1][] { new object[] { 1, 2, 3 } }, 
+					new object[2][] { new object[] { 4, 5, 6 }, new object[] { 7, 8 } } };
+            tcDto.IntArray2D = new int[,] { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
+            tcDto.Timestamp = DateTime.Now;
+
+            return tcDto;
+        }
+
+        public static object GetTypedContainerDto()
+        {
+            return SetTypedContainerDtoProperties(new TypedContainerDto());
+        }
+
+        public static object GetTypedContainerInheritedDto()
+        {
+            return SetTypedContainerDtoProperties(new TypedContainerInheritedDto());
         }
 
         public static object GetTypedContainerNoDto()
@@ -862,6 +872,11 @@ namespace Sweet.Jayson.Tests
         H = 64
     }
 
+    public class TypedContainerInheritedDto : TypedContainerDto
+    {
+        public DateTime? Timestamp2 { get; set; }
+    }
+
     public class TypedContainerDto
     {
         [JaysonMember("addr1")]
@@ -912,6 +927,8 @@ namespace Sweet.Jayson.Tests
         [JaysonMember("dbl2")]
         [JaysonMemberOverrideAttribute("RoundDouble", "Sweet.Jayson.Tests.MemberOverrider")]
         public double Double2 { get; set; }
+
+        public DateTime? Timestamp { get; set; }
 
         private static object RoundMinute(string memberName, object date)
         {

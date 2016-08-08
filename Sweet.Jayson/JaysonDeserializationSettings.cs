@@ -47,6 +47,7 @@ namespace Sweet.Jayson
         public SerializationBinder Binder;
 
         public string DateTimeFormat;
+        public string DateTimeUTCFormat;
         public string DateTimeOffsetFormat;
 
         public bool CaseSensitive = true;
@@ -94,6 +95,7 @@ namespace Sweet.Jayson
             destination.CommentHandling = CommentHandling;
             destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
             destination.DateTimeFormat = DateTimeFormat;
+            destination.DateTimeUTCFormat = DateTimeUTCFormat;
             destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
             destination.DateTimeZoneType = DateTimeZoneType;
             destination.DictionaryType = DictionaryType;
@@ -166,7 +168,7 @@ namespace Sweet.Jayson
                 JaysonTypeOverride result;
                 while (type != null)
                 {
-                    if (!m_TypeOverrides.TryGetValue(type, out result))
+                    if (m_TypeOverrides.TryGetValue(type, out result))
                     {
                         return result;
                     }

@@ -53,6 +53,7 @@ namespace Sweet.Jayson
 
         public readonly string NumberFormat;
         public readonly string DateTimeFormat;
+        public readonly string DateTimeUTCFormat;
         public readonly string DateTimeOffsetFormat;
         public readonly string TimeSpanFormat;
         public readonly bool ConvertDecimalToDouble;
@@ -67,14 +68,14 @@ namespace Sweet.Jayson
         # endregion Static Readonly Members
 
         public JaysonFormatter()
-            : this(null, null, JaysonDateFormatType.Iso8601, null, JaysonDateTimeZoneType.KeepAsIs,
+            : this(null, null, JaysonDateFormatType.Iso8601, null, null, JaysonDateTimeZoneType.KeepAsIs,
                 null, false, true, false, false, false)
         { }
 
         public JaysonFormatter(string numberFormat, string timeSpanFormat, JaysonDateFormatType dateFormatType,
-            string dateTimeFormat, JaysonDateTimeZoneType dateTimeZoneType, string dateTimeOffsetFormat,
-            bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, bool convertDecimalToDouble,
-            bool guidAsByteArray)
+            string dateTimeFormat, string dateTimeUTCFormat, JaysonDateTimeZoneType dateTimeZoneType, 
+            string dateTimeOffsetFormat, bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, 
+            bool convertDecimalToDouble, bool guidAsByteArray)
         {
             UseEnumNames = useEnumNames;
             EscapeChars = escapeChars;
@@ -88,10 +89,13 @@ namespace Sweet.Jayson
             NumberFormat = ((numberFormat != null && numberFormat.Length > 0) ? numberFormat : "G");
             TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat :
                 JaysonConstants.TimeSpanDefaultFormat);
+
             DateTimeFormat = ((dateTimeFormat != null && dateTimeFormat.Length > 0) ? dateTimeFormat :
                 (dateFormatType == JaysonDateFormatType.CustomUnixEpoch ? 
                     (escapeChars ? JaysonConstants.DateMicrosoftJsonFormatEscaped : JaysonConstants.DateMicrosoftJsonFormat) :
                     JaysonConstants.DateIso8601Format));
+
+            DateTimeUTCFormat = (dateTimeUTCFormat != null && dateTimeUTCFormat.Length > 0) ? dateTimeUTCFormat : DateTimeFormat;
         }
 
         # region Instance Methods
@@ -301,16 +305,16 @@ namespace Sweet.Jayson
                     break;
                 case JaysonDateFormatType.CustomDate:
                     {
-                        FormatString(dt.ToString(DateTimeFormat, FormatingCulture), builder, EscapeChars,
-                            EscapeUnicodeChars);
+                        FormatString(dt.ToString((dt.Kind == DateTimeKind.Utc) ? DateTimeUTCFormat : DateTimeFormat, FormatingCulture), 
+                            builder, EscapeChars, EscapeUnicodeChars);
                     }
                     break;
                 case JaysonDateFormatType.CustomUnixEpoch:
                     {
                         long epoc = JaysonCommon.ToUnixTimeMsec(dt);
 
-                        FormatString(epoc.ToString(DateTimeFormat, FormatingCulture), builder, EscapeChars,
-                            EscapeUnicodeChars);
+                        FormatString(epoc.ToString((dt.Kind == DateTimeKind.Utc) ? DateTimeUTCFormat : DateTimeFormat, FormatingCulture), 
+                            builder, EscapeChars, EscapeUnicodeChars);
                     }
                     break;
                 default:
@@ -500,8 +504,8 @@ namespace Sweet.Jayson
                     {
                         long epoc = JaysonCommon.ToUnixTimeMsec(dt);
 
-                        FormatString(epoc.ToString(DateTimeFormat, FormatingCulture), builder, EscapeChars,
-                            EscapeUnicodeChars);
+                        FormatString(epoc.ToString((dt.Kind == DateTimeKind.Utc) ? DateTimeUTCFormat : DateTimeFormat, FormatingCulture), 
+                            builder, EscapeChars, EscapeUnicodeChars);
                     }
                     break;
                 default:

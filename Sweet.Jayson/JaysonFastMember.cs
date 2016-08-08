@@ -97,6 +97,16 @@ namespace Sweet.Jayson
         {
             m_Name = mi.Name;
             m_MemberInfo = mi;
+
+            if (mi is PropertyInfo)
+            {
+                m_MemberType = ((PropertyInfo)mi).PropertyType;
+            }
+            else if (mi is FieldInfo)
+            {
+                m_MemberType = ((FieldInfo)mi).FieldType;
+            }
+
 #if (NET3500 || NET3000 || NET2000)
             m_IsValueType = mi.DeclaringType.IsValueType;
 #endif
@@ -147,7 +157,11 @@ namespace Sweet.Jayson
 #endif
                     .FirstOrDefault();
 
-                if (dAttr != null)
+                if (dAttr == null)
+                {
+                    m_DefaultValue = MemberType != null ? JaysonTypeInfo.GetDefault(MemberType) : null;
+                }
+                else
                 {
                     m_DefaultValue = ReferenceEquals(dAttr.Value, null) ? JaysonNull.Value : dAttr.Value;
                 }

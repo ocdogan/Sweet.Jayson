@@ -101,18 +101,10 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
+                JaysonTypeOverride overrider = GetTypeOverride(type);
+                if (overrider != null)
                 {
-                    JaysonTypeOverride overrider;
-                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        return overrider.GetMemberAlias(memberName);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                    return overrider.GetMemberAlias(memberName);
                 }
             }
             return memberName;
@@ -122,18 +114,10 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(alias))
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
+                JaysonTypeOverride overrider = GetTypeOverride(type);
+                if (overrider != null)
                 {
-                    JaysonTypeOverride overrider;
-                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        return overrider.GetAliasMember(alias);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                    return overrider.GetAliasMember(alias);
                 }
             }
             return null;
@@ -166,18 +150,10 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
+                JaysonTypeOverride overrider = GetTypeOverride(type);
+                if (overrider != null)
                 {
-                    JaysonTypeOverride overrider;
-                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        return overrider.IsMemberIgnored(memberName);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                    return overrider.IsMemberIgnored(memberName);
                 }
             }
             return false;
@@ -210,18 +186,10 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
+                JaysonTypeOverride overrider = GetTypeOverride(type);
+                if (overrider != null)
                 {
-                    JaysonTypeOverride overrider;
-                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        return overrider.GetDefaultValue(memberName);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                    return overrider.GetDefaultValue(memberName);
                 }
             }
             return null;
@@ -232,18 +200,10 @@ namespace Sweet.Jayson
             defaultValue = null;
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
+                JaysonTypeOverride overrider = GetTypeOverride(type);
+                if (overrider != null)
                 {
-                    JaysonTypeOverride overrider;
-                    if ((s_GlobalTypeOverrides.Count > 0) && s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        return overrider.TryGetDefaultValue(memberName, out defaultValue);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
+                    return overrider.TryGetDefaultValue(memberName, out defaultValue);
                 }
             }
             return false;

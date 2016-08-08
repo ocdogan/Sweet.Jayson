@@ -452,13 +452,13 @@ namespace Sweet.Jayson
                             if (ignoreDefaultValues)
                             {
                                 defaultValue = null;
-                                if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || 
-                                    ReferenceEquals(defaultValue, null))
+                                if (typeOverride == null || !typeOverride.TryGetDefaultValue(key, out defaultValue))
                                 {
                                     defaultValue = memberKvp.Value.DefaultValue;
                                 }
 
-                                if (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value))
+                                if ((ReferenceEquals(defaultValue, null) && ReferenceEquals(value, null)) ||
+                                    (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value)))
                                     continue;
                             }
 
