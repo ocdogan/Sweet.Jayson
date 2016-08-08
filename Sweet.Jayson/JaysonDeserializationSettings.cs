@@ -156,17 +156,25 @@ namespace Sweet.Jayson
 
         public JaysonTypeOverride GetTypeOverride(Type type)
         {
-            if (m_TypeOverrides == null)
+            if (type != null)
             {
-                return JaysonTypeOverrideGlobal.GetTypeOverride(type);
-            }
+                if (m_TypeOverrides == null || m_TypeOverrides.Count == 0)
+                {
+                    return JaysonTypeOverrideGlobal.GetTypeOverride(type);
+                }
 
-            JaysonTypeOverride result;
-            if (!m_TypeOverrides.TryGetValue(type, out result))
-            {
+                JaysonTypeOverride result;
+                while (type != null)
+                {
+                    if (!m_TypeOverrides.TryGetValue(type, out result))
+                    {
+                        return result;
+                    }
+                    type = type.BaseType;
+                }
                 return JaysonTypeOverrideGlobal.GetTypeOverride(type);
             }
-            return result;
+            return null;
         }
 
         public JaysonDeserializationSettings AddTypeOverride(JaysonTypeOverride typeOverride)

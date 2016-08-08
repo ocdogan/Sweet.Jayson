@@ -54,9 +54,16 @@ namespace Sweet.Jayson
                     if (s_GlobalTypeOverrides.Count > 0)
                     {
                         JaysonTypeOverride overrider;
-                        s_GlobalTypeOverrides.TryGetValue(type, out overrider);
+                        while (type != null)
+                        {
+                            if (s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                            {
+                                return overrider;
+                            }
+                            type = type.BaseType;
+                        }
 
-                        return overrider;
+                        return null;
                     }
                 }
                 finally
