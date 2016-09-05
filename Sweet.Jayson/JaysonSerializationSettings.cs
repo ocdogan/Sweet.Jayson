@@ -71,6 +71,9 @@ namespace Sweet.Jayson
 
         public int MaxObjectDepth;
 
+        public JaysonFloatSerStrategy FloatNanStrategy = JaysonFloatSerStrategy.Error;
+        public JaysonFloatSerStrategy FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
         public JaysonFormatting Formatting = JaysonFormatting.None;
         public JaysonDateFormatType DateFormatType = JaysonDateFormatType.Iso8601;
         public JaysonDateTimeZoneType DateTimeZoneType = JaysonDateTimeZoneType.KeepAsIs;
@@ -108,6 +111,8 @@ namespace Sweet.Jayson
             destination.TimeSpanFormat = TimeSpanFormat;
             destination.EscapeChars = EscapeChars;
             destination.EscapeUnicodeChars = EscapeUnicodeChars;
+            destination.FloatNanStrategy = FloatNanStrategy;
+            destination.FloatInfinityStrategy = FloatInfinityStrategy;
             destination.Formatting = Formatting;
             destination.GuidAsByteArray = GuidAsByteArray;
             destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;

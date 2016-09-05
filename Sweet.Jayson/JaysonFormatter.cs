@@ -62,6 +62,9 @@ namespace Sweet.Jayson
         public readonly bool EscapeChars;
         public readonly bool EscapeUnicodeChars;
 
+        public readonly JaysonFloatSerStrategy FloatNanStrategy;
+        public readonly JaysonFloatSerStrategy FloatInfinityStrategy;
+
         public readonly JaysonDateFormatType DateFormatType;
         public readonly JaysonDateTimeZoneType DateTimeZoneType;
 
@@ -69,13 +72,14 @@ namespace Sweet.Jayson
 
         public JaysonFormatter()
             : this(null, null, JaysonDateFormatType.Iso8601, null, null, JaysonDateTimeZoneType.KeepAsIs,
-                null, false, true, false, false, false)
+                null, false, true, false, false, false, JaysonFloatSerStrategy.Error, JaysonFloatSerStrategy.Error)
         { }
 
         public JaysonFormatter(string numberFormat, string timeSpanFormat, JaysonDateFormatType dateFormatType,
             string dateTimeFormat, string dateTimeUTCFormat, JaysonDateTimeZoneType dateTimeZoneType, 
             string dateTimeOffsetFormat, bool useEnumNames, bool escapeChars, bool escapeUnicodeChars, 
-            bool convertDecimalToDouble, bool guidAsByteArray)
+            bool convertDecimalToDouble, bool guidAsByteArray, JaysonFloatSerStrategy floatNanStrategy,
+            JaysonFloatSerStrategy floatInfinityStrategy)
         {
             UseEnumNames = useEnumNames;
             EscapeChars = escapeChars;
@@ -85,6 +89,8 @@ namespace Sweet.Jayson
             DateTimeZoneType = dateTimeZoneType;
             DateTimeOffsetFormat = dateTimeOffsetFormat;
             GuidAsByteArray = guidAsByteArray;
+            FloatNanStrategy = floatNanStrategy;
+            FloatInfinityStrategy = floatInfinityStrategy;
 
             NumberFormat = ((numberFormat != null && numberFormat.Length > 0) ? numberFormat : "G");
             TimeSpanFormat = ((timeSpanFormat != null && timeSpanFormat.Length > 0) ? timeSpanFormat :
@@ -513,6 +519,88 @@ namespace Sweet.Jayson
             }
         }
 
+        public static void Format(double d, StringBuilder builder, string numberFormat,
+            JaysonFloatSerStrategy floatNanStrategy, JaysonFloatSerStrategy floatInfinityStrategy)
+        {
+            if (double.IsNaN (d)) {
+                switch (floatNanStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    builder.Append (((double)0).ToString (numberFormat, FormatingCulture));
+                    break;
+                case JaysonFloatSerStrategy.ToNull:
+                    builder.Append (JaysonConstants.Null);
+                    break;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    builder.Append (d.ToString (numberFormat, FormatingCulture));
+                    break;
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else if (double.IsInfinity (d)) {
+                switch (floatInfinityStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    builder.Append (((double)0).ToString (numberFormat, FormatingCulture));
+                    break;
+                case JaysonFloatSerStrategy.ToNull:
+                    builder.Append (JaysonConstants.Null);
+                    break;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    builder.Append (d.ToString (numberFormat, FormatingCulture));
+                    break;
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else {
+                // if user supplied own format use it
+                builder.Append (d.ToString (numberFormat, FormatingCulture));
+            }
+        }
+
+        public static void Format(float f, StringBuilder builder, string numberFormat,  
+            JaysonFloatSerStrategy floatNanStrategy, JaysonFloatSerStrategy floatInfinityStrategy)
+        {
+            if (float.IsNaN (f)) {
+                switch (floatNanStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    builder.Append (((float)0).ToString (numberFormat, FormatingCulture));
+                    break;
+                case JaysonFloatSerStrategy.ToNull:
+                    builder.Append (JaysonConstants.Null);
+                    break;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    builder.Append (f.ToString (numberFormat, FormatingCulture));
+                    break;
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else if (float.IsInfinity (f)) {
+                switch (floatInfinityStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    builder.Append (((float)0).ToString (numberFormat, FormatingCulture));
+                    break;
+                case JaysonFloatSerStrategy.ToNull:
+                    builder.Append (JaysonConstants.Null);
+                    break;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    builder.Append (f.ToString (numberFormat, FormatingCulture));
+                    break;
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else {
+                // if user supplied own format use it
+                builder.Append (f.ToString (numberFormat, FormatingCulture));
+            }
+        }
+
         public void Format(object obj, Type objType, StringBuilder builder)
         {
             if (obj == null)
@@ -553,8 +641,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.Double:
                     {
-                        // if user supplied own format use it
-                        builder.Append(((double)obj).ToString(NumberFormat, FormatingCulture));
+                        Format((double)obj, builder, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                         break;
                     }
                 case JaysonTypeCode.Short:
@@ -584,8 +671,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.Float:
                     {
-                        // if user supplied own format use it
-                        builder.Append(((float)obj).ToString(NumberFormat, FormatingCulture));
+                        Format((float)obj, builder, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                         break;
                     }
                 case JaysonTypeCode.Decimal:
@@ -608,8 +694,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.DoubleNullable:
                     {
-                        // if user supplied own format use it
-                        builder.Append(((double?)obj).Value.ToString(NumberFormat, FormatingCulture));
+                        Format(((double?)obj).Value, builder, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                         break;
                     }
                 case JaysonTypeCode.ShortNullable:
@@ -624,8 +709,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.FloatNullable:
                     {
-                        // if user supplied own format use it
-                        builder.Append(((float?)obj).Value.ToString(NumberFormat, FormatingCulture));
+                        Format(((float?)obj).Value, builder, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                         break;
                     }
                 case JaysonTypeCode.DecimalNullable:
@@ -798,6 +882,76 @@ namespace Sweet.Jayson
             }
         }
 
+        public static string Format(double d, string numberFormat, JaysonFloatSerStrategy floatNanStrategy, 
+            JaysonFloatSerStrategy floatInfinityStrategy)
+        {
+            if (double.IsNaN (d)) {
+                switch (floatNanStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    return ((double)0).ToString (numberFormat, FormatingCulture);
+                case JaysonFloatSerStrategy.ToNull:
+                    return JaysonConstants.Null;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    return d.ToString (numberFormat, FormatingCulture);
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else if (double.IsInfinity (d)) {
+                switch (floatInfinityStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    return ((double)0).ToString (numberFormat, FormatingCulture);
+                case JaysonFloatSerStrategy.ToNull:
+                    return JaysonConstants.Null;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    return d.ToString (numberFormat, FormatingCulture);
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } 
+
+            // if user supplied own format use it
+            return d.ToString (numberFormat, FormatingCulture);
+        }
+
+        public static string Format(float f, string numberFormat, JaysonFloatSerStrategy floatNanStrategy,
+            JaysonFloatSerStrategy floatInfinityStrategy)
+        {
+            if (float.IsNaN (f)) {
+                switch (floatNanStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    return ((float)0).ToString (numberFormat, FormatingCulture);
+                case JaysonFloatSerStrategy.ToNull:
+                    return JaysonConstants.Null;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    return f.ToString (numberFormat, FormatingCulture);
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            } else if (float.IsInfinity (f)) {
+                switch (floatInfinityStrategy) {
+                case JaysonFloatSerStrategy.ToDefault:
+                    // if user supplied own format use it
+                    return ((float)0).ToString (numberFormat, FormatingCulture);
+                case JaysonFloatSerStrategy.ToNull:
+                    return JaysonConstants.Null;
+                case JaysonFloatSerStrategy.ToString:
+                    // if user supplied own format use it
+                    return f.ToString (numberFormat, FormatingCulture);
+                default:
+                    throw new JaysonException (JaysonError.NaNError);
+                }
+            }
+
+            // if user supplied own format use it
+            return f.ToString (numberFormat, FormatingCulture);
+        }
+
         public string Format(object obj, Type objType)
         {
             if (obj == null)
@@ -839,7 +993,7 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.Double:
                     // if user supplied own format use it
-                    return ((double)obj).ToString(NumberFormat, FormatingCulture);
+                    return Format((double)obj, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                 case JaysonTypeCode.Short:
                     return ((short)obj).ToString(FormatingCulture);
                 case JaysonTypeCode.Guid:
@@ -865,7 +1019,7 @@ namespace Sweet.Jayson
                     return ((byte)obj).ToString(FormatingCulture);
                 case JaysonTypeCode.Float:
                     // if user supplied own format use it
-                    return ((float)obj).ToString(NumberFormat, FormatingCulture);
+                    return Format((float)obj, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                 case JaysonTypeCode.Decimal:
                     // if user supplied own format use it
                     if (ConvertDecimalToDouble)
@@ -881,14 +1035,14 @@ namespace Sweet.Jayson
                     }
                 case JaysonTypeCode.DoubleNullable:
                     // if user supplied own format use it
-                    return ((double?)obj).Value.ToString(NumberFormat, FormatingCulture);
+                    return Format(((double?)obj).Value, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                 case JaysonTypeCode.ShortNullable:
                     return ((short?)obj).Value.ToString(FormatingCulture);
                 case JaysonTypeCode.ByteNullable:
                     return ((byte?)obj).Value.ToString(FormatingCulture);
                 case JaysonTypeCode.FloatNullable:
                     // if user supplied own format use it
-                    return ((float?)obj).Value.ToString(NumberFormat, FormatingCulture);
+                    return Format(((float?)obj).Value, NumberFormat, FloatNanStrategy, FloatInfinityStrategy);
                 case JaysonTypeCode.DecimalNullable:
                     // if user supplied own format use it
                     if (ConvertDecimalToDouble)

@@ -102,6 +102,7 @@
     <Compile Include="JaysonNullable.cs" />
     <Compile Include="JaysonTuppleT.cs" />
     <Compile Include="JaysonErrorHandler.cs" />
+    <Compile Include="JaysonFloatSerStrategy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

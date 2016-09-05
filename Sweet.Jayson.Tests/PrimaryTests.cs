@@ -50,6 +50,445 @@ namespace Sweet.Jayson.Tests
     public class PrimaryTests
     {
         [Test]
+        public static void TestDoubleNaN1a1 ()
+        {
+            var dto1 = new NaNType {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch (() => { JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestDoubleNaN1a2 ()
+        {
+            var dto1 = double.NaN;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch (() => { JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestDoubleNaN1a3 ()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch (() => { JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestDoubleNaN1a4 ()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch (() => { JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestDoubleNaN1b1 ()
+        {
+            var dto1 = new NaNType {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json.Contains ("\"D1\":"));
+            Assert.True (json.Contains ("\"D2\":"));
+            Assert.True (json.Contains ("\"D3\":"));
+            Assert.True (json.Contains ("\"F1\":"));
+            Assert.True (json.Contains ("\"F2\":"));
+            Assert.True (json.Contains ("\"F3\":"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+            Assert.AreEqual (dto2.D1, default(double));
+            Assert.AreEqual (dto2.D2, default(double));
+            Assert.AreEqual (dto2.D3, default(double));
+            Assert.AreEqual (dto2.F1, default(float));
+            Assert.AreEqual (dto2.F2, default(float));
+            Assert.AreEqual (dto2.F3, default(float));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1b2 ()
+        {
+            var dto1 = double.NaN;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "0");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1b3 ()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "0");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1b4 ()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "0");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1c1()
+        {
+            var dto1 = new NaNType {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json.Contains ("\"D1\":null"));
+            Assert.True (json.Contains ("\"D2\":null"));
+            Assert.True (json.Contains ("\"D3\":null"));
+            Assert.True (json.Contains ("\"F1\":null"));
+            Assert.True (json.Contains ("\"F2\":null"));
+            Assert.True (json.Contains ("\"F3\":null"));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+            Assert.AreEqual (dto2.D1, default(double));
+            Assert.AreEqual (dto2.D2, default(double));
+            Assert.AreEqual (dto2.D3, default(double));
+            Assert.AreEqual (dto2.F1, default(float));
+            Assert.AreEqual (dto2.F2, default(float));
+            Assert.AreEqual (dto2.F3, default(float));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1c2 ()
+        {
+            var dto1 = double.NaN;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1c3 ()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1c4 ()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1d1 ()
+        {
+            var dto1 = new NaNType {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "{}");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+            Assert.AreEqual (dto2.D1, default (double));
+            Assert.AreEqual (dto2.D2, default (double));
+            Assert.AreEqual (dto2.D3, default (double));
+            Assert.AreEqual (dto2.F1, default (float));
+            Assert.AreEqual (dto2.F2, default (float));
+            Assert.AreEqual (dto2.F3, default (float));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1d2 ()
+        {
+            var dto1 = double.NaN;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1d3 ()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1d4 ()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "null");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, default (double));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1e1()
+        {
+            var dto1 = new NaNType {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json.Contains ("\"D1\":\"NaN\""));
+            Assert.True (json.Contains ("\"D2\":\"Infinity\""));
+            Assert.True (json.Contains ("\"D3\":\"-Infinity\""));
+            Assert.True (json.Contains ("\"F1\":\"NaN\""));
+            Assert.True (json.Contains ("\"F2\":\"Infinity\""));
+            Assert.True (json.Contains ("\"F3\":\"-Infinity\""));
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+            Assert.IsTrue (double.IsNaN (dto2.D1));
+            Assert.IsTrue (double.IsPositiveInfinity (dto2.D2));
+            Assert.IsTrue (double.IsNegativeInfinity (dto2.D3));
+            Assert.IsTrue (float.IsNaN (dto2.F1));
+            Assert.IsTrue (float.IsPositiveInfinity (dto2.F2));
+            Assert.IsTrue (float.IsNegativeInfinity (dto2.F3));
+        }
+
+        [Test]
+        public static void TestDoubleNaN1e2 ()
+        {
+            var dto1 = double.NaN;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "\"NaN\"");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, double.NaN);
+        }
+
+        [Test]
+        public static void TestDoubleNaN1e3 ()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "\"Infinity\"");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, double.PositiveInfinity);
+        }
+
+        [Test]
+        public static void TestDoubleNaN1e4 ()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            JaysonSerializationSettings jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            string json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            Assert.True (json == "\"-Infinity\"");
+
+            JaysonDeserializationSettings jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            Assert.AreEqual (dto2, double.NegativeInfinity);
+        }
+
+
+        [Test]
         public static void TestInheritedOverridenTypes1a()
         {
             var dto1 = TestClasses.GetTypedContainerInheritedDto() as TypedContainerDto;

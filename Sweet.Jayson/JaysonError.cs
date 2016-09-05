@@ -57,5 +57,7 @@ namespace Sweet.Jayson
         public const string MissingMember = "Missing member: ";
         public const string MissingMembers = "Missing members.";
         public const string UnableToCastResult = "Unable to cast result to expected type.";
+        public const string NaNError = "Unable to serialize a NaN value.";
+        public const string InfinityError = "Unable to serialize an Infinity|-Infinity value.";
     }
 }

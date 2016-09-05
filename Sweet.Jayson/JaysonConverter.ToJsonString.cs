@@ -736,7 +736,7 @@ namespace Sweet.Jayson
         private static bool WriteProperty(string propertyName, object value, Type expectedValueType,
             JaysonSerializationContext context, bool isFirst, bool forceNullValues = false)
         {
-            if ((value != null) && (value != DBNull.Value))
+            if (!JaysonCommon.IsNull (value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
                 StringBuilder builder = context.Builder;
                 JaysonSerializationSettings settings = context.Settings;
@@ -774,7 +774,7 @@ namespace Sweet.Jayson
 
                 if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
                 {
-                    context.Formatter.Format(value, valueType, context.Builder);
+                    Format(value, valueType, context.Builder, settings, context.Formatter);
                     return false; // isFirst
                 }
 
@@ -797,7 +797,7 @@ namespace Sweet.Jayson
                     try
                     {
                         typeWritten = WritePrimitiveTypeName(valueType, context);
-                        context.Formatter.Format(value, valueType, builder);
+                        Format(value, valueType, builder, settings, context.Formatter);
                     }
                     finally
                     {
@@ -811,7 +811,7 @@ namespace Sweet.Jayson
                     return false; // isFirst
                 }
 
-                context.Formatter.Format(value, valueType, context.Builder);
+                Format(value, valueType, context.Builder, settings, context.Formatter);
                 return false; // isFirst
             }
             else if (forceNullValues || !context.Settings.IgnoreNullValues)
@@ -845,7 +845,7 @@ namespace Sweet.Jayson
         private static bool WriteKeyValueEntry(string key, object value, Type expectedValueType, JaysonSerializationContext context,
             bool isFirst, bool forceNullValues = false, bool ignoreEscape = false)
         {
-            if ((value != null) && (value != DBNull.Value))
+            if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
                 StringBuilder builder = context.Builder;
                 JaysonSerializationSettings settings = context.Settings;
@@ -883,7 +883,7 @@ namespace Sweet.Jayson
 
                 if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
                 {
-                    context.Formatter.Format(value, valueType, context.Builder);
+                    Format(value, valueType, context.Builder, settings, context.Formatter);
                     return false; // isFirst
                 }
 
@@ -906,7 +906,7 @@ namespace Sweet.Jayson
                     try
                     {
                         typeWritten = WritePrimitiveTypeName(valueType, context);
-                        context.Formatter.Format(value, valueType, builder);
+                        Format(value, valueType, builder, settings, context.Formatter);
                     }
                     finally
                     {
@@ -920,7 +920,7 @@ namespace Sweet.Jayson
                     return false; // isFirst
                 }
 
-                context.Formatter.Format(value, valueType, context.Builder);
+                Format(value, valueType, context.Builder, settings, context.Formatter);
                 return false; // isFirst
             }
             else if (forceNullValues || !context.Settings.IgnoreNullValues)
@@ -962,7 +962,7 @@ namespace Sweet.Jayson
 
         private static bool WriteEnumerableValue(object value, JaysonSerializationContext context, bool isFirst)
         {
-            if ((value != null) && (value != DBNull.Value))
+            if (!JaysonCommon.IsNull (value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
                 Type valueType = value.GetType();
                 if (CanWriteJsonObject(value, valueType, context))
@@ -1094,7 +1094,7 @@ namespace Sweet.Jayson
                                     columnInfo = columnsInfo[j];
                                     cellValue = dataRow[columnInfo.Item1];
 
-                                    if (cellValue == null || cellValue == DBNull.Value)
+                                    if (JaysonCommon.IsNull (cellValue, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
                                     {
                                         builder.Append(JaysonConstants.Null);
                                     }
@@ -3241,7 +3241,7 @@ namespace Sweet.Jayson
                 {
                     item = obj.GetValue(i);
 
-                    if (item == null || item == DBNull.Value)
+                    if (JaysonCommon.IsNull (item, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
                     {
                         if (!ignoreNullValues)
                         {
@@ -3839,6 +3839,18 @@ namespace Sweet.Jayson
                 return !context.Settings.IgnoreNullValues;
             }
 
+            if (obj is double) {
+                var d = (double)obj;
+                return !((double.IsNaN (d) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                         (double.IsInfinity (d) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
+            }
+
+            if (obj is float) {
+                var f = (float)obj;
+                return !((float.IsNaN (f) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                         (float.IsInfinity (f) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
+            }
+
             if (context.Stack.Contains(obj))
             {
                 return context.Settings.UseObjectReferencing ||
@@ -3846,6 +3858,76 @@ namespace Sweet.Jayson
             }
 
             return true;
+        }
+
+        private static void Format(object obj, Type objType, StringBuilder builder, JaysonSerializationSettings settings, 
+            JaysonFormatter formatter)
+        {
+            if (objType == typeof (double)) {
+                var d = (double)obj;
+                if (double.IsNaN (d)) {
+                    switch (settings.FloatNanStrategy) {
+                    case JaysonFloatSerStrategy.ToNull:
+                        builder.Append (JaysonConstants.Null);
+                        return;
+                    case JaysonFloatSerStrategy.ToString:
+                        builder.Append ('"');
+                        builder.Append (d.ToString ());
+                        builder.Append ('"');
+
+                        return;
+                    case JaysonFloatSerStrategy.Error:
+                        throw new JaysonException (JaysonError.NaNError);
+                    }
+                } else if (double.IsInfinity (d)) {
+                    switch (settings.FloatInfinityStrategy) {
+                    case JaysonFloatSerStrategy.ToNull:
+                        builder.Append (JaysonConstants.Null);
+                        return;
+                    case JaysonFloatSerStrategy.ToString:
+                        builder.Append ('"');
+                        builder.Append (d.ToString ());
+                        builder.Append ('"');
+
+                        return;
+                    case JaysonFloatSerStrategy.Error:
+                        throw new JaysonException (JaysonError.NaNError);
+                    }
+                }
+            } else if (objType == typeof (float)) {
+                var f = (float)obj;
+                if (float.IsNaN (f)) {
+                    switch (settings.FloatNanStrategy) {
+                    case JaysonFloatSerStrategy.ToNull:
+                        builder.Append (JaysonConstants.Null);
+                        return;
+                    case JaysonFloatSerStrategy.ToString:
+                        builder.Append ('"');
+                        builder.Append (f.ToString ());
+                        builder.Append ('"');
+
+                        return;
+                    case JaysonFloatSerStrategy.Error:
+                        throw new JaysonException (JaysonError.NaNError);
+                    }
+                } else if (float.IsInfinity (f)) {
+                    switch (settings.FloatInfinityStrategy) {
+                    case JaysonFloatSerStrategy.ToNull:
+                        builder.Append (JaysonConstants.Null);
+                        return;
+                    case JaysonFloatSerStrategy.ToString:
+                        builder.Append ('"');
+                        builder.Append (f.ToString ());
+                        builder.Append ('"');
+
+                        return;
+                    case JaysonFloatSerStrategy.Error:
+                        throw new JaysonException (JaysonError.NaNError);
+                    }
+                }
+            }
+
+            formatter.Format(obj, objType, builder);
         }
 
         private static void WriteJsonObject(object obj, Type objType, Type expectedObjType, JaysonSerializationContext context)
@@ -3867,7 +3949,7 @@ namespace Sweet.Jayson
 
                 if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
                 {
-                    context.Formatter.Format(obj, objType, context.Builder);
+                    Format(obj, objType, context.Builder, context.Settings, context.Formatter);
                     return;
                 }
 
@@ -3886,7 +3968,7 @@ namespace Sweet.Jayson
                     try
                     {
                         typeWritten = WritePrimitiveTypeName(objType, context);
-                        context.Formatter.Format(obj, objType, builder);
+                        Format(obj, objType, builder, context.Settings, context.Formatter);
                     }
                     finally
                     {
@@ -3903,7 +3985,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                context.Formatter.Format(obj, objType, context.Builder);
+                Format(obj, objType, context.Builder, context.Settings, context.Formatter);
                 return;
             }
 
@@ -4243,7 +4325,9 @@ namespace Sweet.Jayson
                 escapeChars: settings.EscapeChars,
                 escapeUnicodeChars: settings.EscapeUnicodeChars,
                 convertDecimalToDouble: settings.ConvertDecimalToDouble,
-                guidAsByteArray: settings.GuidAsByteArray
+                guidAsByteArray: settings.GuidAsByteArray,
+                floatNanStrategy: settings.FloatNanStrategy,
+                floatInfinityStrategy: settings.FloatInfinityStrategy
             );
 
             Type objType = obj.GetType();
@@ -4253,7 +4337,7 @@ namespace Sweet.Jayson
 
                 if (settings.TypeNames == JaysonTypeNameSerialization.None)
                 {
-                    formatter.Format(obj, objType, builder);
+                    Format(obj, objType, builder, settings, formatter);
                     return builder;
                 }
 

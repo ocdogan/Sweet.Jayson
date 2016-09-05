@@ -2979,6 +2979,26 @@ namespace Sweet.Jayson
             return JaysonDictionaryType.Undefined;
         }
 
+        public static bool IsNull (object value, JaysonFloatSerStrategy floatNanStrategy,
+            JaysonFloatSerStrategy floatInfinityStrategy)
+        {
+            if ((value == null) || (value == DBNull.Value))
+                return true;
+
+            if (value is double) {
+                var d = (double)value;
+                return (double.IsNaN (d) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                    (double.IsInfinity (d) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
+            }
+
+            if (value is float) {
+                var f = (float)value;
+                return (float.IsNaN (f) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                    (float.IsInfinity (f) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
+            }
+            return false;
+        }
+
         # endregion Helper Methods
     }
 }

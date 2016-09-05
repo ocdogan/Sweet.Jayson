@@ -1098,6 +1098,16 @@ namespace Sweet.Jayson.Tests
         Female
     }
 
+    public class NaNType
+    {
+        public double D1;
+        public double D2;
+        public double D3;
+        public float F1;
+        public float F2;
+        public float F3;
+    }
+
     [Serializable]
     public class colclass
     {
