@@ -63,6 +63,7 @@ namespace Sweet.Jayson
         public DictionaryDeserializationType DictionaryType = DictionaryDeserializationType.Dictionary;
         public JaysonCommentHandling CommentHandling = JaysonCommentHandling.Ignore;
 
+        public JaysonDeSerErrorHandler ErrorHandler;
         public JaysonObjectActivator ObjectActivator;
         public JaysonCtorParamMatcher CtorParamMatcher;
 
@@ -99,6 +100,7 @@ namespace Sweet.Jayson
             destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
             destination.DateTimeZoneType = DateTimeZoneType;
             destination.DictionaryType = DictionaryType;
+            destination.ErrorHandler = ErrorHandler;
             destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
             destination.MaxObjectDepth = MaxObjectDepth;
             destination.ObjectActivator = ObjectActivator;

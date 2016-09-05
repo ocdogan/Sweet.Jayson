@@ -1009,51 +1009,66 @@ namespace Sweet.Jayson
                     existingValues = new Dictionary<string, bool>();
                 }
 
+                var errorHandler = context.Settings.ErrorHandler;
+
                 foreach (var entry in obj)
                 {
-                    memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
-                    if (!hasSkeyword || !(memberName == "$type" || memberName == "$id" || memberName == "$ref"))
+                    try
                     {
-                        if (!members.TryGetValue(memberName, out member) && (typeOverride != null))
+                        memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
+                        if (!hasSkeyword || !(memberName == "$type" || memberName == "$id" || memberName == "$ref"))
                         {
-                            memberName = typeOverride.GetAliasMember(memberName);
-                            if (!String.IsNullOrEmpty(memberName))
+                            if (!members.TryGetValue(memberName, out member) && (typeOverride != null))
                             {
-                                if (!caseSensitive)
+                                memberName = typeOverride.GetAliasMember(memberName);
+                                if (!String.IsNullOrEmpty(memberName))
                                 {
-                                    memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
-                                }
-                                members.TryGetValue(memberName, out member);
-                            }
-                        }
-
-                        if (member != null)
-                        {
-                            if (existingValues != null)
-                            {
-                                existingValues[member.Name] = true;
-                            }
-
-                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
-                            {
-                                if (member.CanWrite)
-                                {
-                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
-                                }
-                                else if (entry.Value != null)
-                                {
-                                    memberValue = member.Get(instance);
-                                    if (instance != null)
+                                    if (!caseSensitive)
                                     {
-                                        SetObject(memberValue, entry.Value, context);
+                                        memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
+                                    }
+                                    members.TryGetValue(memberName, out member);
+                                }
+                            }
+
+                            if (member != null)
+                            {
+                                if (existingValues != null)
+                                {
+                                    existingValues[member.Name] = true;
+                                }
+
+                                if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
+                                {
+                                    if (member.CanWrite)
+                                    {
+                                        member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    }
+                                    else if (entry.Value != null)
+                                    {
+                                        memberValue = member.Get(instance);
+                                        if (instance != null)
+                                        {
+                                            SetObject(memberValue, entry.Value, context);
+                                        }
                                     }
                                 }
                             }
+                            else if (raiseErrorOnMissingMember)
+                            {
+                                throw new JaysonException(JaysonError.MissingMember + entry.Key);
+                            }
                         }
-                        else if (raiseErrorOnMissingMember)
-                        {
-                            throw new JaysonException(JaysonError.MissingMember + entry.Key);
-                        }
+                    } 
+                    catch (Exception e) 
+                    {
+                        if (errorHandler == null)
+                            throw;
+
+                        bool handled;
+                        errorHandler(instance, entry.Key, e, out handled);
+                        if (!handled)
+                            throw;
                     }
                 }
 
@@ -1065,28 +1080,41 @@ namespace Sweet.Jayson
 
                     foreach (var memberKvp in members)
                     {
-                        if (memberKvp.Value.CanWrite)
+                        try
                         {
-                            key = memberKvp.Key;
-                            if (!existingValues.ContainsKey(key))
+                            if (memberKvp.Value.CanWrite)
                             {
-                                defaultValue = null;
-                                member = memberKvp.Value;
-
-                                if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                key = memberKvp.Key;
+                                if (!existingValues.ContainsKey(key))
                                 {
-                                    defaultValue = member.DefaultValue;
-                                }
+                                    defaultValue = null;
+                                    member = memberKvp.Value;
 
-                                if (defaultValue != null)
-                                {
-                                    value = member.Get(instance);
-									if (!defaultValue.Equals(value))
+                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
                                     {
-                                        member.Set(ref instance, defaultValue);
+                                        defaultValue = member.DefaultValue;
+                                    }
+
+                                    if (defaultValue != null)
+                                    {
+                                        value = member.Get(instance);
+    									if (!defaultValue.Equals(value))
+                                        {
+                                            member.Set(ref instance, defaultValue);
+                                        }
                                     }
                                 }
                             }
+                        } 
+                        catch (Exception e) 
+                        {
+                            if (errorHandler == null)
+                                throw;
+
+                            bool handled;
+                            errorHandler(instance, memberKvp.Key, e, out handled);
+                            if (!handled)
+                                throw;
                         }
                     }
                 }
@@ -1181,45 +1209,60 @@ namespace Sweet.Jayson
                 JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
                 bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
 
+                var errorHandler = context.Settings.ErrorHandler;
+
                 foreach (var entry in obj)
                 {
-                    if (!hasSkeyword || !(entry.Key == "$type" || entry.Key == "$id" || entry.Key == "$ref"))
+                    try
                     {
-                        key = entry.Key;
-
-                        memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                        if (!members.TryGetValue(memberName, out member) && typeOverride != null)
+                        if (!hasSkeyword || !(entry.Key == "$type" || entry.Key == "$id" || entry.Key == "$ref"))
                         {
-                            key = typeOverride.GetAliasMember(key);
-                            if (!String.IsNullOrEmpty(key))
-                            {
-                                memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                                members.TryGetValue(memberName, out member);
-                            }
-                        }
+                            key = entry.Key;
 
-                        if (member != null)
-                        {
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                            memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                            if (!members.TryGetValue(memberName, out member) && typeOverride != null)
                             {
-                                if (member.CanWrite)
+                                key = typeOverride.GetAliasMember(key);    
+                                if (!String.IsNullOrEmpty(key))
                                 {
-                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
+                                    members.TryGetValue(memberName, out member);
                                 }
-                                else if (entry.Value != null)
+                            }
+
+                            if (member != null)
+                            {
+                                if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
                                 {
-                                    memberValue = member.Get(instance);
-                                    if (instance != null)
+                                    if (member.CanWrite)
                                     {
-                                        SetObject(memberValue, entry.Value, context);
+                                        member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    }
+                                    else if (entry.Value != null)
+                                    {
+                                        memberValue = member.Get(instance);
+                                        if (instance != null)
+                                        {
+                                            SetObject(memberValue, entry.Value, context);
+                                        }
                                     }
                                 }
                             }
+                            else if (raiseErrorOnMissingMember)
+                            {
+                                throw new JaysonException(JaysonError.MissingMember + entry.Key);    
+                            }
                         }
-                        else if (raiseErrorOnMissingMember)
-                        {
-                            throw new JaysonException(JaysonError.MissingMember + entry.Key);
-                        }
+                    } 
+                    catch (Exception e) 
+                    {
+                        if (errorHandler == null)
+                            throw;
+
+                        bool handled;
+                        errorHandler(instance, entry.Key, e, out handled);
+                        if (!handled)
+                            throw;
                     }
                 }
             }
