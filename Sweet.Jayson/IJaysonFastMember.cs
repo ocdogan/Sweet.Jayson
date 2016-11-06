@@ -33,9 +33,13 @@ namespace Sweet.Jayson
         JaysonFastMemberType Type { get; }
         Type MemberType { get; }
 
+        string Alias { get; }
         string Name { get; }
-        string NameLower { get; }
+
+        bool Ignored { get; }
+
         object DefaultValue { get; }
+        bool HasDefaultAttribute { get; }
 
         bool CanRead { get; }
         bool CanWrite { get; }
@@ -44,6 +48,8 @@ namespace Sweet.Jayson
 
         bool BackingField { get; }
         bool AnonymousField { get; }
+
+        JaysonMemberAttribute[] MemberAttributes { get; }
 
         object Get(object instance);
         void Set(ref object instance, object value);
