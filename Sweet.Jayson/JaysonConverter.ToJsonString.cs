@@ -70,7 +70,7 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
@@ -108,7 +108,7 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
@@ -151,7 +151,7 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
@@ -218,7 +218,7 @@ namespace Sweet.Jayson
 
                 var settings = context.Settings;
 
-                StringBuilder builder = context.Builder;
+                var builder = context.Builder;
                 if (settings.Formatting != JaysonFormatting.None)
                 {
                     builder.Append('{');
@@ -279,7 +279,7 @@ namespace Sweet.Jayson
                                 return false;
                             }
 
-                            Type objType = obj.GetType();
+                            var objType = obj.GetType();
 
                             if (objType != context.CurrentType &&
                                 objType != JaysonConstants.DefaultDictionaryType)
@@ -296,7 +296,7 @@ namespace Sweet.Jayson
                                 return false;
                             }
 
-                            Type objType = obj.GetType();
+                            var objType = obj.GetType();
                             if (context.SkipCurrentType
                                 && context.CurrentType == objType)
                             {
@@ -314,7 +314,7 @@ namespace Sweet.Jayson
                                 return false;
                             }
 
-                            Type objType = obj.GetType();
+                            var objType = obj.GetType();
                             JaysonTypeInfo info = JaysonTypeInfo.GetTypeInfo(objType);
 
                             if (!info.JPrimitive)
@@ -418,7 +418,7 @@ namespace Sweet.Jayson
                                 return false;
                             }
 
-                            Type objType = obj.GetType();
+                            var objType = obj.GetType();
 
                             if (objType != context.CurrentType &&
                                 objType != JaysonConstants.DefaultListType)
@@ -443,7 +443,7 @@ namespace Sweet.Jayson
                                 return false;
                             }
 
-                            Type objType = obj.GetType();
+                            var objType = obj.GetType();
 
                             if (context.SkipCurrentType &&
                                 context.CurrentType == objType)
@@ -566,7 +566,7 @@ namespace Sweet.Jayson
 
         private static void WriteObjectRefence(int id, JaysonSerializationContext context)
         {
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (context.Settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
@@ -587,7 +587,7 @@ namespace Sweet.Jayson
 
         private static void WriteListObjectId(int id, JaysonSerializationContext context)
         {
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (context.Settings.Formatting != JaysonFormatting.None)
             {
                 builder.Append('{');
@@ -613,9 +613,9 @@ namespace Sweet.Jayson
             referenced = false;
             if (context.Settings.UseObjectReferencing)
             {
-                StringBuilder builder = context.Builder;
+                var builder = context.Builder;
 
-                int id = context.ReferenceMap.GetObjectId(obj, out referenced);
+                var id = context.ReferenceMap.GetObjectId(obj, out referenced);
                 if (context.Settings.Formatting != JaysonFormatting.None)
                 {
                     if (!isFirst)
@@ -648,13 +648,12 @@ namespace Sweet.Jayson
 
         private static bool ValidObjectDepth(JaysonSerializationContext context)
         {
-            if (context.Settings.MaxObjectDepth > 0 &&
-                context.ObjectDepth > context.Settings.MaxObjectDepth)
+            var settings = context.Settings;
+            if ((settings.MaxObjectDepth > 0) && (context.ObjectDepth > settings.MaxObjectDepth))
             {
-                if (context.Settings.RaiseErrorOnMaxObjectDepth)
+                if (settings.RaiseErrorOnMaxObjectDepth)
                 {
-                    throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
-                        context.Settings.MaxObjectDepth));
+                    throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed, settings.MaxObjectDepth));
                 }
                 return false;
             }
@@ -663,12 +662,11 @@ namespace Sweet.Jayson
 
         private static bool ValidObjectDepth(int currDepth, int maxDepth, bool raiseError)
         {
-            if (maxDepth > 0 && currDepth > maxDepth)
+            if ((maxDepth > 0) && (currDepth > maxDepth))
             {
                 if (raiseError)
                 {
-                    throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed,
-                        maxDepth));
+                    throw new JaysonException(String.Format(JaysonError.MaximumObjectDepthExceed, maxDepth));
                 }
                 return false;
             }
@@ -679,7 +677,7 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             if (!isFirst)
             {
                 builder.Append(',');
@@ -725,7 +723,7 @@ namespace Sweet.Jayson
         {
             WriteKeyFast(key, context, isFirst);
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
 
             builder.Append('"');
             builder.Append(value);
@@ -736,10 +734,10 @@ namespace Sweet.Jayson
         private static bool WriteProperty(string propertyName, object value, Type expectedValueType,
             JaysonSerializationContext context, bool isFirst, bool forceNullValues = false)
         {
-            if (!JaysonCommon.IsNull (value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
+            if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
-                StringBuilder builder = context.Builder;
-                JaysonSerializationSettings settings = context.Settings;
+                var builder = context.Builder;
+                var settings = context.Settings;
 
                 if (settings.IgnoreEmptyCollections)
                 {
@@ -792,7 +790,7 @@ namespace Sweet.Jayson
                         (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
                         (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
                 {
-                    bool typeWritten = false;
+                    var typeWritten = false;
                     context.ObjectDepth++;
                     try
                     {
@@ -814,10 +812,11 @@ namespace Sweet.Jayson
                 Format(value, valueType, context.Builder, settings, context.Formatter);
                 return false; // isFirst
             }
-            else if (forceNullValues || !context.Settings.IgnoreNullValues)
+            
+            if (forceNullValues || !context.Settings.IgnoreNullValues)
             {
-                StringBuilder builder = context.Builder;
-                JaysonSerializationSettings settings = context.Settings;
+                var builder = context.Builder;
+                var settings = context.Settings;
 
                 if (!isFirst)
                 {
@@ -847,8 +846,8 @@ namespace Sweet.Jayson
         {
             if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
-                StringBuilder builder = context.Builder;
-                JaysonSerializationSettings settings = context.Settings;
+                var builder = context.Builder;
+                var settings = context.Settings;
 
                 if (!isFirst)
                 {
@@ -901,7 +900,7 @@ namespace Sweet.Jayson
                         (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
                         (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
                 {
-                    bool typeWritten = false;
+                    var typeWritten = false;
                     context.ObjectDepth++;
                     try
                     {
@@ -923,10 +922,11 @@ namespace Sweet.Jayson
                 Format(value, valueType, context.Builder, settings, context.Formatter);
                 return false; // isFirst
             }
-            else if (forceNullValues || !context.Settings.IgnoreNullValues)
+
+            if (forceNullValues || !context.Settings.IgnoreNullValues)
             {
-                StringBuilder builder = context.Builder;
-                JaysonSerializationSettings settings = context.Settings;
+                var builder = context.Builder;
+                var settings = context.Settings;
 
                 if (!isFirst)
                 {
@@ -962,7 +962,7 @@ namespace Sweet.Jayson
 
         private static bool WriteEnumerableValue(object value, JaysonSerializationContext context, bool isFirst)
         {
-            if (!JaysonCommon.IsNull (value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
+            if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
             {
                 Type valueType = value.GetType();
                 if (CanWriteJsonObject(value, valueType, context))
@@ -999,10 +999,10 @@ namespace Sweet.Jayson
             var rows = dataTable.Rows;
             if (rows.Count > 0)
             {
-                JaysonSerializationSettings settings = context.Settings;
-                bool formatting = settings.Formatting != JaysonFormatting.None;
+                var settings = context.Settings;
+                var formatting = settings.Formatting != JaysonFormatting.None;
 
-                StringBuilder builder = context.Builder;
+                var builder = context.Builder;
                 if (formatting)
                 {
                     builder.Append(',');
@@ -1028,7 +1028,7 @@ namespace Sweet.Jayson
                     }
                 }
 
-                int builderLen = builder.Length;
+                var builderLen = builder.Length;
 
                 context.ObjectDepth++;
                 try
@@ -1039,12 +1039,12 @@ namespace Sweet.Jayson
                     }
 
                     DataColumn dataColumn;
-                    DataColumnCollection columns = dataTable.Columns;
+                    var columns = dataTable.Columns;
 
-                    int colCount = columns.Count;
-                    List<JaysonTuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<JaysonTuple<DataColumn, JaysonTypeInfo>>();
+                    var colCount = columns.Count;
+                    var columnsInfo = new List<JaysonTuple<DataColumn, JaysonTypeInfo>>();
 
-                    for (int i = 0; i < colCount; i++)
+                    for (var i = 0; i < colCount; i++)
                     {
                         dataColumn = columns[i];
                         columnsInfo.Add(new JaysonTuple<DataColumn, JaysonTypeInfo>(dataColumn,
@@ -1053,19 +1053,19 @@ namespace Sweet.Jayson
 
                     DataRow dataRow;
                     object cellValue;
-                    int rowCount = rows.Count;
 
                     JaysonTypeCode colTypeCode;
                     JaysonTuple<DataColumn, JaysonTypeInfo> columnInfo;
 
-                    JaysonFormatter formatter = context.Formatter;
-                    bool escapeChars = settings.EscapeChars;
-                    bool escapeUnicodeChars = settings.EscapeUnicodeChars;
+                    var rowCount = rows.Count;
+                    var formatter = context.Formatter;
+                    var escapeChars = settings.EscapeChars;
+                    var escapeUnicodeChars = settings.EscapeUnicodeChars;
 
                     context.ObjectDepth++;
                     try
                     {
-                        for (int i = 0; i < rowCount; i++)
+                        for (var i = 0; i < rowCount; i++)
                         {
                             if (i > 0)
                             {
@@ -1080,7 +1080,7 @@ namespace Sweet.Jayson
                             try
                             {
                                 dataRow = rows[i];
-                                for (int j = 0; j < colCount; j++)
+                                for (var j = 0; j < colCount; j++)
                                 {
                                     if (j > 0)
                                     {
@@ -1094,7 +1094,7 @@ namespace Sweet.Jayson
                                     columnInfo = columnsInfo[j];
                                     cellValue = dataRow[columnInfo.Item1];
 
-                                    if (JaysonCommon.IsNull (cellValue, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
+                                    if (JaysonCommon.IsNull(cellValue, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
                                     {
                                         builder.Append(JaysonConstants.Null);
                                     }
@@ -1173,10 +1173,10 @@ namespace Sweet.Jayson
             }
 
             var settings = context.Settings;
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
-            StringBuilder builder = context.Builder;
-            JaysonFormatter formatter = context.Formatter;
+            var builder = context.Builder;
+            var formatter = context.Formatter;
 
             if (!isFirst)
             {
@@ -1203,7 +1203,7 @@ namespace Sweet.Jayson
                 builder.Append(":[");
             }
 
-            int builderLen = builder.Length;
+            var builderLen = builder.Length;
 
             context.ObjectDepth++;
             try
@@ -1214,9 +1214,9 @@ namespace Sweet.Jayson
                 }
 
                 DataColumn column;
-                int columnCount = columns.Length;
+                var columnCount = columns.Length;
 
-                for (int i = 0; i < columnCount; i++)
+                for (var i = 0; i < columnCount; i++)
                 {
                     if (i > 0)
                     {
@@ -1253,14 +1253,14 @@ namespace Sweet.Jayson
         private static void WriteDataColumns(DataTable dataTable, JaysonSerializationContext context)
         {
             var columns = dataTable.Columns;
-            int columnCount = columns.Count;
+            var columnCount = columns.Count;
 
             if (columnCount > 0)
             {
-                JaysonSerializationSettings settings = context.Settings;
-                bool formatting = settings.Formatting != JaysonFormatting.None;
+                var settings = context.Settings;
+                var formatting = settings.Formatting != JaysonFormatting.None;
 
-                StringBuilder builder = context.Builder;
+                var builder = context.Builder;
                 if (formatting)
                 {
                     builder.Append(',');
@@ -1286,7 +1286,7 @@ namespace Sweet.Jayson
                     }
                 }
 
-                int builderLen = builder.Length;
+                var builderLen = builder.Length;
 
                 context.ObjectDepth++;
                 try
@@ -1298,7 +1298,7 @@ namespace Sweet.Jayson
 
                     bool isFirst;
                     DataColumn column;
-                    string defaultNamespace = dataTable.Namespace;
+                    var defaultNamespace = dataTable.Namespace;
 
                     int iValue;
                     bool bValue;
@@ -1306,7 +1306,7 @@ namespace Sweet.Jayson
                     string sValue;
                     MappingType mValue;
 
-                    for (int i = 0; i < columnCount; i++)
+                    for (var i = 0; i < columnCount; i++)
                     {
                         if (i > 0)
                         {
@@ -1443,10 +1443,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(dataTable, context);
+                var isFirst = !WriteObjectType(dataTable, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -1465,19 +1465,20 @@ namespace Sweet.Jayson
                 }
 
                 isFirst = WriteKeyValueEntry("$dt", "Tbl", null, context, isFirst);
-                bool bValue = dataTable.CaseSensitive;
+                
+                var bValue = dataTable.CaseSensitive;
                 if (bValue)
                 {
                     isFirst = WriteKeyValueEntryFast("Cs", bValue, context, isFirst);
                 }
 
-                string sValue = dataTable.DisplayExpression;
+                var sValue = dataTable.DisplayExpression;
                 if (!String.IsNullOrEmpty(sValue))
                 {
                     isFirst = WriteProperty("De", sValue, null, context, isFirst);
                 }
 
-                CultureInfo cValue = dataTable.Locale;
+                var cValue = dataTable.Locale;
                 if (!ReferenceEquals(cValue, CultureInfo.InvariantCulture))
                 {
                     isFirst = WriteKeyValueEntryFast("Lcl", cValue.Name, context, isFirst);
@@ -1533,11 +1534,11 @@ namespace Sweet.Jayson
                 return isFirst;
             }
 
-            int relationCount = relations.Count;
+            var relationCount = relations.Count;
 
-            StringBuilder builder = context.Builder;
-            JaysonSerializationSettings settings = context.Settings;
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var builder = context.Builder;
+            var settings = context.Settings;
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
             if (!isFirst)
             {
@@ -1567,7 +1568,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            int builderLen = builder.Length;
+            var builderLen = builder.Length;
 
             context.ObjectDepth++;
             try
@@ -1580,14 +1581,14 @@ namespace Sweet.Jayson
                 bool bValue;
                 string sValue;
                 DataTable dValue;
-
                 DataRelation relation;
-                string defaultNamespace = dataSet.Namespace;
+
+                var defaultNamespace = dataSet.Namespace;
 
                 context.ObjectDepth++;
                 try
                 {
-                    for (int i = 0; i < relationCount; i++)
+                    for (var i = 0; i < relationCount; i++)
                     {
                         if (i > 0)
                         {
@@ -1686,11 +1687,11 @@ namespace Sweet.Jayson
                 return isFirst;
             }
 
-            int tableCount = tables.Count;
+            var tableCount = tables.Count;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             var settings = context.Settings;
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
             if (!isFirst)
             {
@@ -1720,7 +1721,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            int builderLen = builder.Length;
+            var builderLen = builder.Length;
 
             context.ObjectDepth++;
             try
@@ -1730,7 +1731,7 @@ namespace Sweet.Jayson
                     return false; // isFirst
                 }
 
-                for (int i = 0; i < tableCount; i++)
+                for (var i = 0; i < tableCount; i++)
                 {
                     if (i > 0)
                     {
@@ -1759,13 +1760,13 @@ namespace Sweet.Jayson
         private static void WriteDataSet(DataSet dataSet, JaysonSerializationContext context)
         {
             var settings = context.Settings;
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(dataSet, context);
+                var isFirst = !WriteObjectType(dataSet, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -1784,13 +1785,14 @@ namespace Sweet.Jayson
                 }
 
                 isFirst = WriteKeyValueEntry("$dt", "Ds", null, context, isFirst);
-                bool bValue = dataSet.CaseSensitive;
+                
+                var bValue = dataSet.CaseSensitive;
                 if (bValue)
                 {
                     isFirst = WriteKeyValueEntryFast("Cs", bValue, context, isFirst);
                 }
 
-                string sValue = dataSet.DataSetName;
+                var sValue = dataSet.DataSetName;
                 if (!String.IsNullOrEmpty(sValue))
                 {
                     isFirst = WriteProperty("Dsn", sValue, null, context, isFirst);
@@ -1802,7 +1804,7 @@ namespace Sweet.Jayson
                     isFirst = WriteKeyValueEntryFast("Ec", bValue, context, isFirst);
                 }
 
-                CultureInfo cValue = dataSet.Locale;
+                var cValue = dataSet.Locale;
                 if (!ReferenceEquals(cValue, CultureInfo.InvariantCulture))
                 {
                     isFirst = WriteKeyValueEntryFast("Lcl", cValue.Name, context, isFirst);
@@ -1862,10 +1864,10 @@ namespace Sweet.Jayson
             object value;
             object keyObj;
 
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
+            var settings = context.Settings;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (DictionaryEntry dEntry in source)
             {
@@ -1879,7 +1881,7 @@ namespace Sweet.Jayson
                     value = filter(key, value);
                 }
 
-                if ((value != null) || !ignoreNullValues)
+                if ((value != null) || !settings.IgnoreNullValues)
                 {
                     yield return new JaysonKeyValue<object, object> { Key = keyObj, Value = value };
                 }
@@ -1891,10 +1893,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType((object)obj, context);
+                var isFirst = !WriteObjectType((object)obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -1928,10 +1930,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType((object)obj, context);
+                var isFirst = !WriteObjectType((object)obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -1951,11 +1953,13 @@ namespace Sweet.Jayson
 
                 isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
                     typeof(string), context, isFirst);
+
                 if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
                 {
                     isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly),
                         typeof(string), context, isFirst);
                 }
+
                 isFirst = WriteKeyValueEntry("MemberName", obj.Name, typeof(string), context, isFirst);
             }
             finally
@@ -1971,10 +1975,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType((object)obj, context);
+                var isFirst = !WriteObjectType((object)obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2008,10 +2012,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType((object)obj, context);
+                var isFirst = !WriteObjectType((object)obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2031,17 +2035,18 @@ namespace Sweet.Jayson
 
                 isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
                     typeof(string), context, isFirst);
+
                 if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
                 {
                     isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly),
                         typeof(string), context, isFirst);
                 }
 
-                ParameterInfo[] parameters = obj.GetParameters();
+                var parameters = obj.GetParameters();
                 if (parameters != null && parameters.Length > 0)
                 {
                     Type[] parameterTypes = new Type[parameters.Length];
-                    for (int i = parameters.Length - 1; i > -1; i--)
+                    for (var i = parameters.Length - 1; i > -1; i--)
                     {
                         parameterTypes[i] = parameters[i].ParameterType;
                     }
@@ -2062,10 +2067,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType((object)obj, context);
+                var isFirst = !WriteObjectType((object)obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2085,18 +2090,20 @@ namespace Sweet.Jayson
 
                 isFirst = WriteKeyValueEntry("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly),
                     typeof(string), context, isFirst);
+
                 if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
                 {
                     isFirst = WriteKeyValueEntry("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly),
                         typeof(string), context, isFirst);
                 }
+
                 isFirst = WriteKeyValueEntry("MemberName", obj.Name, typeof(string), context, isFirst);
 
-                ParameterInfo[] parameters = obj.GetParameters();
+                var parameters = obj.GetParameters();
                 if (parameters != null && parameters.Length > 0)
                 {
                     Type[] parameterTypes = new Type[parameters.Length];
-                    for (int i = parameters.Length - 1; i > -1; i--)
+                    for (var i = parameters.Length - 1; i > -1; i--)
                     {
                         parameterTypes[i] = parameters[i].ParameterType;
                     }
@@ -2115,14 +2122,13 @@ namespace Sweet.Jayson
         private static void WriteDictionaryObject(IDictionary obj, Type keyType, Type valueType, JaysonSerializationContext context)
         {
             var settings = context.Settings;
-            
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(obj, context);
+                var isFirst = !WriteObjectType(obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2151,7 +2157,7 @@ namespace Sweet.Jayson
                         WriteIndent(context);
                     }
 
-                    int builderLen = 0;
+                    var builderLen = 0;
 
                     context.ObjectDepth++;
                     try
@@ -2170,7 +2176,7 @@ namespace Sweet.Jayson
                         context.ObjectDepth++;
                         try
                         {
-                            bool isFirstItem = true;
+                            var isFirstItem = true;
 
                             if (context.Settings.OrderNames)
                             {
@@ -2211,8 +2217,8 @@ namespace Sweet.Jayson
                                 object value;
                                 object keyObj;
 
-                                Func<string, object, object> filter = context.Filter;
-                                bool canFilter = (filter != null);
+                                var filter = context.Filter;
+                                var canFilter = (filter != null);
 
                                 foreach (DictionaryEntry dEntry in obj)
                                 {
@@ -2287,10 +2293,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(obj, context);
+                var isFirst = !WriteObjectType(obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2328,8 +2334,8 @@ namespace Sweet.Jayson
                     {
                         object value;
 
-                        Func<string, object, object> filter = context.Filter;
-                        bool canFilter = (filter != null);
+                        var filter = context.Filter;
+                        var canFilter = (filter != null);
 
                         foreach (DictionaryEntry dEntry in obj)
                         {
@@ -2363,10 +2369,11 @@ namespace Sweet.Jayson
             string key;
             object value;
             object keyObj;
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var settings = context.Settings;
+
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (DictionaryEntry dEntry in source)
             {
@@ -2380,7 +2387,7 @@ namespace Sweet.Jayson
                     value = filter(key, value);
                 }
 
-                if ((value != null) || !ignoreNullValues)
+                if ((value != null) || !settings.IgnoreNullValues)
                 {
                     yield return new JaysonKeyValue<string, object> { Key = key, Value = value };
                 }
@@ -2392,10 +2399,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(obj, context);
+                var isFirst = !WriteObjectType(obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2428,8 +2435,8 @@ namespace Sweet.Jayson
                         object value;
                         object keyObj;
 
-                        Func<string, object, object> filter = context.Filter;
-                        bool canFilter = (filter != null);
+                        var filter = context.Filter;
+                        var canFilter = (filter != null);
 
                         foreach (DictionaryEntry dEntry in obj)
                         {
@@ -2461,10 +2468,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(obj, context);
+                var isFirst = !WriteObjectType(obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2484,7 +2491,7 @@ namespace Sweet.Jayson
 
                 if (obj.Count > 0)
                 {
-                    string[] keys = obj.AllKeys;
+                    var keys = obj.AllKeys;
                     if (settings.OrderNames)
                     {
                         keys = keys.OrderBy(_key => _key).ToArray();
@@ -2493,11 +2500,11 @@ namespace Sweet.Jayson
                     string key;
                     object value;
 
-                    Func<string, object, object> filter = context.Filter;
-                    bool canFilter = (filter != null);
+                    var filter = context.Filter;
+                    var canFilter = (filter != null);
 
-                    int len = keys.Length;
-                    for (int i = 0; i < len; i++)
+                    var len = keys.Length;
+                    for (var i = 0; i < len; i++)
                     {
                         key = keys[i];
                         value = obj[key];
@@ -2525,12 +2532,12 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                Type objType = obj.GetType();
+                var objType = obj.GetType();
 
-                bool isFirst = !WriteObjectType(objType, context);
+                var isFirst = !WriteObjectType(objType, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2552,32 +2559,26 @@ namespace Sweet.Jayson
                 object value;
                 string aliasKey;
 
-                Func<string, object, object> filter = context.Filter;
-                bool canFilter = (filter != null);
+                var filter = context.Filter;
+                var canFilter = (filter != null);
 
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                var typeOverride = settings.GetTypeOverride(objType);
 
-                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
-
-                var fastDict = JaysonFastMemberCache.GetMembers(objType);
-                if (fastDict.Count > 0)
+                var members = JaysonFastMemberCache.GetMembers(objType);
+                if ((members != null) && (members.Length > 0))
                 {
-                    IEnumerable<KeyValuePair<string, IJaysonFastMember>> members = fastDict;
-                    if (context.Settings.OrderNames)
+                    foreach (var member in members)
                     {
-                        members = members.OrderBy(kvp => kvp.Key);
-                    }
-
-                    bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
-
-                    foreach (var memberKvp in members)
-                    {
-                        if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+                        if ((!settings.IgnoreReadOnlyMembers || member.CanWrite) &&
+                            !(member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                             (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                             (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property))))
                         {
-                            key = memberKvp.Key;
+                            key = member.Name;
+
                             if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                             {
-                                value = memberKvp.Value.Get(obj);
+                                value = member.Get(obj);
 
                                 if ((value != null) && canFilter)
                                 {
@@ -2593,7 +2594,7 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                if (ignoreEmptyCollections)
+                                if (settings.IgnoreEmptyCollections)
                                 {
                                     var collection = value as ICollection;
                                     if ((collection != null) && (collection.Count == 0))
@@ -2602,20 +2603,20 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                context.CurrentType = memberKvp.Value.MemberType;
+                                context.CurrentType = member.MemberType;
                                 isFirst = WriteProperty(key, value, null, context, isFirst);
                             }
                         }
                     }
                 }
 
-                IEnumerable<string> memberNames = obj.GetDynamicMemberNames();
+                var memberNames = obj.GetDynamicMemberNames();
                 if (context.Settings.OrderNames)
                 {
                     memberNames = memberNames.OrderBy(name => name);
                 }
 
-                JaysonDynamicWrapper dObj = new JaysonDynamicWrapper((IDynamicMetaObjectProvider)obj);
+                var dObj = new JaysonDynamicWrapper((IDynamicMetaObjectProvider)obj);
 
                 foreach (var dKey in memberNames)
                 {
@@ -2638,7 +2639,7 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        if (ignoreEmptyCollections)
+                        if (settings.IgnoreEmptyCollections)
                         {
                             var collection = value as ICollection;
                             if ((collection != null) && (collection.Count == 0))
@@ -2665,10 +2666,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(objType, context);
+                var isFirst = !WriteObjectType(objType, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2686,47 +2687,42 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                var fastDict = JaysonFastMemberCache.GetMembers(objType);
-                if (fastDict.Count > 0)
+                var members = JaysonFastMemberCache.GetMembers(objType);
+                if ((members != null) && (members.Length > 0))
                 {
                     string key;
                     object value;
                     string aliasKey;
 
-                    Func<string, object, object> filter = context.Filter;
-                    bool canFilter = (filter != null);
-
-                    IEnumerable<KeyValuePair<string, IJaysonFastMember>> members = fastDict;
-                    if (context.Settings.OrderNames)
-                    {
-                        members = members.OrderBy(kvp => kvp.Key);
-                    }
+                    var filter = context.Filter;
+                    var canFilter = (filter != null);
 
                     object defaultValue;
-                    bool ignoreDefaultValues = settings.IgnoreDefaultValues;
-                    bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
-                    bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
 
-                    JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                    var typeOverride = settings.GetTypeOverride(objType);
 
-                    foreach (var memberKvp in members)
+                    foreach (var member in members)
                     {
-                        if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+                        if ((!settings.IgnoreReadOnlyMembers || member.CanWrite) &&
+                            !(member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                             (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                             (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property))))
                         {
-                            key = memberKvp.Key;
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
-                            {
-                                value = memberKvp.Value.Get(obj);
+                            key = member.Name;
 
-                                if (ignoreDefaultValues)
+                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(key))
+                            {
+                                value = member.Get(obj);
+
+                                if (settings.IgnoreDefaultValues)
                                 {
                                     defaultValue = null;
                                     if (typeOverride == null || !typeOverride.TryGetDefaultValue(key, out defaultValue))
                                     {
-                                        defaultValue = memberKvp.Value.DefaultValue;
+                                        defaultValue = member.DefaultValue;
                                     }
-                                        
-                                    if ((ReferenceEquals(defaultValue, null) && ReferenceEquals(value, null)) || 
+
+                                    if ((ReferenceEquals(defaultValue, null) && ReferenceEquals(value, null)) ||
                                         (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value)))
                                         continue;
                                 }
@@ -2745,7 +2741,7 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                if (ignoreEmptyCollections)
+                                if (settings.IgnoreEmptyCollections)
                                 {
                                     var collection = value as ICollection;
                                     if ((collection != null) && (collection.Count == 0))
@@ -2754,7 +2750,7 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                context.CurrentType = memberKvp.Value.MemberType;
+                                context.CurrentType = member.MemberType;
                                 isFirst = WriteProperty(key, value, null, context, isFirst);
                             }
                         }
@@ -2779,10 +2775,10 @@ namespace Sweet.Jayson
             }
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(objType, context);
+                var isFirst = !WriteObjectType(objType, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2800,7 +2796,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+                var info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
                 obj.GetObjectData(info, context.StreamingContext);
 
                 if (info.MemberCount > 0)
@@ -2809,10 +2805,10 @@ namespace Sweet.Jayson
                     object value;
                     string aliasKey;
 
-                    Func<string, object, object> filter = context.Filter;
-                    bool canFilter = (filter != null);
+                    var filter = context.Filter;
+                    var canFilter = (filter != null);
 
-                    JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                    var typeOverride = settings.GetTypeOverride(objType);
 
                     foreach (SerializationEntry se in info)
                     {
@@ -2854,10 +2850,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(objType, context);
+                var isFirst = !WriteObjectType(objType, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -2875,7 +2871,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+                var info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
                 obj.GetObjectData(info, context.StreamingContext);
 
                 if (info.MemberCount > 0)
@@ -2885,7 +2881,7 @@ namespace Sweet.Jayson
                         builder.Append(',');
                     }
 
-                    bool formatting = settings.Formatting != JaysonFormatting.None;
+                    var formatting = settings.Formatting != JaysonFormatting.None;
                     if (formatting)
                     {
                         WriteIndent(context);
@@ -2903,17 +2899,17 @@ namespace Sweet.Jayson
                         builder.Append("\"$ctx\":[");
                     }
 
-                    int builderLen = builder.Length;
+                    var builderLen = builder.Length;
                     try
                     {
                         string key;
                         object value;
                         string aliasKey;
 
-                        Func<string, object, object> filter = context.Filter;
-                        bool canFilter = (filter != null);
+                        var filter = context.Filter;
+                        var canFilter = (filter != null);
 
-                        JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                        var typeOverride = settings.GetTypeOverride(objType);
 
                         var isFirstItem = true;
 
@@ -2939,8 +2935,6 @@ namespace Sweet.Jayson
                                 }
 
                                 context.CurrentType = null;
-                                // isFirst = WriteProperty(key, value, null, context, isFirst, true);
-                                // isFirst = WriteKeyValueEntry(key, value, null, context, isFirst, true);
 
                                 if (!isFirstItem)
                                 {
@@ -2996,10 +2990,10 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
-                bool isFirst = !WriteObjectType(obj, context);
+                var isFirst = !WriteObjectType(obj, context);
                 if (isFirst)
                 {
                     builder.Append('{');
@@ -3022,13 +3016,13 @@ namespace Sweet.Jayson
                     string key;
                     object value;
 #if !(NET3500 || NET3000 || NET2000)
-                    bool isExpando = obj is ExpandoObject;
+                    var isExpando = obj is ExpandoObject;
 #else
 					bool isExpando = false;
 #endif
 
-                    Func<string, object, object> filter = context.Filter;
-                    bool canFilter = (filter != null);
+                    var filter = context.Filter;
+                    var canFilter = (filter != null);
 
                     IEnumerable<KeyValuePair<string, object>> eDict = obj;
                     if (settings.OrderNames)
@@ -3081,10 +3075,10 @@ namespace Sweet.Jayson
         private static void WriteByteArray(byte[] obj, JaysonSerializationContext context)
         {
             context.ObjectDepth++;
-            bool typeWritten = WriteByteArrayType(context);
+            var typeWritten = WriteByteArrayType(context);
 
-            bool formatting = context.Settings.Formatting != JaysonFormatting.None;
-            StringBuilder builder = context.Builder;
+            var formatting = context.Settings.Formatting != JaysonFormatting.None;
+            var builder = context.Builder;
             try
             {
                 if (typeWritten)
@@ -3120,10 +3114,10 @@ namespace Sweet.Jayson
         static void WriteDBNullArray(JaysonSerializationContext context, int length)
         {
             context.ObjectDepth++;
-            bool objectStarted = WriteListType(typeof(DBNull[]), context);
+            var objectStarted = WriteListType(typeof(DBNull[]), context);
 
-            bool formatting = context.Settings.Formatting != JaysonFormatting.None;
-            StringBuilder builder = context.Builder;
+            var formatting = context.Settings.Formatting != JaysonFormatting.None;
+            var builder = context.Builder;
             try
             {
                 if (!objectStarted)
@@ -3146,9 +3140,9 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                int objectDepth = context.ObjectDepth;
+                var objectDepth = context.ObjectDepth;
 
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (i == 0)
                     {
@@ -3206,11 +3200,11 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            bool objectStarted = WriteListTypeAndId(obj, context);
+            var objectStarted = WriteListTypeAndId(obj, context);
 
-            int builderLen = 0;
-            StringBuilder builder = context.Builder;
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var builderLen = 0;
+            var builder = context.Builder;
+            var formatting = settings.Formatting != JaysonFormatting.None;
             try
             {
                 if (!objectStarted)
@@ -3229,21 +3223,21 @@ namespace Sweet.Jayson
 
                 builderLen = builder.Length;
 
-                int objectDepth = context.ObjectDepth;
-                JaysonFormatter formatter = context.Formatter;
-                bool ignoreNullValues = settings.IgnoreNullValues;
-
                 object item;
-                bool isFirst = true;
+
+                var isFirst = true;
                 var objLen = obj.Length;
 
-                for (int i = 0; i < objLen; i++)
+                var objectDepth = context.ObjectDepth;
+                var formatter = context.Formatter;
+
+                for (var i = 0; i < objLen; i++)
                 {
                     item = obj.GetValue(i);
 
-                    if (JaysonCommon.IsNull (item, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
+                    if (JaysonCommon.IsNull(item, settings.FloatNanStrategy, settings.FloatInfinityStrategy))
                     {
-                        if (!ignoreNullValues)
+                        if (!settings.IgnoreNullValues)
                         {
                             if (isFirst)
                             {
@@ -3322,13 +3316,13 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            int length = rankLengths[currRank];
-            bool formatting = settings.Formatting != JaysonFormatting.None;
+            var length = rankLengths[currRank];
+            var formatting = settings.Formatting != JaysonFormatting.None;
 
-            int builderLen = 0;
+            var builderLen = 0;
 
             context.ObjectDepth++;
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
                 if (currRank > 0)
@@ -3343,8 +3337,8 @@ namespace Sweet.Jayson
 
                 builderLen = builder.Length;
 
-                bool isFirstInner = true;
-                for (int i = 0; i < length; i++)
+                var isFirstInner = true;
+                for (var i = 0; i < length; i++)
                 {
                     rankIndices[currRank] = i;
 
@@ -3388,15 +3382,15 @@ namespace Sweet.Jayson
         {
             var settings = context.Settings;
 
-            bool isRoot = context.ObjectDepth == 0;
+            var isRoot = context.ObjectDepth == 0;
 
             context.ObjectDepth++;
-            bool objectStarted = WriteListTypeAndId(obj, context);
+            var objectStarted = WriteListTypeAndId(obj, context);
 
-            int builderLen = 0;
+            var builderLen = 0;
 
-            bool isEmpty = true;
-            StringBuilder builder = context.Builder;
+            var isEmpty = true;
+            var builder = context.Builder;
             try
             {
                 if (!objectStarted)
@@ -3412,10 +3406,10 @@ namespace Sweet.Jayson
 
                 builderLen = builder.Length;
 
-                int rank = obj.Rank;
-                int[] rankLengths = new int[rank];
+                var rank = obj.Rank;
+                var rankLengths = new int[rank];
 
-                for (int i = 0; i < rank; i++)
+                for (var i = 0; i < rank; i++)
                 {
                     rankLengths[i] = obj.GetLength(i);
                     if (isEmpty)
@@ -3430,7 +3424,7 @@ namespace Sweet.Jayson
             {
                 if (!objectStarted)
                 {
-                    if (settings.Formatting != JaysonFormatting.None && 
+                    if (settings.Formatting != JaysonFormatting.None &&
                         !isEmpty && (builder.Length > builderLen))
                     {
                         WriteIndent(context);
@@ -3463,9 +3457,9 @@ namespace Sweet.Jayson
         private static void WriteEmptyArray(Array obj, Type objType, JaysonSerializationContext context)
         {
             context.ObjectDepth++;
-            bool objectStarted = WriteListTypeAndId(obj, context);
+            var objectStarted = WriteListTypeAndId(obj, context);
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
                 if (!objectStarted)
@@ -3485,10 +3479,6 @@ namespace Sweet.Jayson
                 builder.Append(']');
                 if (objectStarted)
                 {
-                    /* if (context.Settings.Formatting != JaysonFormatting.None)
-                    {
-                        WriteIndent(context);
-                    } */
                     builder.Append('}');
                 }
             }
@@ -3502,14 +3492,14 @@ namespace Sweet.Jayson
                 return;
             }
 
-            int length = obj.Length;
+            var length = obj.Length;
             if (length == 0)
             {
                 WriteEmptyArray(obj, objType, context);
                 return;
             }
 
-            Type arrayType = JaysonTypeInfo.GetElementType(objType);
+            var arrayType = JaysonTypeInfo.GetElementType(objType);
             if (arrayType == typeof(byte))
             {
                 WriteByteArray((byte[])obj, context);
@@ -3537,11 +3527,11 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            bool objectStarted = WriteListTypeAndId(obj, context);
+            var objectStarted = WriteListTypeAndId(obj, context);
 
-            int builderLen = 0;
+            var builderLen = 0;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
                 if (!objectStarted)
@@ -3563,8 +3553,8 @@ namespace Sweet.Jayson
                 var count = obj.Count;
                 if (count > 0)
                 {
-                    bool isFirst = true;
-                    for (int i = 0; i < count; i++)
+                    var isFirst = true;
+                    for (var i = 0; i < count; i++)
                     {
                         isFirst = WriteEnumerableValue(obj[i], context, isFirst);
                     }
@@ -3608,10 +3598,11 @@ namespace Sweet.Jayson
             string key;
             object value;
             object keyObj;
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var settings = context.Settings;
+
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (DictionaryEntry dEntry in source)
             {
@@ -3625,7 +3616,7 @@ namespace Sweet.Jayson
                     value = filter(key, value);
                 }
 
-                if ((value != null) || !ignoreNullValues)
+                if ((value != null) || !settings.IgnoreNullValues)
                 {
                     yield return new JaysonKeyValue<string, object> { Key = key, Value = value };
                 }
@@ -3637,11 +3628,11 @@ namespace Sweet.Jayson
             var settings = context.Settings;
 
             context.ObjectDepth++;
-            bool objectStarted = WriteListTypeAndId(obj, context);
+            var objectStarted = WriteListTypeAndId(obj, context);
 
-            int builderLen = 0;
+            var builderLen = 0;
 
-            StringBuilder builder = context.Builder;
+            var builder = context.Builder;
             try
             {
                 if (!objectStarted)
@@ -3662,7 +3653,7 @@ namespace Sweet.Jayson
 
                 if (!isEmpty)
                 {
-                    bool isFirst = true;
+                    var isFirst = true;
 
                     Type entryType;
                     JaysonDictionaryType dType = JaysonCommon.GetDictionaryType(obj, out entryType);
@@ -3686,8 +3677,8 @@ namespace Sweet.Jayson
                                 object keyObj;
                                 DictionaryEntry dEntry;
 
-                                Func<string, object, object> filter = context.Filter;
-                                bool canFilter = (filter != null);
+                                var filter = context.Filter;
+                                var canFilter = (filter != null);
 
                                 while (enumerator.MoveNext())
                                 {
@@ -3709,46 +3700,48 @@ namespace Sweet.Jayson
                         }
                         else if (dType == JaysonDictionaryType.IGenericDictionary)
                         {
-                            IJaysonFastMember keyFm;
-                            IJaysonFastMember valueFm;
-
-                            IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(entryType);
-
-                            if (members.TryGetValue("Key", out keyFm) && members.TryGetValue("Value", out valueFm))
+                            var cache = JaysonFastMemberCache.GetCache(entryType);
+                            if (cache != null)
                             {
-                                string key;
-                                object value;
-                                object keyObj;
-
-                                Func<string, object, object> filter = context.Filter;
-                                bool canFilter = (filter != null);
-
-                                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
-
-                                while (enumerator.MoveNext())
+                                var keyFm = cache.GetAnyMember("Key");
+                                if (keyFm != null)
                                 {
-                                    keyObj = keyFm.Get(enumerator.Current);
-                                    if (keyObj != null)
+                                    var valueFm = cache.GetAnyMember("Value");
+                                    if (valueFm != null)
                                     {
-                                        key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
-                                        value = valueFm.Get(enumerator.Current);
+                                        string key;
+                                        object value;
+                                        object keyObj;
 
-                                        if ((value != null) && canFilter)
-                                        {
-                                            value = filter(key, value);
-                                        }
+                                        var filter = context.Filter;
+                                        var canFilter = (filter != null);
 
-                                        if (ignoreEmptyCollections)
+                                        while (enumerator.MoveNext())
                                         {
-                                            var collection = value as ICollection;
-                                            if ((collection != null) && (collection.Count == 0))
+                                            keyObj = keyFm.Get(enumerator.Current);
+                                            if (keyObj != null)
                                             {
-                                                continue;
+                                                key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+                                                value = valueFm.Get(enumerator.Current);
+
+                                                if ((value != null) && canFilter)
+                                                {
+                                                    value = filter(key, value);
+                                                }
+
+                                                if (settings.IgnoreEmptyCollections)
+                                                {
+                                                    var collection = value as ICollection;
+                                                    if ((collection != null) && (collection.Count == 0))
+                                                    {
+                                                        continue;
+                                                    }
+                                                }
+
+                                                context.CurrentType = valueFm.MemberType;
+                                                isFirst = WriteKeyValueEntry(key, value, null, context, isFirst);
                                             }
                                         }
-
-                                        context.CurrentType = valueFm.MemberType;
-                                        isFirst = WriteKeyValueEntry(key, value, null, context, isFirst);
                                     }
                                 }
                             }
@@ -3839,16 +3832,18 @@ namespace Sweet.Jayson
                 return !context.Settings.IgnoreNullValues;
             }
 
-            if (obj is double) {
+            if (obj is double)
+            {
                 var d = (double)obj;
-                return !((double.IsNaN (d) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
-                         (double.IsInfinity (d) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
+                return !((double.IsNaN(d) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                         (double.IsInfinity(d) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
             }
 
-            if (obj is float) {
+            if (obj is float)
+            {
                 var f = (float)obj;
-                return !((float.IsNaN (f) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
-                         (float.IsInfinity (f) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
+                return !((float.IsNaN(f) && context.Settings.FloatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                         (float.IsInfinity(f) && context.Settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToNull));
             }
 
             if (context.Stack.Contains(obj))
@@ -3860,69 +3855,82 @@ namespace Sweet.Jayson
             return true;
         }
 
-        private static void Format(object obj, Type objType, StringBuilder builder, JaysonSerializationSettings settings, 
+        private static void Format(object obj, Type objType, StringBuilder builder, JaysonSerializationSettings settings,
             JaysonFormatter formatter)
         {
-            if (objType == typeof (double)) {
+            if (objType == typeof(double))
+            {
                 var d = (double)obj;
-                if (double.IsNaN (d)) {
-                    switch (settings.FloatNanStrategy) {
-                    case JaysonFloatSerStrategy.ToNull:
-                        builder.Append (JaysonConstants.Null);
-                        return;
-                    case JaysonFloatSerStrategy.ToString:
-                        builder.Append ('"');
-                        builder.Append (d.ToString ());
-                        builder.Append ('"');
+                if (double.IsNaN(d))
+                {
+                    switch (settings.FloatNanStrategy)
+                    {
+                        case JaysonFloatSerStrategy.ToNull:
+                            builder.Append(JaysonConstants.Null);
+                            return;
+                        case JaysonFloatSerStrategy.ToString:
+                            builder.Append('"');
+                            builder.Append(d.ToString());
+                            builder.Append('"');
 
-                        return;
-                    case JaysonFloatSerStrategy.Error:
-                        throw new JaysonException (JaysonError.NaNError);
-                    }
-                } else if (double.IsInfinity (d)) {
-                    switch (settings.FloatInfinityStrategy) {
-                    case JaysonFloatSerStrategy.ToNull:
-                        builder.Append (JaysonConstants.Null);
-                        return;
-                    case JaysonFloatSerStrategy.ToString:
-                        builder.Append ('"');
-                        builder.Append (d.ToString ());
-                        builder.Append ('"');
-
-                        return;
-                    case JaysonFloatSerStrategy.Error:
-                        throw new JaysonException (JaysonError.NaNError);
+                            return;
+                        case JaysonFloatSerStrategy.Error:
+                            throw new JaysonException(JaysonError.NaNError);
                     }
                 }
-            } else if (objType == typeof (float)) {
-                var f = (float)obj;
-                if (float.IsNaN (f)) {
-                    switch (settings.FloatNanStrategy) {
-                    case JaysonFloatSerStrategy.ToNull:
-                        builder.Append (JaysonConstants.Null);
-                        return;
-                    case JaysonFloatSerStrategy.ToString:
-                        builder.Append ('"');
-                        builder.Append (f.ToString ());
-                        builder.Append ('"');
+                else if (double.IsInfinity(d))
+                {
+                    switch (settings.FloatInfinityStrategy)
+                    {
+                        case JaysonFloatSerStrategy.ToNull:
+                            builder.Append(JaysonConstants.Null);
+                            return;
+                        case JaysonFloatSerStrategy.ToString:
+                            builder.Append('"');
+                            builder.Append(d.ToString());
+                            builder.Append('"');
 
-                        return;
-                    case JaysonFloatSerStrategy.Error:
-                        throw new JaysonException (JaysonError.NaNError);
+                            return;
+                        case JaysonFloatSerStrategy.Error:
+                            throw new JaysonException(JaysonError.NaNError);
                     }
-                } else if (float.IsInfinity (f)) {
-                    switch (settings.FloatInfinityStrategy) {
-                    case JaysonFloatSerStrategy.ToNull:
-                        builder.Append (JaysonConstants.Null);
-                        return;
-                    case JaysonFloatSerStrategy.ToString:
-                        builder.Append ('"');
-                        builder.Append (f.ToString ());
-                        builder.Append ('"');
+                }
+            }
+            else if (objType == typeof(float))
+            {
+                var f = (float)obj;
+                if (float.IsNaN(f))
+                {
+                    switch (settings.FloatNanStrategy)
+                    {
+                        case JaysonFloatSerStrategy.ToNull:
+                            builder.Append(JaysonConstants.Null);
+                            return;
+                        case JaysonFloatSerStrategy.ToString:
+                            builder.Append('"');
+                            builder.Append(f.ToString());
+                            builder.Append('"');
 
-                        return;
-                    case JaysonFloatSerStrategy.Error:
-                        throw new JaysonException (JaysonError.NaNError);
+                            return;
+                        case JaysonFloatSerStrategy.Error:
+                            throw new JaysonException(JaysonError.NaNError);
+                    }
+                }
+                else if (float.IsInfinity(f))
+                {
+                    switch (settings.FloatInfinityStrategy)
+                    {
+                        case JaysonFloatSerStrategy.ToNull:
+                            builder.Append(JaysonConstants.Null);
+                            return;
+                        case JaysonFloatSerStrategy.ToString:
+                            builder.Append('"');
+                            builder.Append(f.ToString());
+                            builder.Append('"');
+
+                            return;
+                        case JaysonFloatSerStrategy.Error:
+                            throw new JaysonException(JaysonError.NaNError);
                     }
                 }
             }
@@ -3945,7 +3953,7 @@ namespace Sweet.Jayson
 
             if (info.JPrimitive)
             {
-                JaysonTypeCode jtc = info.JTypeCode;
+                var jtc = info.JTypeCode;
 
                 if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
                 {
@@ -3961,9 +3969,9 @@ namespace Sweet.Jayson
                         (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
                         (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
                 {
-                    StringBuilder builder = context.Builder;
+                    var builder = context.Builder;
 
-                    bool typeWritten = false;
+                    var typeWritten = false;
                     context.ObjectDepth++;
                     try
                     {
@@ -4035,14 +4043,14 @@ namespace Sweet.Jayson
 
             try
             {
-                JaysonSerializationSettings settings = context.Settings;
-                JaysonTypeSerializationType serializationType = info.SerializationType;
+                var settings = context.Settings;
+                var serializationType = info.SerializationType;
 
                 switch (serializationType)
                 {
                     case JaysonTypeSerializationType.Enum:
                         {
-                            StringBuilder builder = context.Builder;
+                            var builder = context.Builder;
 
                             builder.Append('"');
                             builder.Append(context.Settings.UseEnumNames ? JaysonEnumCache.GetName((Enum)obj) : JaysonEnumCache.AsIntString((Enum)obj));
@@ -4169,7 +4177,7 @@ namespace Sweet.Jayson
                         }
                     default:
                         {
-                            if (serializationType == JaysonTypeSerializationType.Anonymous && settings.IgnoreAnonymousTypes)
+                            if (settings.IgnoreAnonymousTypes && (serializationType == JaysonTypeSerializationType.Anonymous))
                             {
                                 if (!settings.IgnoreNullValues)
                                 {
@@ -4207,10 +4215,10 @@ namespace Sweet.Jayson
         {
             if (context.GlobalTypes != null)
             {
-                bool formatting = context.Settings.Formatting != JaysonFormatting.None;
+                var formatting = context.Settings.Formatting != JaysonFormatting.None;
 
                 context.ObjectDepth++;
-                StringBuilder builder = context.Builder;
+                var builder = context.Builder;
                 try
                 {
                     if (formatting)
@@ -4241,10 +4249,10 @@ namespace Sweet.Jayson
                         try
                         {
                             JaysonKeyValue<string, Type> kvp;
-                            JaysonTypeNameInfo typeNameInfo = context.Settings.TypeNameInfo;
+                            var typeNameInfo = context.Settings.TypeNameInfo;
 
-                            int count = globalTypes.Count;
-                            for (int i = 0; i < count; i++)
+                            var count = globalTypes.Count;
+                            for (var i = 0; i < count; i++)
                             {
                                 kvp = globalTypes[i];
 
@@ -4313,7 +4321,7 @@ namespace Sweet.Jayson
 
             settings = settings ?? JaysonSerializationSettings.Default;
 
-            JaysonFormatter formatter = new JaysonFormatter(
+            var formatter = new JaysonFormatter(
                 numberFormat: settings.NumberFormat,
                 timeSpanFormat: settings.TimeSpanFormat,
                 dateFormatType: settings.DateFormatType,
@@ -4330,7 +4338,7 @@ namespace Sweet.Jayson
                 floatInfinityStrategy: settings.FloatInfinityStrategy
             );
 
-            Type objType = obj.GetType();
+            var objType = obj.GetType();
             if (JaysonTypeInfo.IsJPrimitive(objType))
             {
                 builder = builder ?? new StringBuilder(100, int.MaxValue);
@@ -4341,7 +4349,7 @@ namespace Sweet.Jayson
                     return builder;
                 }
 
-                JaysonStackList<object> primeStack = JaysonStackList<object>.Get();
+                var primeStack = JaysonStackList<object>.Get();
                 try
                 {
                     using (var context = new JaysonSerializationContext(
@@ -4395,7 +4403,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            JaysonStackList<object> stack = JaysonStackList<object>.Get();
+            var stack = JaysonStackList<object>.Get();
             try
             {
                 builder = builder ?? new StringBuilder(2048, int.MaxValue);

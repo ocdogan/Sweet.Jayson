@@ -34,10 +34,16 @@ namespace Sweet.Jayson
         Type MemberType { get; }
 
         string Name { get; }
+        string NameLower { get; }
         object DefaultValue { get; }
 
         bool CanRead { get; }
         bool CanWrite { get; }
+
+        bool IsPublic { get; }
+
+        bool BackingField { get; }
+        bool AnonymousField { get; }
 
         object Get(object instance);
         void Set(ref object instance, object value);

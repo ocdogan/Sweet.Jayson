@@ -42,12 +42,22 @@ namespace Sweet.Jayson
 
         protected bool m_Overriden;
 
+        protected string m_Alias;
         protected string m_Name;
+        protected string m_NameLower;
+
         protected Type m_MemberType;
         protected MemberInfo m_MemberInfo;
 
+        protected bool m_Ignored;
+
         protected bool m_CanRead;
         protected bool m_CanWrite;
+
+        protected bool m_IsPublic;
+
+        protected bool m_BackingField;
+        protected bool m_AnonymousField;
 
         protected object m_DefaultValue;
 
@@ -58,19 +68,36 @@ namespace Sweet.Jayson
         protected ByRefAction m_SetRefDelegate;
         protected Func<object, object> m_GetDelegate;
 
+        public string Alias
+        {
+            get { return m_Alias; }
+        }
+
         public string Name
         {
             get { return m_Name; }
         }
 
-        public JaysonFastMemberType Type
+        public string NameLower
         {
-            get { return JaysonFastMemberType.Property; }
+            get { return m_NameLower; }
         }
+
+        public abstract JaysonFastMemberType Type { get; }
 
         public Type MemberType
         {
             get { return m_MemberType; }
+        }
+
+        public bool AnonymousField
+        {
+            get { return m_AnonymousField; }
+        }
+
+        public bool BackingField
+        {
+            get { return m_BackingField; }
         }
 
         public virtual bool CanRead
@@ -81,6 +108,16 @@ namespace Sweet.Jayson
         public virtual bool CanWrite
         {
             get { return m_CanWrite; }
+        }
+
+        public bool Ignores
+        {
+            get { return m_Ignored; }
+        }
+
+        public bool IsPublic
+        {
+            get { return m_IsPublic; }
         }
 
         public bool Overriden
@@ -95,8 +132,10 @@ namespace Sweet.Jayson
 
         public JaysonFastMember(MemberInfo mi, bool initGet = true, bool initSet = true)
         {
-            m_Name = mi.Name;
             m_MemberInfo = mi;
+
+            m_Name = mi.Name;
+            m_NameLower = m_Name.ToLower(JaysonConstants.InvariantCulture);
 
             if (mi is PropertyInfo)
             {
@@ -127,6 +166,19 @@ namespace Sweet.Jayson
             {
                 m_Set = true;
                 InitializeSet();
+            }
+        }
+
+        protected override void SetMemberAttributes()
+        {
+            if (m_MemberInfo != null)
+            {
+                var ma = m_MemberInfo.GetCustomAttributes(typeof(JaysonMemberAttribute), true).FirstOrDefault() as JaysonMemberAttribute;
+                if (ma != null)
+                {
+                    m_Alias = ma.Alias;
+                    m_Ignored = ma.Ignored;
+                }
             }
         }
 

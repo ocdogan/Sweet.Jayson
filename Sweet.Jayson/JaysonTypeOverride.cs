@@ -101,7 +101,7 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                JaysonTypeOverride overrider = GetTypeOverride(type);
+                var overrider = GetTypeOverride(type);
                 if (overrider != null)
                 {
                     return overrider.GetMemberAlias(memberName);
@@ -150,7 +150,7 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                JaysonTypeOverride overrider = GetTypeOverride(type);
+                var overrider = GetTypeOverride(type);
                 if (overrider != null)
                 {
                     return overrider.IsMemberIgnored(memberName);
@@ -186,7 +186,7 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                JaysonTypeOverride overrider = GetTypeOverride(type);
+                var overrider = GetTypeOverride(type);
                 if (overrider != null)
                 {
                     return overrider.GetDefaultValue(memberName);
@@ -200,7 +200,7 @@ namespace Sweet.Jayson
             defaultValue = null;
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                JaysonTypeOverride overrider = GetTypeOverride(type);
+                var overrider = GetTypeOverride(type);
                 if (overrider != null)
                 {
                     return overrider.TryGetDefaultValue(memberName, out defaultValue);
@@ -374,7 +374,7 @@ namespace Sweet.Jayson
 
         public virtual object Clone()
         {
-            JaysonTypeOverride result = new JaysonTypeOverride(m_Type, m_BindToType);
+            var result = new JaysonTypeOverride(m_Type, m_BindToType);
             foreach (var iKvp in m_IgnoredMembers)
             {
                 result.m_IgnoredMembers.Add(iKvp.Key, iKvp.Value);
@@ -400,7 +400,7 @@ namespace Sweet.Jayson
 
         public virtual JaysonTypeOverride Clone(Type insteadType)
         {
-            JaysonTypeOverride result = (JaysonTypeOverride)Clone();
+            var result = (JaysonTypeOverride)Clone();
             result.m_BindToType = insteadType;
             return result;
         }

@@ -57,7 +57,7 @@ namespace Sweet.Jayson
                 throw new JaysonException(JaysonError.InvalidNumber);
             }
 
-            int length = sid.Length;
+            var length = sid.Length;
             if (length == 0)
             {
                 throw new JaysonException(JaysonError.InvalidNumber);
@@ -75,7 +75,7 @@ namespace Sweet.Jayson
             }
 
             ch = (char)0;
-            int value = 0;
+            var value = 0;
 
             for (int pos = 0; pos < length; pos++)
             {

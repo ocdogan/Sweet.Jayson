@@ -108,7 +108,7 @@ namespace Sweet.Jayson
 
         private void WriteDatePart(char[] chArr, int part, int start, int length)
         {
-            int index = start + length - 1;
+            var index = start + length - 1;
 
             if (part < 10)
             {
@@ -133,7 +133,7 @@ namespace Sweet.Jayson
 
         public void Format(DateTime dt, StringBuilder builder)
         {
-            DateTimeKind kind = dt.Kind;
+            var kind = dt.Kind;
 
             switch (DateTimeZoneType)
             {
@@ -239,12 +239,12 @@ namespace Sweet.Jayson
                         }
                         else
                         {
-                            int index = 24;
-                            char[] chArr = new char[24];
+                            var index = 24;
+                            var chArr = new char[24];
 
                             if (kind != DateTimeKind.Utc)
                             {
-                                TimeSpan tz = JaysonConstants.CurrentTimeZone.GetUtcOffset(dt);
+                                var tz = JaysonConstants.CurrentTimeZone.GetUtcOffset(dt);
                                 if (tz.Ticks != 0L)
                                 {
                                     index -= 2;
@@ -330,8 +330,8 @@ namespace Sweet.Jayson
 
         public void Format(DateTimeOffset dto, StringBuilder builder)
         {
-            DateTime dt = dto.DateTime;
-            DateTimeKind kind = dt.Kind;
+            var dt = dto.DateTime;
+            var kind = dt.Kind;
 
             switch (DateTimeZoneType)
             {
@@ -609,7 +609,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(objType);
+            var jtc = JaysonTypeInfo.GetJTypeCode(objType);
 
             // Do not change the check order
             switch (jtc)
@@ -763,7 +763,7 @@ namespace Sweet.Jayson
                         }
                         else
                         {
-                            string chStr = ToJsonChar(ch, EscapeUnicodeChars);
+                            var chStr = ToJsonChar(ch, EscapeUnicodeChars);
                             if (chStr == null)
                             {
                                 builder.Append(ch);
@@ -959,7 +959,7 @@ namespace Sweet.Jayson
                 return JaysonConstants.Null;
             }
 
-            JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(objType);
+            var jtc = JaysonTypeInfo.GetJTypeCode(objType);
 
             // Do not change the check order
             switch (jtc)
@@ -1154,7 +1154,7 @@ namespace Sweet.Jayson
 
         private static string IntToHex(int value, int len = 0)
         {
-            char[] chArr = new char[8];
+            var chArr = new char[8];
             if (value == 0)
             {
                 if (len > 1)
@@ -1174,7 +1174,7 @@ namespace Sweet.Jayson
             }
 
             int mod;
-            int index = 8;
+            var index = 8;
 
             while (value != 0)
             {
@@ -1184,7 +1184,7 @@ namespace Sweet.Jayson
                 chArr[--index] = (char)(mod + (mod < 10 ? ZeroBase : ABase));
             }
 
-            int hlen = 8 - index;
+            var hlen = 8 - index;
             if (len > 0)
             {
                 if (len > hlen)
@@ -1251,7 +1251,7 @@ namespace Sweet.Jayson
 
         public static string EscapeChar(char ch)
         {
-            string result = ToJsonChar(ch, true);
+            var result = ToJsonChar(ch, true);
             if (result == null)
             {
                 return ch.ToString();
@@ -1304,7 +1304,7 @@ namespace Sweet.Jayson
                 return str;
             }
 
-            StringBuilder builder = new StringBuilder((str != null ? Math.Max(str.Length, 20) : 20), int.MaxValue);
+            var builder = new StringBuilder((str != null ? Math.Max(str.Length, 20) : 20), int.MaxValue);
 
             EncodeUnicodeStringInternal(str, builder, escapePosition, escapeUnicodeChars);
             return builder.ToString();
@@ -1327,9 +1327,9 @@ namespace Sweet.Jayson
             }
 
             int len;
-            int length = str.Length;
-            int index = escapePosition;
-            int startPos = escapePosition;
+            var length = str.Length;
+            var index = escapePosition;
+            var startPos = escapePosition;
 
             string encodedStr;
 
@@ -1438,10 +1438,10 @@ namespace Sweet.Jayson
                 value = -value;
             }
 
-            char[] chArr = new char[IntStringLen];
+            var chArr = new char[IntStringLen];
 
             int mod;
-            int index = IntStringLen;
+            var index = IntStringLen;
 
             do
             {
@@ -1466,7 +1466,7 @@ namespace Sweet.Jayson
                 return "0";
             }
 
-            bool minus = (value < 0);
+            var minus = (value < 0);
             if (minus)
             {
                 if (value == int.MinValue)
@@ -1477,10 +1477,10 @@ namespace Sweet.Jayson
                 value = -value;
             }
 
-            char[] chArr = new char[IntStringLen];
+            var chArr = new char[IntStringLen];
 
             int mod;
-            int index = IntStringLen;
+            var index = IntStringLen;
 
             do
             {
@@ -1506,7 +1506,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            bool minus = (value < 0L);
+            var minus = (value < 0L);
             if (minus)
             {
                 if (value == long.MinValue)
@@ -1518,10 +1518,10 @@ namespace Sweet.Jayson
                 value = -value;
             }
 
-            char[] chArr = new char[LongStringLen];
+            var chArr = new char[LongStringLen];
 
             int mod;
-            int index = LongStringLen;
+            var index = LongStringLen;
 
             do
             {
@@ -1551,7 +1551,7 @@ namespace Sweet.Jayson
                 return "0";
             }
 
-            bool minus = (value < 0L);
+            var minus = (value < 0L);
             if (minus)
             {
                 if (value == long.MinValue)
@@ -1562,10 +1562,10 @@ namespace Sweet.Jayson
                 value = -value;
             }
 
-            char[] chArr = new char[LongStringLen];
+            var chArr = new char[LongStringLen];
 
             int mod;
-            int index = LongStringLen;
+            var index = LongStringLen;
 
             do
             {

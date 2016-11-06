@@ -73,7 +73,7 @@ namespace Sweet.Jayson
             m_Capacity = capacity <= 0 ? DefaultCapacity : capacity;
             m_CheckCapacity = m_Capacity > 0;
 
-            int initialCap = m_CheckCapacity ? Math.Min(1000, m_Capacity) : 1000;
+            var initialCap = m_CheckCapacity ? Math.Min(1000, m_Capacity) : 1000;
             m_Entries = new Dictionary<TKey, LruEntry>(initialCap);
         }
 

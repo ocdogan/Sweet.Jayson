@@ -53,6 +53,10 @@ namespace Sweet.Jayson
         public bool CaseSensitive = true;
         public bool ConvertDecimalToDouble = false;
         public bool IgnoreAnonymousTypes = true;
+        public bool IgnoreBackingFields = false;
+        public bool IgnoreFields = false;
+        public bool IgnoreNonPublicFields = false;
+        public bool IgnoreNonPublicProperties = false;
         public bool RaiseErrorOnMissingMember = false;
         public bool UseDefaultValues = false;
 
@@ -102,6 +106,10 @@ namespace Sweet.Jayson
             destination.DictionaryType = DictionaryType;
             destination.ErrorHandler = ErrorHandler;
             destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
+            destination.IgnoreBackingFields = IgnoreBackingFields;
+            destination.IgnoreFields = IgnoreFields;
+            destination.IgnoreNonPublicFields = IgnoreNonPublicFields;
+            destination.IgnoreNonPublicProperties = IgnoreNonPublicProperties;
             destination.MaxObjectDepth = MaxObjectDepth;
             destination.ObjectActivator = ObjectActivator;
             destination.RaiseErrorOnMissingMember = RaiseErrorOnMissingMember;
@@ -112,7 +120,7 @@ namespace Sweet.Jayson
 
         public object Clone()
         {
-            JaysonDeserializationSettings clone = new JaysonDeserializationSettings();
+            var clone = new JaysonDeserializationSettings();
             AssignTo(clone);
 
             return clone;

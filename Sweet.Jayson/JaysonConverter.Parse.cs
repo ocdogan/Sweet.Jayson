@@ -45,12 +45,12 @@ namespace Sweet.Jayson
 
         private static int HexToUnicodeChar(string str, int start)
         {
-            int result = 0;
+            var result = 0;
 
             char ch;
-            int decimalCh = 0;
+            var decimalCh = 0;
 
-            int to = start + 4;
+            var to = start + 4;
             for (int i = start; i < to; i++)
             {
                 ch = str[i];
@@ -87,7 +87,7 @@ namespace Sweet.Jayson
             }
 
             var str = context.Text;
-            int length = str.Length;
+            var length = str.Length;
 
             if (context.Position > length - 1)
             {
@@ -152,7 +152,7 @@ namespace Sweet.Jayson
 
         private static string ParseString(string str, ref int pos)
         {
-            int length = str.Length;
+            var length = str.Length;
             if (pos > length - 1)
             {
                 throw new JaysonException(JaysonError.InvalidStringTermination);
@@ -173,10 +173,10 @@ namespace Sweet.Jayson
             int unicodeChar;
 
             int len;
-            int start = pos;
-            bool terminated = false;
+            var start = pos;
+            var terminated = false;
 
-            StringBuilder charStore = new StringBuilder(20, int.MaxValue);
+            var charStore = new StringBuilder(20, int.MaxValue);
             do
             {
                 ch = str[pos];
@@ -288,8 +288,8 @@ namespace Sweet.Jayson
         private static double ParseDouble(string str, int start, int length, NumberStyles numStyle)
         {
             var pos = start;
-            int end = start + length;
-            double sign = 1;
+            var end = start + length;
+            double sign = 1d;
 
             if ((numStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
             {
@@ -302,7 +302,7 @@ namespace Sweet.Jayson
             }
 
             char ch;
-            double result = 0;
+            double result = 0d;
 
             while (true) // breaks inside on pos >= len or non-digit character
             {
@@ -347,8 +347,8 @@ namespace Sweet.Jayson
                     throw new JaysonException(JaysonError.InvalidFlotingNumber);
                 }
 
-                int eValue = 0;
-                bool eNegative = (str[++pos] == '-');
+                var eValue = 0;
+                var eNegative = (str[++pos] == '-');
 
                 for (++pos; pos < end; pos++)
                 {
@@ -403,10 +403,10 @@ namespace Sweet.Jayson
 
         private static decimal ParseDecimal(string str, int start, int length, NumberStyles numStyle)
         {
-            int pos = start;
-            int end = start + length;
+            var pos = start;
+            var end = start + length;
 
-            bool negative = false;
+            var negative = false;
             if ((numStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
             {
                 ++pos;
@@ -418,9 +418,9 @@ namespace Sweet.Jayson
                 }
             }
 
-            char ch = (char)0;
-            long value = 0;
-            int decimalPosition = end;
+            var ch = (char)0;
+            long value = 0L;
+            var decimalPosition = end;
 
             for (; pos < end; pos++)
             {
@@ -449,10 +449,10 @@ namespace Sweet.Jayson
                 throw new JaysonException(JaysonError.InvalidDecimalNumber);
             }
 
-            int scale = pos - decimalPosition;
+            var scale = pos - decimalPosition;
 
             // scientific part
-            int eValue = 0;
+            var eValue = 0;
             if (pos < end)
             {
                 if (!(ch == 'e' || ch == 'E'))
@@ -460,7 +460,7 @@ namespace Sweet.Jayson
                     throw new JaysonException(JaysonError.InvalidDecimalNumber);
                 }
 
-                bool eNegative = (str[++pos] == '-');
+                var eNegative = (str[++pos] == '-');
 
                 for (++pos; pos < end; pos++)
                 {
@@ -495,7 +495,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            decimal result = new decimal((int)value, (int)(value >> 32), 0, negative, (byte)scale);
+            var result = new decimal((int)value, (int)(value >> 32), 0, negative, (byte)scale);
 
             if (eValue > 0)
             {
@@ -532,9 +532,9 @@ namespace Sweet.Jayson
                 return (long)(ch - '0');
             }
 
-            int pos = start;
-            int end = start + length;
-            int sign = 1;
+            var pos = start;
+            var end = start + length;
+            var sign = 1;
 
             if ((numberStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
             {
@@ -543,7 +543,7 @@ namespace Sweet.Jayson
             }
 
             ch = (char)0;
-            long value = 0;
+            long value = 0L;
 
             for (; pos < end; pos++)
             {
@@ -570,8 +570,8 @@ namespace Sweet.Jayson
                     throw new JaysonException(JaysonError.InvalidNumber);
                 }
 
-                int eValue = 0;
-                bool eNegative = (str[++pos] == '-');
+                var eValue = 0;
+                var eNegative = (str[++pos] == '-');
 
                 for (++pos; pos < end; pos++)
                 {
@@ -621,13 +621,13 @@ namespace Sweet.Jayson
             int length = context.Length;
             if (context.Position < length)
             {
-                JaysonNumberType numType = JaysonNumberType.Long;
-                NumberStyles numStyle = NumberStyles.None;
+                var numType = JaysonNumberType.Long;
+                var numStyle = NumberStyles.None;
 
-                string str = context.Text;
-                int start = context.Position;
+                var str = context.Text;
+                var start = context.Position;
 
-                char ch = str[start];
+                var ch = str[start];
                 if (ch == '-')
                 {
                     context.Position++;
@@ -638,12 +638,12 @@ namespace Sweet.Jayson
                     throw new JaysonException(JaysonError.InvalidNumberChar);
                 }
 
-                int digitCount = 0;
-                bool exponent = false;
-                char startChar = str[context.Position];
+                var digitCount = 0;
+                var exponent = false;
+                var startChar = str[context.Position];
 
-                int decimalPointCount = 0;
-                bool inDecimalPoint = false;
+                var decimalPointCount = 0;
+                var inDecimalPoint = false;
 
                 do
                 {
@@ -713,7 +713,7 @@ namespace Sweet.Jayson
                     throw new JaysonException(JaysonError.InvalidNumberChar);
                 } while (context.Position < length);
 
-                int len = context.Position - start;
+                var len = context.Position - start;
                 if (len > 0)
                 {
                     if (digitCount > 19 || decimalPointCount > 10 || (digitCount == 19 && startChar == '9'))
@@ -740,7 +740,7 @@ namespace Sweet.Jayson
                     switch (numType)
                     {
                         case JaysonNumberType.Long:
-                            long l = ParseLong(str, start, len, numStyle);
+                            var l = ParseLong(str, start, len, numStyle);
                             if (l <= JaysonConstants.IntMaxValueAsLong && l >= JaysonConstants.IntMinValueAsLong)
                             {
                                 return (int)l;
@@ -749,7 +749,7 @@ namespace Sweet.Jayson
                         case JaysonNumberType.Double:
                             if (digitCount > 16)
                             {
-                                decimal d = ParseDecimal(str, start, len, numStyle);
+                                var d = ParseDecimal(str, start, len, numStyle);
 
                                 if ((numStyle == NumberStyles.None || numStyle == NumberStyles.AllowTrailingSign) &&
                                     d <= JaysonConstants.LongMaxValueAsDecimal && d >= JaysonConstants.LongMinValueAsDecimal)
@@ -766,7 +766,7 @@ namespace Sweet.Jayson
                             return ParseDouble(str, start, len, numStyle);
                         case JaysonNumberType.Decimal:
                             {
-                                decimal d = ParseDecimal(str, start, len, numStyle);
+                                var d = ParseDecimal(str, start, len, numStyle);
                                 if (context.Settings.ConvertDecimalToDouble)
                                 {
                                     return Convert.ToDouble(d);
@@ -798,8 +798,8 @@ namespace Sweet.Jayson
 
         private static void EatWhites(JaysonDeserializationContext context)
         {
-            string str = context.Text;
-            int length = context.Length;
+            var str = context.Text;
+            var length = context.Length;
 
             while (context.Position < length)
             {
@@ -825,8 +825,8 @@ namespace Sweet.Jayson
             {
                 if (JaysonCommon.IsWhiteSpace(ch))
                 {
-                    string str = context.Text;
-                    int length = context.Length;
+                    var str = context.Text;
+                    var length = context.Length;
 
                     do
                     {
@@ -854,7 +854,7 @@ namespace Sweet.Jayson
                 throw new JaysonException(JaysonError.InvalidJson);
             }
 
-            int chLen = charsToCheck == null ? 0 : charsToCheck.Length;
+            var chLen = charsToCheck == null ? 0 : charsToCheck.Length;
             if (chLen == 0)
             {
                 return;
@@ -1110,10 +1110,10 @@ namespace Sweet.Jayson
 
         private static IDictionary<string, object> ParseDictionary(JaysonDeserializationContext context)
         {
-            string str = context.Text;
-            int length = context.Length;
+            var str = context.Text;
+            var length = context.Length;
 
-            bool startedWithComment = false;
+            var startedWithComment = false;
             if (context.Settings.CommentHandling == JaysonCommentHandling.ThrowError)
             {
                 EatWhitesAndCheckChar(context, '{');
@@ -1134,13 +1134,13 @@ namespace Sweet.Jayson
             ValidateObjectDepth(context);
 
 #if !(NET3500 || NET3000 || NET2000)
-            IDictionary<string, object> result =
+            var result =
                 (context.Settings.DictionaryType == DictionaryDeserializationType.Expando) ?
                 (IDictionary<string, object>)(new ExpandoObject()) :
                 (context.Settings.CaseSensitive ? new Dictionary<string, object>(10) :
                     new Dictionary<string, object>(10, StringComparer.OrdinalIgnoreCase));
 #else
-			IDictionary<string, object> result = context.Settings.CaseSensitive ? new Dictionary<string, object>(10) :
+			var result = context.Settings.CaseSensitive ? new Dictionary<string, object>(10) :
 				new Dictionary<string, object>(10, StringComparer.OrdinalIgnoreCase);
 #endif
 
@@ -1148,8 +1148,8 @@ namespace Sweet.Jayson
             object value;
             string key = null;
 
-            JaysonSerializationToken token = JaysonSerializationToken.Key;
-            JaysonSerializationToken prevToken = JaysonSerializationToken.Undefined;
+            var token = JaysonSerializationToken.Key;
+            var prevToken = JaysonSerializationToken.Undefined;
 
             while (context.Position < length)
             {
@@ -1322,8 +1322,8 @@ namespace Sweet.Jayson
 
         private static object Parse(JaysonDeserializationContext context)
         {
-            string str = context.Text;
-            int length = context.Length;
+            var str = context.Text;
+            var length = context.Length;
 
             while ((context.Position < length) &&
                 JaysonCommon.IsWhiteSpace(str[context.Position]))
@@ -1336,7 +1336,7 @@ namespace Sweet.Jayson
                 throw new JaysonException(JaysonError.InvalidJson);
             }
 
-            char ch = str[context.Position];
+            var ch = str[context.Position];
 
             switch (ch)
             {

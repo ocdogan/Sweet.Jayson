@@ -40,6 +40,8 @@ namespace Sweet.Jayson.Tests
 {
     public static class TestClasses
     {
+        #region JsonGitResponse
+
         public const string JsonGitResponse = @"{
   ""pulls"": [
     {
@@ -89,6 +91,10 @@ namespace Sweet.Jayson.Tests
     }
   ]
 }";
+
+        #endregion JsonGitResponse
+
+        #region Methods
 
         public static ObjectGraph GetObjectGraph1()
         {
@@ -455,9 +461,17 @@ namespace Sweet.Jayson.Tests
             c.items.Add(new class2("4", "4", "desc2"));
             return c;
         }
+
+        #endregion Methods
     }
 
     # region Sample Classes
+
+    public class ClassWithObjectProperty
+    {
+        public object A { get; set; }
+        public object B;
+    }
 
     public class CustomException
         : Exception
@@ -753,6 +767,64 @@ namespace Sweet.Jayson.Tests
         EnumB,
         EnumC,
         EnumD
+    }
+
+    [Serializable]
+    public class Accesiblity
+    {
+        private string m_PrivateFieldForPublicPropNoSetter;
+
+        public string PublicProp { get; set; }
+        public string PublicPropNoSetter { get { return m_PrivateFieldForPublicPropNoSetter; } }
+
+        public string PublicField;
+
+        public string PublicPropPrivateSetter { get; private set; }
+        private string PrivatePropDefaultGetterSetter { get; set; }
+        private string PrivateField;
+
+        public string PublicPropProtectedSetter { get; protected set; }
+        protected string ProtectedPropDefaultGettterSetter { get; set; }
+        protected string ProtectedPropPrivateGetter { private get; set; }
+        protected string ProtectedField;
+
+        public Accesiblity()
+        { }
+
+        public Accesiblity(string a, string b, string c, string d, string e, string f, string g, string h, string i, string j)
+        {
+            PublicProp = a;
+            m_PrivateFieldForPublicPropNoSetter = b;
+            PublicField = c;
+
+            PublicPropPrivateSetter = d;
+            PrivatePropDefaultGetterSetter = e;
+            PrivateField = f;
+
+            PublicPropProtectedSetter = g;
+            ProtectedPropDefaultGettterSetter = h;
+            ProtectedPropPrivateGetter = i;
+            ProtectedField = j;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            if (obj == this) return true;
+
+            var obj2 = obj as Accesiblity;
+            if (obj2 == null) return false;
+
+            return obj2.PublicProp == PublicProp &&
+                obj2.PublicPropNoSetter == PublicPropNoSetter &&
+                obj2.PublicPropPrivateSetter == PublicPropPrivateSetter &&
+                obj2.PrivatePropDefaultGetterSetter == PrivatePropDefaultGetterSetter &&
+                obj2.PrivateField == PrivateField &&
+                obj2.PublicPropProtectedSetter == PublicPropProtectedSetter &&
+                obj2.ProtectedPropDefaultGettterSetter == ProtectedPropDefaultGettterSetter &&
+                obj2.ProtectedPropPrivateGetter == ProtectedPropPrivateGetter &&
+                obj2.ProtectedField == ProtectedField;
+        }
     }
 
     public class A

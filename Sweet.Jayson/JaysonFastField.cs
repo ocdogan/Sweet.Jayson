@@ -40,13 +40,34 @@ namespace Sweet.Jayson
             get { return m_CanWrite | m_InvokeOnSet; }
         }
 
+        public override JaysonFastMemberType Type
+        {
+            get { return JaysonFastMemberType.Field; }
+        }
+
         public JaysonFastField(FieldInfo fi, bool initGet = true, bool initSet = true)
             : base(fi, initGet, initSet)
         { }
 
         protected override void Init(bool initGet, bool initSet)
         {
-            m_MemberType = ((FieldInfo)m_MemberInfo).FieldType;
+            var fi = (FieldInfo)m_MemberInfo;
+
+            m_MemberType = fi.FieldType;
+            m_IsPublic = fi.IsPublic && !fi.IsPrivate;
+
+            if (!m_IsPublic && fi.IsPrivate)
+            {
+                var pos = m_Name.IndexOf('<');
+                if (pos > -1)
+                {
+                    pos = m_Name.IndexOf('>', pos);
+                    m_AnonymousField = (m_Name.IndexOf("__Field", pos, StringComparison.OrdinalIgnoreCase) > -1);
+                    m_BackingField = (pos > -1) &&
+                        (m_AnonymousField || (m_Name.IndexOf("__BackingField", pos, StringComparison.OrdinalIgnoreCase) > -1));
+                }
+            }
+
             base.Init(initGet, initSet);
         }
 
@@ -57,6 +78,7 @@ namespace Sweet.Jayson
 
             m_CanRead = true;
             m_CanWrite = !(fi.IsInitOnly || fi.IsStatic);
+
             m_InvokeOnSet = fi.IsInitOnly && !fi.IsStatic;
         }
 
@@ -67,14 +89,14 @@ namespace Sweet.Jayson
                 var fi = (FieldInfo)m_MemberInfo;
                 var instance = Expression.Parameter(typeof(object), "instance");
 
-                Type declaringT = fi.DeclaringType;
+                var declaringT = fi.DeclaringType;
 
-                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                var instanceCast = !declaringT.IsValueType ?
                     Expression.TypeAs(instance, declaringT) :
                     Expression.Convert(instance, declaringT);
 
-                Expression fieldExp = Expression.Field(instanceCast, fi);
-                Expression toObjectExp = Expression.TypeAs(fieldExp, typeof(object));
+                var fieldExp = Expression.Field(instanceCast, fi);
+                var toObjectExp = Expression.TypeAs(fieldExp, typeof(object));
 
                 var overridingMetod = JaysonCommon.GetOverridingMethod(fi);
                 if (overridingMetod != null)
@@ -107,29 +129,29 @@ namespace Sweet.Jayson
                 var valueExp = Expression.Parameter(typeof(object), "value");
 
                 // value as T is slightly faster than (T)value, so if it's not a value type, use that
-                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                var instanceCast = !declaringT.IsValueType ?
                     Expression.TypeAs(instanceExp, declaringT) :
                     Expression.Convert(instanceExp, declaringT);
 
-                UnaryExpression valueCast = !m_MemberType.IsValueType ?
+                var valueCast = !m_MemberType.IsValueType ?
                     Expression.TypeAs(valueExp, m_MemberType) :
                     Expression.Convert(valueExp, m_MemberType);
 
-                List<Expression> expBlockList = new List<Expression>();
+                var expBlockList = new List<Expression>();
 
                 var instanceRefExp = Expression.Variable(declaringT, "instanceRef");
                 expBlockList.Add(Expression.Assign(instanceRefExp, instanceCast));
 
-                MemberExpression fieldExp = Expression.Field(instanceRefExp, fi);
-                BinaryExpression assignExp = Expression.Assign(fieldExp, valueCast);
+                var fieldExp = Expression.Field(instanceRefExp, fi);
+                var assignExp = Expression.Assign(fieldExp, valueCast);
 
                 expBlockList.Add(assignExp);
 
-                Expression toObjectExp = Expression.Assign(instanceExp,
+                var toObjectExp = Expression.Assign(instanceExp,
                     Expression.Convert(instanceRefExp, typeof(object)));
                 expBlockList.Add(toObjectExp);
 
-                Expression blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
+                var blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
 
                 var lmd = Expression.Lambda<ByRefAction>(blockExp, new ParameterExpression[] { instanceExp, valueExp });
                 m_SetRefDelegate = lmd.Compile();

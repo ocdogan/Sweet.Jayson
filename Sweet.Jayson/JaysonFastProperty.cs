@@ -38,38 +38,60 @@ namespace Sweet.Jayson
 		private Action<object, object> m_SetDelegate;
 #endif
 
+        private MethodInfo m_GetMethod;
+        private MethodInfo m_SetMethod;
+
+        public override JaysonFastMemberType Type
+        {
+            get { return JaysonFastMemberType.Property; }
+        }
+
         public JaysonFastProperty(PropertyInfo pi, bool initGet = true, bool initSet = true)
             : base(pi, initGet, initSet)
         { }
 
         protected override void Init(bool initGet, bool initSet)
         {
-            m_MemberType = ((PropertyInfo)m_MemberInfo).PropertyType;
+            var pi = (PropertyInfo)m_MemberInfo;
+            
+            m_MemberType = pi.PropertyType;
+            m_IsPublic = (pi.CanRead && (pi.GetGetMethod() != null)) ||
+                (!pi.CanRead && pi.CanWrite && (pi.GetSetMethod() != null));
+
             base.Init(initGet, initSet);
         }
 
         protected override void InitCanReadWrite()
         {
             var pi = (PropertyInfo)m_MemberInfo;
+
             m_CanRead = pi.CanRead;
+            if (m_CanRead)
+            {
+                m_GetMethod = pi.GetGetMethod(true);
+            }
+
             m_CanWrite = pi.CanWrite;
+            if (m_CanWrite)
+            {
+                m_SetMethod = pi.GetSetMethod(true);
+            }
         }
 
         protected override void InitializeGet()
         {
             var pi = (PropertyInfo)m_MemberInfo;
-            MethodInfo getMethod = pi.GetGetMethod();
-            if (getMethod != null)
+            if (m_GetMethod != null)
             {
                 var instanceVar = Expression.Parameter(typeof(object), "instance");
 
-                Type declaringT = pi.DeclaringType;
-                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                var declaringT = pi.DeclaringType;
+                var instanceCast = !declaringT.IsValueType ?
                     Expression.TypeAs(instanceVar, declaringT) :
                     Expression.Convert(instanceVar, declaringT);
 
-                Expression callExp = Expression.Call(instanceCast, getMethod);
-                Expression toObjectExp = Expression.TypeAs(callExp, typeof(object));
+                var callExp = Expression.Call(instanceCast, m_GetMethod);
+                var toObjectExp = Expression.TypeAs(callExp, typeof(object));
 
                 var overridingMetod = JaysonCommon.GetOverridingMethod(pi);
                 if (overridingMetod != null)
@@ -89,11 +111,9 @@ namespace Sweet.Jayson
         protected override void InitializeSet()
         {
             var pi = (PropertyInfo)m_MemberInfo;
-            MethodInfo setMethod = pi.GetSetMethod();
-
-            if (setMethod != null)
+            if (m_SetMethod != null)
             {
-                Type declaringT = pi.DeclaringType;
+                var declaringT = pi.DeclaringType;
 
 #if (NET3500 || NET3000 || NET2000)
 				if (declaringT.IsValueType) {
@@ -105,13 +125,13 @@ namespace Sweet.Jayson
 					var valueExp = Expression.Parameter (typeof(object), "value");
 
 					// value as T is slightly faster than (T)value, so if it's not a value type, use that
-					UnaryExpression instanceCast = Expression.TypeAs (instanceExp, declaringT);
+					var instanceCast = Expression.TypeAs (instanceExp, declaringT);
 
-					UnaryExpression valueCast = !m_MemberType.IsValueType ?
+					var valueCast = !m_MemberType.IsValueType ?
 					    Expression.TypeAs (valueExp, m_MemberType) : 
 					    Expression.Convert (valueExp, m_MemberType);
 
-					Expression callExp = Expression.Call (instanceCast, setMethod, valueCast);
+					var callExp = Expression.Call(instanceCast, m_SetMethod, valueCast);
 
 					m_SetDelegate = Expression.Lambda<Action<object, object>> (callExp, 
 						new ParameterExpression[] { instanceExp, valueExp }).Compile ();
@@ -121,29 +141,29 @@ namespace Sweet.Jayson
                 var valueExp = Expression.Parameter(typeof(object), "value");
 
                 // value as T is slightly faster than (T)value, so if it's not a value type, use that
-                UnaryExpression instanceCast = !declaringT.IsValueType ?
+                var instanceCast = !declaringT.IsValueType ?
                     Expression.TypeAs(instanceExp, declaringT) :
                     Expression.Convert(instanceExp, declaringT);
 
-                UnaryExpression valueCast = !m_MemberType.IsValueType ?
+                var valueCast = !m_MemberType.IsValueType ?
                     Expression.TypeAs(valueExp, m_MemberType) :
                     Expression.Convert(valueExp, m_MemberType);
 
-                List<Expression> expBlockList = new List<Expression>();
+                var expBlockList = new List<Expression>();
 
                 var instanceRefExp = Expression.Variable(declaringT, "instanceRef");
                 expBlockList.Add(Expression.Assign(instanceRefExp, instanceCast));
 
-                MemberExpression propertyExp = Expression.Property(instanceRefExp, pi);
-                BinaryExpression assignExp = Expression.Assign(propertyExp, valueCast);
+                var propertyExp = Expression.Property(instanceRefExp, pi);
+                var assignExp = Expression.Assign(propertyExp, valueCast);
 
                 expBlockList.Add(assignExp);
 
-                Expression toObjectExp = Expression.Assign(instanceExp,
+                var toObjectExp = Expression.Assign(instanceExp,
                     Expression.Convert(instanceRefExp, typeof(object)));
                 expBlockList.Add(toObjectExp);
 
-                Expression blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
+                var blockExp = Expression.Block(new[] { instanceRefExp }, expBlockList);
 
                 var lmd = Expression.Lambda<ByRefAction>(blockExp, new ParameterExpression[] { instanceExp, valueExp });
                 m_SetRefDelegate = lmd.Compile();

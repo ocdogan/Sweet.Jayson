@@ -1263,7 +1263,7 @@ namespace Sweet.Jayson
                 throw new ArgumentNullException("value");
             }
 
-            JaysonTypeCode jtc = JaysonTypeInfo.GetJTypeCode(value.GetType());
+            var jtc = JaysonTypeInfo.GetJTypeCode(value.GetType());
             switch (jtc)
             {
                 case JaysonTypeCode.Long:
@@ -1750,10 +1750,10 @@ namespace Sweet.Jayson
 
                         if (info.Nullable)
                         {
-                            Type uType = info.UnderlyingType;
+                            var uType = info.UnderlyingType;
                             if (uType != null)
                             {
-                                JaysonTypeInfo uInfo = JaysonTypeInfo.GetTypeInfo(uType);
+                                var uInfo = JaysonTypeInfo.GetTypeInfo(uType);
                                 if (uInfo.Enum)
                                 {
                                     converted = true;
@@ -1817,7 +1817,7 @@ namespace Sweet.Jayson
 
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return Enum.ToObject(toPrimitiveType, 0L);
@@ -1830,7 +1830,7 @@ namespace Sweet.Jayson
 
         private static object ToDateTimeNullable(object value)
         {
-            DateTime dt = TryConvertDateTime(value, JaysonDateTimeZoneType.KeepAsIs);
+            var dt = TryConvertDateTime(value, JaysonDateTimeZoneType.KeepAsIs);
             if (dt == default(DateTime))
             {
                 return null;
@@ -1846,7 +1846,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (byte?)null;
@@ -1862,7 +1862,7 @@ namespace Sweet.Jayson
             {
                 return (DateTimeOffset?)value;
             }
-            DateTimeOffset dto = TryConvertDateTimeOffset(value, out converted);
+            var dto = TryConvertDateTimeOffset(value, out converted);
             if (dto == default(DateTimeOffset))
             {
                 return null;
@@ -1878,7 +1878,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (sbyte?)null;
@@ -1896,7 +1896,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (ushort?)null;
@@ -1914,7 +1914,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (ulong?)null;
@@ -1932,7 +1932,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (uint?)null;
@@ -1950,7 +1950,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (sbyte)0;
@@ -1968,7 +1968,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (ushort)0;
@@ -1986,7 +1986,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (ulong)0;
@@ -2004,7 +2004,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (uint)0;
@@ -2022,7 +2022,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (char?)null;
@@ -2044,7 +2044,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (TimeSpan?)null;
@@ -2070,7 +2070,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return default(Guid?);
@@ -2112,7 +2112,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (decimal?)null;
@@ -2130,7 +2130,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (float?)null;
@@ -2152,7 +2152,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return default(TimeSpan);
@@ -2174,7 +2174,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (char)0;
@@ -2196,7 +2196,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return default(Guid);
@@ -2230,7 +2230,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (byte)0;
@@ -2256,7 +2256,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return 0m;
@@ -2274,7 +2274,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return 0f;
@@ -2292,7 +2292,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (short?)null;
@@ -2310,7 +2310,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (double?)null;
@@ -2328,7 +2328,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (long?)null;
@@ -2346,7 +2346,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (bool?)null;
@@ -2364,7 +2364,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (int?)null;
@@ -2382,7 +2382,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return (short)0;
@@ -2400,7 +2400,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return 0d;
@@ -2422,7 +2422,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return 0L;
@@ -2444,7 +2444,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return false;
@@ -2466,7 +2466,7 @@ namespace Sweet.Jayson
             }
             if (value is string)
             {
-                string s = (string)value;
+                var s = (string)value;
                 if (s.Length == 0)
                 {
                     return 0;
@@ -2656,14 +2656,14 @@ namespace Sweet.Jayson
 
         public static Func<object[], object> CreateActivator(ConstructorInfo ctor)
         {
-            Type declaringT = ctor.DeclaringType;
-            ParameterInfo[] ctorParams = ctor.GetParameters();
+            var declaringT = ctor.DeclaringType;
+            var ctorParams = ctor.GetParameters();
 
             // Create a single param of type object[]
-            ParameterExpression paramExp = Expression.Parameter(typeof(object[]), "args");
+            var paramExp = Expression.Parameter(typeof(object[]), "args");
 
             int length = ctorParams.Length;
-            Expression[] argsExp = new Expression[length];
+            var argsExp = new Expression[length];
 
             Type paramType;
             Expression paramAccessorExp;
@@ -2687,8 +2687,8 @@ namespace Sweet.Jayson
             }
 
             // Make a NewExpression that calls the ctor with the args we just created
-            NewExpression newExp = Expression.New(ctor, argsExp);
-            Expression returnExp = !declaringT.IsValueType ?
+            var newExp = Expression.New(ctor, argsExp);
+            var returnExp = !declaringT.IsValueType ?
                 (Expression)newExp :
                 Expression.Convert(newExp, typeof(object));
 
@@ -2701,22 +2701,22 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         public static Action<object, object[]> PrepareMethodCall(MethodInfo methodInfo)
         {
-            Type declaringT = methodInfo.DeclaringType;
-            ParameterInfo[] parameters = methodInfo.GetParameters();
+            var declaringT = methodInfo.DeclaringType;
+            var parameters = methodInfo.GetParameters();
 
-            ParameterExpression argsExp = Expression.Parameter(typeof(object[]), "args");
-            ParameterExpression inputObjExp = Expression.Parameter(typeof(object), "inputObj");
-            ParameterExpression tVariable = Expression.Variable(declaringT);
+            var argsExp = Expression.Parameter(typeof(object[]), "args");
+            var inputObjExp = Expression.Parameter(typeof(object), "inputObj");
+            var tVariable = Expression.Variable(declaringT);
 
-            List<ParameterExpression> variableList = new List<ParameterExpression> { tVariable };
+            var variableList = new List<ParameterExpression> { tVariable };
 
-            Expression inputCastExp = !declaringT.IsValueType ?
+            var inputCastExp = !declaringT.IsValueType ?
                 Expression.TypeAs(inputObjExp, declaringT) :
                 Expression.Convert(inputObjExp, declaringT);
 
-            Expression assignmentExp = Expression.Assign(tVariable, inputCastExp);
+            var assignmentExp = Expression.Assign(tVariable, inputCastExp);
 
-            List<Expression> bodyExps = new List<Expression> { assignmentExp };
+            var bodyExps = new List<Expression> { assignmentExp };
 
             Expression callExp = null;
             if (parameters.Length == 0)
@@ -2731,7 +2731,7 @@ namespace Sweet.Jayson
                 Expression variableAssignExp;
                 ParameterExpression newVariableExp;
 
-                List<ParameterExpression> callArguments = new List<ParameterExpression>();
+                var callArguments = new List<ParameterExpression>();
 
                 for (int i = 0; i < parameters.Length; i++)
                 {
@@ -2756,7 +2756,7 @@ namespace Sweet.Jayson
 
             bodyExps.Add(callExp);
 
-            BlockExpression body = Expression.Block(variableList, bodyExps);
+            var body = Expression.Block(variableList, bodyExps);
             return Expression.Lambda<Action<object, object[]>>(body, inputObjExp, argsExp).Compile();
         }
 #else
@@ -2805,7 +2805,7 @@ namespace Sweet.Jayson
             if (!s_ICollectionAdd.TryGetValue(objType, out result))
             {
                 MethodInfo method;
-                MethodInfo[] methods = objType.GetMethods();
+                var methods = objType.GetMethods();
 
                 for (int i = methods.Length - 1; i > -1; i--)
                 {
@@ -2828,7 +2828,7 @@ namespace Sweet.Jayson
             if (!s_StackPush.TryGetValue(objType, out result))
             {
                 MethodInfo method;
-                MethodInfo[] methods = objType.GetMethods();
+                var methods = objType.GetMethods();
 
                 for (int i = methods.Length - 1; i > -1; i--)
                 {
@@ -2851,7 +2851,7 @@ namespace Sweet.Jayson
             if (!s_QueueEnqueue.TryGetValue(objType, out result))
             {
                 MethodInfo method;
-                MethodInfo[] methods = objType.GetMethods();
+                var methods = objType.GetMethods();
 
                 for (int i = methods.Length - 1; i > -1; i--)
                 {
@@ -2875,7 +2875,7 @@ namespace Sweet.Jayson
             if (!s_ConcurrentBagAdd.TryGetValue(objType, out result))
             {
                 MethodInfo method;
-                MethodInfo[] methods = objType.GetMethods();
+                var methods = objType.GetMethods();
 
                 for (int i = methods.Length - 1; i > -1; i--)
                 {
@@ -2899,13 +2899,13 @@ namespace Sweet.Jayson
             {
                 if (IsProducerConsumerCollection(objType))
                 {
-                    Type[] argTypes = objType.GetGenericArguments();
+                    var argTypes = objType.GetGenericArguments();
                     if (argTypes != null && argTypes.Length == 1)
                     {
-                        Type ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType(new Type[] { argTypes[0] });
+                        var ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType(new Type[] { argTypes[0] });
 
                         MethodInfo method;
-                        MethodInfo[] methods = ipcType.GetMethods();
+                        var methods = ipcType.GetMethods();
 
                         for (int i = methods.Length - 1; i > -1; i--)
                         {
@@ -2931,7 +2931,7 @@ namespace Sweet.Jayson
             if (!s_IDictionaryAdd.TryGetValue(objType, out result))
             {
                 MethodInfo method;
-                MethodInfo[] methods = objType.GetMethods();
+                var methods = objType.GetMethods();
 
                 for (int i = methods.Length - 1; i > -1; i--)
                 {
@@ -2950,7 +2950,7 @@ namespace Sweet.Jayson
         internal static JaysonDictionaryType GetDictionaryType(IEnumerable obj, out Type entryType)
         {
             entryType = null;
-            IEnumerator enumerator = obj.GetEnumerator();
+            var enumerator = obj.GetEnumerator();
             try
             {
                 if (enumerator.MoveNext())
@@ -2962,8 +2962,8 @@ namespace Sweet.Jayson
 
                     entryType = enumerator.Current.GetType();
 
-                    IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(entryType);
-                    if (members.ContainsKey("Key") && members.ContainsKey("Value"))
+                    var cache = JaysonFastMemberCache.GetCache(entryType);
+                    if (cache.GetAnyMember("Key") != null && cache.GetAnyMember("Value") != null)
                     {
                         return JaysonDictionaryType.IGenericDictionary;
                     }

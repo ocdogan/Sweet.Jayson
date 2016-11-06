@@ -44,7 +44,7 @@ namespace Sweet.Jayson
                 if (!s_AnonymousTypeCache.TryGetValue(objType, out result) && objType.IsGenericType &&
                     (objType.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
                 {
-                    string typeName = objType.Name;
+                    var typeName = objType.Name;
 
                     result = (typeName.Length > 12) &&
                         ((typeName[0] == '<' && typeName[1] == '>') ||

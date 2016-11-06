@@ -71,7 +71,7 @@ namespace Sweet.Jayson
             {
                 if (s_QueueIndex > -1)
                 {
-                    JaysonStackList<T> result = s_Queue[s_QueueIndex];
+                    var result = s_Queue[s_QueueIndex];
                     s_Queue[s_QueueIndex--] = null;
                     return result;
                 }

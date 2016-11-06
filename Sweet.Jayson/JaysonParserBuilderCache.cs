@@ -43,7 +43,7 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
             if (capacity <= MAX_BUILDER_SIZE)
             {
-                StringBuilder builder = JaysonParserBuilderCache.s_Cached;
+                var builder = JaysonParserBuilderCache.s_Cached;
                 if (builder != null)
                 {
                     if (capacity <= builder.Capacity)
@@ -70,7 +70,7 @@ namespace Sweet.Jayson
 
         public static string GetStringAndRelease(StringBuilder builder)
         {
-            string result = builder.ToString();
+            var result = builder.ToString();
             Release(builder);
             return result;
         }

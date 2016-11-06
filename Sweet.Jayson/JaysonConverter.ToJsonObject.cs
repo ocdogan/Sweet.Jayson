@@ -71,9 +71,9 @@ namespace Sweet.Jayson
                 return new Dictionary<string, object>();
             }
 
-            List<object> kvList = new List<object>(obj.Count);
+            var kvList = new List<object>(obj.Count);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            var result = new Dictionary<string, object>();
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -86,8 +86,8 @@ namespace Sweet.Jayson
             object value;
             object keyObj;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (DictionaryEntry dEntry in obj)
             {
@@ -120,7 +120,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDictionary(IDictionary obj, JaysonSerializationContext context)
         {
-            bool useStringKey = !context.Settings.UseKVModelForJsonObjects;
+            var useStringKey = !context.Settings.UseKVModelForJsonObjects;
             if (!useStringKey)
             {
                 var genericArgs = JaysonTypeInfo.GetGenericArguments(obj.GetType());
@@ -140,7 +140,7 @@ namespace Sweet.Jayson
                     return new Dictionary<string, object>();
                 }
 
-                Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+                var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
                 if (context.Settings.UseObjectReferencing)
                 {
@@ -151,8 +151,8 @@ namespace Sweet.Jayson
                 object value;
                 object keyObj;
 
-                Func<string, object, object> filter = context.Filter;
-                bool canFilter = (filter != null);
+                var filter = context.Filter;
+                var canFilter = (filter != null);
 
                 foreach (DictionaryEntry dEntry in obj)
                 {
@@ -185,7 +185,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsStringDictionary(StringDictionary obj, JaysonSerializationContext context)
         {
-            if (obj.Count == 0)
+            if ((obj == null) && (obj.Count == 0))
             {
                 if (context.Settings.UseObjectReferencing)
                 {
@@ -196,7 +196,7 @@ namespace Sweet.Jayson
                 return new Dictionary<string, object>();
             }
 
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -206,8 +206,8 @@ namespace Sweet.Jayson
             string key;
             object value;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (DictionaryEntry dEntry in obj)
             {
@@ -246,7 +246,7 @@ namespace Sweet.Jayson
                 return new Dictionary<string, object>();
             }
 
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -255,8 +255,8 @@ namespace Sweet.Jayson
 
             object value;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (var key in obj.AllKeys)
             {
@@ -284,40 +284,39 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         private static Dictionary<string, object> AsDynamicObject(DynamicObject obj, Type objType, JaysonSerializationContext context)
         {
-            JaysonSerializationSettings settings = context.Settings;
+            var settings = context.Settings;
+            var typeOverride = settings.GetTypeOverride(objType);
 
-            bool ignoreNullValues = settings.IgnoreNullValues;
-            JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
-
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (settings.UseObjectReferencing)
             {
                 result.Add("$id", context.ReferenceMap.GetObjectId(obj));
             }
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
-
             string key;
             object value;
             string aliasKey;
 
-            bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             var members = JaysonFastMemberCache.GetMembers(obj.GetType());
-            if (members.Count > 0)
+            if ((members != null) && (members.Length > 0))
             {
-                bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
-
-                foreach (var memberKvp in members)
+                foreach (var member in members)
                 {
-                    if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+                    if ((!settings.IgnoreReadOnlyMembers || member.CanWrite) &&
+                        !(member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                         (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
+                         (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                         (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property))))
                     {
-                        key = memberKvp.Key;
+                        key = member.Name;
+
                         if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                         {
-                            value = memberKvp.Value.Get(obj);
+                            value = member.Get(obj);
 
                             if (value != null)
                             {
@@ -332,9 +331,9 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            if ((value != null) || !ignoreNullValues)
+                            if ((value != null) || !settings.IgnoreNullValues)
                             {
-                                if (ignoreEmptyCollections)
+                                if (settings.IgnoreEmptyCollections)
                                 {
                                     var collection = value as ICollection;
                                     if ((collection != null) && (collection.Count == 0))
@@ -359,7 +358,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            JaysonDynamicWrapper dObj = new JaysonDynamicWrapper((IDynamicMetaObjectProvider)obj);
+            var dObj = new JaysonDynamicWrapper((IDynamicMetaObjectProvider)obj);
 
             foreach (var dKey in obj.GetDynamicMemberNames())
             {
@@ -381,9 +380,9 @@ namespace Sweet.Jayson
                         }
                     }
 
-                    if ((value != null) || !ignoreNullValues)
+                    if ((value != null) || !settings.IgnoreNullValues)
                     {
-                        if (ignoreEmptyCollections)
+                        if (settings.IgnoreEmptyCollections)
                         {
                             var collection = value as ICollection;
                             if ((collection != null) && (collection.Count == 0))
@@ -412,9 +411,8 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsObject(object obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
-
-            JaysonSerializationSettings settings = context.Settings;
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var settings = context.Settings;
 
             if (settings.UseObjectReferencing)
             {
@@ -422,7 +420,7 @@ namespace Sweet.Jayson
             }
 
             var members = JaysonFastMemberCache.GetMembers(objType);
-            if (members.Count > 0)
+            if ((members != null) && (members.Length > 0))
             {
                 string key;
                 object value;
@@ -430,31 +428,31 @@ namespace Sweet.Jayson
 
                 object defaultValue;
 
-                bool ignoreDefaultValues = settings.IgnoreDefaultValues;
-                bool ignoreNullValues = settings.IgnoreNullValues;
-                bool ignoreReadOnlyMembers = settings.IgnoreReadOnlyMembers;
-                bool ignoreEmptyCollections = settings.IgnoreEmptyCollections;
+                var typeOverride = settings.GetTypeOverride(objType);
 
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                var filter = context.Filter;
+                var canFilter = (filter != null);
 
-                Func<string, object, object> filter = context.Filter;
-                bool canFilter = (filter != null);
-
-                foreach (var memberKvp in members)
+                foreach (var member in members)
                 {
-                    if (!ignoreReadOnlyMembers || memberKvp.Value.CanWrite)
+                    if ((!settings.IgnoreReadOnlyMembers || member.CanWrite) &&
+                        !(member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                         (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
+                         (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                         (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property))))
                     {
-                        key = memberKvp.Key;
+                        key = member.Name;
+
                         if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
                         {
-                            value = memberKvp.Value.Get(obj);
+                            value = member.Get(obj);
 
-                            if (ignoreDefaultValues)
+                            if (settings.IgnoreDefaultValues)
                             {
                                 defaultValue = null;
                                 if (typeOverride == null || !typeOverride.TryGetDefaultValue(key, out defaultValue))
                                 {
-                                    defaultValue = memberKvp.Value.DefaultValue;
+                                    defaultValue = member.DefaultValue;
                                 }
 
                                 if ((ReferenceEquals(defaultValue, null) && ReferenceEquals(value, null)) ||
@@ -475,9 +473,9 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            if ((value != null) || !ignoreNullValues)
+                            if ((value != null) || !settings.IgnoreNullValues)
                             {
-                                if (ignoreEmptyCollections)
+                                if (settings.IgnoreEmptyCollections)
                                 {
                                     var collection = value as ICollection;
                                     if ((collection != null) && (collection.Count == 0))
@@ -507,7 +505,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsType(Type obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            var result = new Dictionary<string, object>();
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -521,7 +519,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsMemberInfo(MemberInfo obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            var result = new Dictionary<string, object>();
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -529,10 +527,12 @@ namespace Sweet.Jayson
             }
 
             result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+
             if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
             {
                 result.Add("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
             }
+            
             result.Add("MemberName", obj.Name);
 
             return result;
@@ -540,7 +540,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsParameterInfo(ParameterInfo obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            var result = new Dictionary<string, object>();
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -554,7 +554,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsConstructorInfo(ConstructorInfo obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -562,12 +562,13 @@ namespace Sweet.Jayson
             }
 
             result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+
             if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
             {
                 result.Add("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
             }
 
-            ParameterInfo[] parameters = obj.GetParameters();
+            var parameters = obj.GetParameters();
             if (parameters != null && parameters.Length > 0)
             {
                 Type[] parameterTypes = new Type[parameters.Length];
@@ -584,7 +585,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsMethodInfo(MethodInfo obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -592,13 +593,15 @@ namespace Sweet.Jayson
             }
 
             result.Add("QualifiedName", JaysonTypeInfo.GetTypeName(obj.DeclaringType, JaysonTypeNameInfo.TypeNameWithAssembly));
+
             if (obj.ReflectedType != null && obj.ReflectedType != obj.DeclaringType)
             {
                 result.Add("ReflectedType", JaysonTypeInfo.GetTypeName(obj.ReflectedType, JaysonTypeNameInfo.TypeNameWithAssembly));
             }
+
             result.Add("MemberName", obj.Name);
 
-            ParameterInfo[] parameters = obj.GetParameters();
+            var parameters = obj.GetParameters();
             if (parameters != null && parameters.Length > 0)
             {
                 Type[] parameterTypes = new Type[parameters.Length];
@@ -621,14 +624,14 @@ namespace Sweet.Jayson
                 return AsISerializableKVMode(obj, objType, context);
             }
 
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (settings.UseObjectReferencing)
             {
                 result.Add("$id", context.ReferenceMap.GetObjectId(obj));
             }
 
-            SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+            var info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
             obj.GetObjectData(info, context.StreamingContext);
 
             if (info.MemberCount > 0)
@@ -637,11 +640,10 @@ namespace Sweet.Jayson
                 object value;
                 string aliasKey;
 
-                bool ignoreNullValues = settings.IgnoreNullValues;
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                var typeOverride = settings.GetTypeOverride(objType);
 
-                Func<string, object, object> filter = context.Filter;
-                bool canFilter = (filter != null);
+                var filter = context.Filter;
+                var canFilter = (filter != null);
 
                 foreach (SerializationEntry se in info)
                 {
@@ -663,7 +665,7 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        if ((value != null) || !ignoreNullValues)
+                        if ((value != null) || !settings.IgnoreNullValues)
                         {
                             if (typeOverride != null)
                             {
@@ -685,16 +687,16 @@ namespace Sweet.Jayson
 
         private static object AsISerializableKVMode(ISerializable obj, Type objType, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
-            JaysonSerializationSettings settings = context.Settings;
+            var settings = context.Settings;
 
             if (settings.UseObjectReferencing)
             {
                 result.Add("$id", context.ReferenceMap.GetObjectId(obj));
             }
 
-            SerializationInfo info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
+            var info = new SerializationInfo(objType, JaysonCommon.FormatterConverter);
             obj.GetObjectData(info, context.StreamingContext);
 
             if (info.MemberCount > 0)
@@ -703,13 +705,12 @@ namespace Sweet.Jayson
                 object value;
                 string aliasKey;
 
-                List<object> ctx = new List<object>(info.MemberCount);
+                var ctx = new List<object>(info.MemberCount);
 
-                bool ignoreNullValues = settings.IgnoreNullValues;
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(objType);
+                var typeOverride = settings.GetTypeOverride(objType);
 
-                Func<string, object, object> filter = context.Filter;
-                bool canFilter = (filter != null);
+                var filter = context.Filter;
+                var canFilter = (filter != null);
 
                 foreach (SerializationEntry se in info)
                 {
@@ -731,7 +732,7 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        if ((value != null) || !ignoreNullValues)
+                        if ((value != null) || !settings.IgnoreNullValues)
                         {
                             if (typeOverride != null)
                             {
@@ -771,7 +772,7 @@ namespace Sweet.Jayson
                 return new Dictionary<string, object>();
             }
 
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -781,8 +782,8 @@ namespace Sweet.Jayson
             string key;
             object value;
 
-            Func<string, object, object> filter = context.Filter;
-            bool canFilter = (filter != null);
+            var filter = context.Filter;
+            var canFilter = (filter != null);
 
             foreach (var kvp in obj)
             {
@@ -836,8 +837,8 @@ namespace Sweet.Jayson
                 return JaysonConstants.EmptyObjArray;
             }
 
-            object[] result = new object[count];
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
+            var result = new object[count];
+            var settings = context.Settings;
 
             object item;
 
@@ -849,7 +850,7 @@ namespace Sweet.Jayson
                     item = ToJsonObject(item, context);
                 }
 
-                if ((item != null) || !ignoreNullValues)
+                if ((item != null) || !settings.IgnoreNullValues)
                 {
                     result[i] = item;
                 }
@@ -866,11 +867,11 @@ namespace Sweet.Jayson
                 return JaysonConstants.EmptyObjArray;
             }
 
-            object[] result = new object[count];
+            var result = new object[count];
             obj.CopyTo(result, 0);
 
             object item;
-            bool ignoreNullValues = context.Settings.IgnoreNullValues;
+            var settings = context.Settings;
 
             for (int i = 0; i < count; i++)
             {
@@ -880,7 +881,7 @@ namespace Sweet.Jayson
                     item = ToJsonObject(item, context);
                 }
 
-                if ((item != null) || !ignoreNullValues)
+                if ((item != null) || !settings.IgnoreNullValues)
                 {
                     result[i] = item;
                 }
@@ -901,7 +902,7 @@ namespace Sweet.Jayson
             }
             else
             {
-                bool ignoreNullValues = context.Settings.IgnoreNullValues;
+                var settings = context.Settings;
 
                 Type entryType;
                 JaysonDictionaryType dType = JaysonCommon.GetDictionaryType(obj, out entryType);
@@ -916,15 +917,15 @@ namespace Sweet.Jayson
                         object keyObj;
                         DictionaryEntry dEntry;
 
-                        Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+                        var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
                         if (context.Settings.UseObjectReferencing)
                         {
                             result.Add("$id", context.ReferenceMap.GetObjectId(obj));
                         }
 
-                        Func<string, object, object> filter = context.Filter;
-                        bool canFilter = (filter != null);
+                        var filter = context.Filter;
+                        var canFilter = (filter != null);
 
                         while (enumerator.MoveNext())
                         {
@@ -948,7 +949,7 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            if ((value != null) || !ignoreNullValues)
+                            if ((value != null) || !settings.IgnoreNullValues)
                             {
                                 result[key] = value;
                             }
@@ -958,62 +959,64 @@ namespace Sweet.Jayson
                     }
                     else if (dType == JaysonDictionaryType.IGenericDictionary)
                     {
-                        Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+                        var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
                         if (context.Settings.UseObjectReferencing)
                         {
                             result.Add("$id", context.ReferenceMap.GetObjectId(obj));
                         }
 
-                        IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(entryType);
-
-                        IJaysonFastMember keyFm;
-                        IJaysonFastMember valueFm;
-
-                        if (members.TryGetValue("Key", out keyFm) && members.TryGetValue("Value", out valueFm))
+                        var cache = JaysonFastMemberCache.GetCache(entryType);
+                        if (cache != null)
                         {
-                            string key;
-                            object value;
-                            object keyObj;
-
-                            Func<string, object, object> filter = context.Filter;
-                            bool canFilter = (filter != null);
-
-                            bool ignoreEmptyCollections = context.Settings.IgnoreEmptyCollections;
-
-                            while (enumerator.MoveNext())
+                            var keyFm = cache.GetAnyMember("Key");
+                            if (keyFm != null)
                             {
-                                keyObj = keyFm.Get(enumerator.Current);
-                                if (keyObj != null)
+                                var valueFm = JaysonFastMemberCache.GetAnyMember(entryType, "Value");
+                                if (valueFm != null)
                                 {
-                                    key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
-                                    value = valueFm.Get(enumerator.Current);
+                                    string key;
+                                    object value;
+                                    object keyObj;
 
-                                    if (value != null)
+                                    var filter = context.Filter;
+                                    var canFilter = (filter != null);
+
+                                    while (enumerator.MoveNext())
                                     {
-                                        if (canFilter)
+                                        keyObj = keyFm.Get(enumerator.Current);
+                                        if (keyObj != null)
                                         {
-                                            value = filter(key, value);
-                                        }
+                                            key = (keyObj is string) ? (string)keyObj : keyObj.ToString();
+                                            value = valueFm.Get(enumerator.Current);
 
-                                        if (value != null)
-                                        {
-                                            value = ToJsonObject(value, context);
-                                        }
-                                    }
-
-                                    if ((value != null) || !ignoreNullValues)
-                                    {
-                                        if (ignoreEmptyCollections)
-                                        {
-                                            var collection = value as ICollection;
-                                            if ((collection != null) && (collection.Count == 0))
+                                            if (value != null)
                                             {
-                                                continue;
+                                                if (canFilter)
+                                                {
+                                                    value = filter(key, value);
+                                                }
+
+                                                if (value != null)
+                                                {
+                                                    value = ToJsonObject(value, context);
+                                                }
+                                            }
+
+                                            if ((value != null) || !settings.IgnoreNullValues)
+                                            {
+                                                if (settings.IgnoreEmptyCollections)
+                                                {
+                                                    var collection = value as ICollection;
+                                                    if ((collection != null) && (collection.Count == 0))
+                                                    {
+                                                        continue;
+                                                    }
+                                                }
+
+                                                result[key] = value;
                                             }
                                         }
-
-                                        result[key] = value;
                                     }
                                 }
                             }
@@ -1028,7 +1031,7 @@ namespace Sweet.Jayson
                     else
                     {
                         object item;
-                        List<object> result = new List<object>();
+                        var result = new List<object>();
 
                         while (enumerator.MoveNext())
                         {
@@ -1038,7 +1041,7 @@ namespace Sweet.Jayson
                                 item = ToJsonObject(item, context);
                             }
 
-                            if ((item != null) || !ignoreNullValues)
+                            if ((item != null) || !settings.IgnoreNullValues)
                             {
                                 result.Add(item);
                             }
@@ -1089,7 +1092,7 @@ namespace Sweet.Jayson
 
                 if (columnCount > 0)
                 {
-                    List<object> result = new List<object>(rowCount);
+                    var result = new List<object>(rowCount);
 
                     DataColumn dataColumn;
                     List<JaysonTuple<DataColumn, JaysonTypeInfo>> columnsInfo = new List<JaysonTuple<DataColumn, JaysonTypeInfo>>();
@@ -1101,8 +1104,8 @@ namespace Sweet.Jayson
                             JaysonTypeInfo.GetTypeInfo(dataColumn.DataType)));
                     }
 
-                    Func<string, object, object> filter = context.Filter;
-                    bool canFilter = (filter != null);
+                    var filter = context.Filter;
+                    var canFilter = (filter != null);
 
                     DataRow dataRow;
                     object cellValue;
@@ -1156,7 +1159,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDataTableColumn(DataColumn dataColumn, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(16);
+            var result = new Dictionary<string, object>(16);
 
             string defaultNamespace = dataColumn.Table.Namespace;
 
@@ -1227,7 +1230,7 @@ namespace Sweet.Jayson
             var columns = dataTable.Columns;
             if (columns.Count > 0)
             {
-                List<object> result = new List<object>(columns.Count);
+                var result = new List<object>(columns.Count);
                 foreach (DataColumn dataColumn in columns)
                 {
                     result.Add(AsDataTableColumn(dataColumn, context));
@@ -1240,7 +1243,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDataTable(DataTable dataTable, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(10);
+            var result = new Dictionary<string, object>(10);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -1303,7 +1306,7 @@ namespace Sweet.Jayson
             var tables = dataSet.Tables;
             if (tables.Count > 0)
             {
-                List<object> result = new List<object>(tables.Count);
+                var result = new List<object>(tables.Count);
                 foreach (DataTable table in tables)
                 {
                     result.Add(AsDataTable(table, context));
@@ -1315,7 +1318,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDataRelation(DataRelation relation, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(10);
+            var result = new Dictionary<string, object>(10);
 
             if (!String.IsNullOrEmpty(relation.RelationName))
             {
@@ -1378,7 +1381,7 @@ namespace Sweet.Jayson
             if (relations.Count > 0)
             {
                 int relationCount = relations.Count;
-                List<object> result = new List<object>(relationCount);
+                var result = new List<object>(relationCount);
 
                 for (int i = 0; i < relationCount; i++)
                 {
@@ -1392,7 +1395,7 @@ namespace Sweet.Jayson
 
         private static Dictionary<string, object> AsDataSet(DataSet dataSet, JaysonSerializationContext context)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
+            var result = new Dictionary<string, object>(JaysonConstants.DictionaryCapacity);
 
             if (context.Settings.UseObjectReferencing)
             {
@@ -1501,7 +1504,7 @@ namespace Sweet.Jayson
 
                 try
                 {
-                    JaysonTypeSerializationType serializationType = info.SerializationType;
+                    var serializationType = info.SerializationType;
 
                     switch (serializationType)
                     {
@@ -1613,7 +1616,7 @@ namespace Sweet.Jayson
         public static object ToJsonObject(object obj, JaysonSerializationSettings settings = null,
             Func<string, object, object> filter = null)
         {
-            JaysonStackList<object> stack = JaysonStackList<object>.Get();
+            var stack = JaysonStackList<object>.Get();
             try
             {
                 using (var context = new JaysonSerializationContext(filter: filter,

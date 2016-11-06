@@ -1,0 +1,13 @@
+*.xml
+*.nupkg
+*.psess
+LICENSE.txt
+CHANGES.txt
+NOTICES.txt
+TemporaryGeneratedFile*.cs
+*.rar
+*.userprefs
+*.vsp
+*\bin\*.*
+*\obj\*.*
+*FileListAbsolute.txt

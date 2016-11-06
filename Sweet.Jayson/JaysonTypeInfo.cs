@@ -163,7 +163,8 @@ namespace Sweet.Jayson
             {
                 if (!m_IsAnonymous.HasValue)
                 {
-                    if (!Generic && (Type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
+                    if (((Type.Attributes & TypeAttributes.Sealed) == TypeAttributes.Sealed) &&
+                        ((Type.Attributes & TypeAttributes.BeforeFieldInit) == TypeAttributes.BeforeFieldInit))
                     {
                         string typeName = Type.Name;
 
@@ -236,12 +237,19 @@ namespace Sweet.Jayson
             {
                 if (!m_Default.HasValue)
                 {
-                    var defaultMi = typeof(JaysonTypeInfo).GetMethod("GetDefaultValue",
-                        BindingFlags.Static |
-                        BindingFlags.NonPublic |
-                        BindingFlags.InvokeMethod).MakeGenericMethod(new Type[] { Type });
+                    if (Type == typeof(void*))
+                    {
+                        m_Default.Value = null;
+                    }
+                    else
+                    {
+                        var defaultMi = typeof(JaysonTypeInfo).GetMethod("GetDefaultValue",
+                            BindingFlags.Static |
+                            BindingFlags.NonPublic |
+                            BindingFlags.InvokeMethod).MakeGenericMethod(new Type[] { Type });
 
-                    m_Default.Value = defaultMi.Invoke(null, null);
+                        m_Default.Value = defaultMi.Invoke(null, null);
+                    }
                     m_Default.HasValue = true;
                 }
                 return m_Default.Value;
@@ -970,12 +978,12 @@ namespace Sweet.Jayson
         private static string GetTypeNameWithAssembly(string qualifiedTypeName)
         {
             char ch;
-            int startPos = 0;
-            int commaIndex = 0;
+            var startPos = 0;
+            var commaIndex = 0;
 
-            bool appendRest = true;
-            int length = qualifiedTypeName.Length;
-            StringBuilder builder = new StringBuilder(length / 2);
+            var appendRest = true;
+            var length = qualifiedTypeName.Length;
+            var builder = new StringBuilder(length / 2);
 
             for (int i = 0; i < length; i++)
             {

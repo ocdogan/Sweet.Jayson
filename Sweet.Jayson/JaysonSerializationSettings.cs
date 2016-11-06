@@ -50,14 +50,18 @@ namespace Sweet.Jayson
         public bool EscapeUnicodeChars = false;
         public bool GuidAsByteArray = false;
         public bool IgnoreAnonymousTypes = true;
+        public bool IgnoreBackingFields = true;
         public bool IgnoreDefaultValues = false;
 #if !(NET3500 || NET3000 || NET2000)
         public bool IgnoreDynamicObjects = false;
         public bool IgnoreExpandoObjects = false;
 #endif
         public bool IgnoreEmptyCollections = false;
+        public bool IgnoreFields = false;
         public bool IgnorePrimitiveTypeNames = true;
         public bool IgnoreReadOnlyMembers = false;
+        public bool IgnoreNonPublicFields = false;
+        public bool IgnoreNonPublicProperties = false;
         public bool IgnoreNullValues = true;
         public bool IgnoreNullListItems = false;
         public bool OrderNames = false;
@@ -116,12 +120,16 @@ namespace Sweet.Jayson
             destination.Formatting = Formatting;
             destination.GuidAsByteArray = GuidAsByteArray;
             destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
+            destination.IgnoreBackingFields = IgnoreBackingFields;
 #if !(NET3500 || NET3000 || NET2000)
             destination.IgnoreDynamicObjects = IgnoreDynamicObjects;
             destination.IgnoreExpandoObjects = IgnoreExpandoObjects;
 #endif
             destination.IgnoreDefaultValues = IgnoreDefaultValues;
+            destination.IgnoreFields = IgnoreFields;
             destination.IgnorePrimitiveTypeNames = IgnorePrimitiveTypeNames;
+            destination.IgnoreNonPublicFields = IgnoreNonPublicFields;
+            destination.IgnoreNonPublicProperties = IgnoreNonPublicProperties;
             destination.IgnoreNullListItems = IgnoreNullListItems;
             destination.IgnoreNullValues = IgnoreNullValues;
             destination.IgnoreReadOnlyMembers = IgnoreReadOnlyMembers;
@@ -143,7 +151,7 @@ namespace Sweet.Jayson
 
         public object Clone()
         {
-            JaysonSerializationSettings clone = new JaysonSerializationSettings();
+            var clone = new JaysonSerializationSettings();
             AssignTo(clone);
 
             return clone;
@@ -257,7 +265,7 @@ namespace Sweet.Jayson
 
         public JaysonTypeOverride AddTypeOverride<T>(Type bindToType)
         {
-            JaysonTypeOverride typeOverride = AddTypeOverride(typeof(T));
+            var typeOverride = AddTypeOverride(typeof(T));
             if (typeOverride != null)
             {
                 typeOverride.BindToType = bindToType;
@@ -267,7 +275,7 @@ namespace Sweet.Jayson
 
         public JaysonTypeOverride AddTypeOverride(Type type, Type bindToType)
         {
-            JaysonTypeOverride typeOverride = AddTypeOverride(type);
+            var typeOverride = AddTypeOverride(type);
             if (typeOverride != null)
             {
                 typeOverride.BindToType = bindToType;

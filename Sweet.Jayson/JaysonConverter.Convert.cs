@@ -91,7 +91,7 @@ namespace Sweet.Jayson
             Type result;
             if (!s_GenericUnderlyingCache.TryGetValue(info.Type, out result))
             {
-                Type[] argTypes = info.GenericArguments;
+                var argTypes = info.GenericArguments;
                 if (argTypes[0] == typeof(object))
                 {
                     result = typeof(List<object>);
@@ -111,7 +111,7 @@ namespace Sweet.Jayson
             Type result;
             if (!s_GenericUnderlyingCache.TryGetValue(info.Type, out result))
             {
-                Type[] argTypes = info.GenericArguments;
+                var argTypes = info.GenericArguments;
                 if (argTypes[0] == typeof(string) && argTypes[1] == typeof(object))
                 {
                     result = typeof(Dictionary<string, object>);
@@ -131,7 +131,7 @@ namespace Sweet.Jayson
             ConstructorInfo ctor;
             if (!s_CtorCache.TryGetValue(rocType, out ctor))
             {
-                Type[] argTypes = JaysonTypeInfo.GetTypeInfo(rocType).GenericArguments;
+                var argTypes = JaysonTypeInfo.GetTypeInfo(rocType).GenericArguments;
 
                 rocType = typeof(ReadOnlyCollection<>).MakeGenericType(argTypes);
                 ctor = rocType.GetConstructor(new Type[] { typeof(IList<>).MakeGenericType(argTypes) });
@@ -158,7 +158,7 @@ namespace Sweet.Jayson
             ConstructorInfo ctor;
             if (!s_CtorCache.TryGetValue(rodType, out ctor))
             {
-                Type[] argTypes = JaysonTypeInfo.GetTypeInfo(rodType).GenericArguments;
+                var argTypes = JaysonTypeInfo.GetTypeInfo(rodType).GenericArguments;
 
                 rodType = typeof(ReadOnlyDictionary<,>).MakeGenericType(argTypes);
                 ctor = rodType.GetConstructor(new Type[] { typeof(IDictionary<,>).MakeGenericType(argTypes) });
@@ -194,7 +194,7 @@ namespace Sweet.Jayson
                     var kvList = kvListObj as List<object>;
                     if (kvList != null)
                     {
-                        int count = kvList.Count;
+                        var count = kvList.Count;
                         if (count > 0)
                         {
                             IDictionary<string, object> kvp;
@@ -210,7 +210,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                bool hasSkeyword = dct.ContainsKey("$type") || dct.ContainsKey("$id") || dct.ContainsKey("$ref");
+                var hasSkeyword = dct.ContainsKey("$type") || dct.ContainsKey("$id") || dct.ContainsKey("$ref");
                 foreach (var ekvp in dct)
                 {
                     if (!hasSkeyword || !(ekvp.Key == "$type" || ekvp.Key == "$id" || ekvp.Key == "$ref"))
@@ -290,8 +290,8 @@ namespace Sweet.Jayson
                 DataColumn column;
                 string columnName;
 
-                List<DataColumn> unordinalColumnList = new List<DataColumn>();
-                DataColumn[] ordinalColumnList = new DataColumn[columnList.Count];
+                var ordinalColumnList = new DataColumn[columnList.Count];
+                var unordinalColumnList = new List<DataColumn>();
 
                 var settings = context.Settings;
 
@@ -316,10 +316,10 @@ namespace Sweet.Jayson
                         {
                             dataType = JaysonCommon.GetType((string)propValue, settings.Binder);
 
-                            JaysonTypeOverride typeOverride = settings.GetTypeOverride(dataType);
+                            var typeOverride = settings.GetTypeOverride(dataType);
                             if (typeOverride != null)
                             {
-                                Type bindToType = typeOverride.BindToType;
+                                var bindToType = typeOverride.BindToType;
                                 if (bindToType != null)
                                 {
                                     dataType = bindToType;
@@ -507,8 +507,8 @@ namespace Sweet.Jayson
 
                 if (unordinalColumnList.Count > 0)
                 {
-                    int columnCount = ordinalColumnList.Length;
-                    int unordColPos = unordinalColumnList.Count - 1;
+                    var columnCount = ordinalColumnList.Length;
+                    var unordColPos = unordinalColumnList.Count - 1;
 
                     for (int i = columnCount - 1; i > -1; i--)
                     {
@@ -543,8 +543,9 @@ namespace Sweet.Jayson
                     if (primaryKeyList.Count > 0)
                     {
                         string columnName;
+                        
                         var columns = dataTable.Columns;
-                        List<DataColumn> primaryKeyColumns = new List<DataColumn>();
+                        var primaryKeyColumns = new List<DataColumn>();
 
                         foreach (var column in primaryKeyList)
                         {
@@ -576,8 +577,8 @@ namespace Sweet.Jayson
                     dataTable.BeginLoadData();
                     try
                     {
-                        int columnCount = dataTable.Columns.Count;
-                        Type[] columnTypes = new Type[columnCount];
+                        var columnCount = dataTable.Columns.Count;
+                        var columnTypes = new Type[columnCount];
 
                         for (int i = 0; i < columnCount; i++)
                         {
@@ -659,8 +660,8 @@ namespace Sweet.Jayson
                 DataTable parentTable;
                 DataColumnCollection columns;
 
-                List<DataColumn> childColumns = new List<DataColumn>();
-                List<DataColumn> parentColumns = new List<DataColumn>();
+                var childColumns = new List<DataColumn>();
+                var parentColumns = new List<DataColumn>();
 
                 foreach (var relationInfoObj in relationsList)
                 {
@@ -927,10 +928,10 @@ namespace Sweet.Jayson
 
         private static void SetDictionary(IDictionary<string, object> obj, ref object instance, JaysonDeserializationContext context)
         {
-            if (instance != null && obj != null && obj.Count > 0 && !(instance is DBNull))
+            if ((instance != null) && (obj != null) && (obj.Count > 0) && !(instance is DBNull))
             {
                 var info = JaysonTypeInfo.GetTypeInfo(instance.GetType());
-                JaysonTypeSerializationType serializationType = info.SerializationType;
+                var serializationType = info.SerializationType;
 
                 switch (serializationType)
                 {
@@ -987,134 +988,149 @@ namespace Sweet.Jayson
             Type instanceType, JaysonDeserializationContext context)
         {
             var info = JaysonTypeInfo.GetTypeInfo(instanceType);
-            if (!info.JPrimitive)
+            if (info.JPrimitive)
             {
-                var settings = context.Settings;
+                return;
+            }
 
-                bool caseSensitive = settings.CaseSensitive;
-                bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
+            var settings = context.Settings;
 
-                IJaysonFastMember member;
-                IDictionary<string, IJaysonFastMember> members = JaysonFastMemberCache.GetMembers(instanceType, caseSensitive);
+            IJaysonFastMember member;
+            var cache = JaysonFastMemberCache.GetCache(instanceType);
 
-                string memberName;
-                object memberValue;
+            string memberName;
+            object memberValue;
 
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
-                bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
+            var typeOverride = settings.GetTypeOverride(instanceType);
+            var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
 
-                IDictionary<string, bool> existingValues = null;
-                if (settings.UseDefaultValues)
+            var existingValues = settings.UseDefaultValues ? new Dictionary<string, object>() : null;
+
+            foreach (var entry in obj)
+            {
+                try
                 {
-                    existingValues = new Dictionary<string, bool>();
-                }
+                    memberName = entry.Key;
 
-                var errorHandler = context.Settings.ErrorHandler;
-
-                foreach (var entry in obj)
-                {
-                    try
+                    if (!hasSkeyword || !(memberName == "$type" || memberName == "$id" || memberName == "$ref"))
                     {
-                        memberName = caseSensitive ? entry.Key : entry.Key.ToLower(JaysonConstants.InvariantCulture);
-                        if (!hasSkeyword || !(memberName == "$type" || memberName == "$id" || memberName == "$ref"))
+                        member = cache.GetAnyMember(memberName, settings.CaseSensitive);
+
+                        if ((member == null) && (typeOverride != null))
                         {
-                            if (!members.TryGetValue(memberName, out member) && (typeOverride != null))
+                            var aliasName = typeOverride.GetAliasMember(memberName);
+                            if (!String.IsNullOrEmpty(aliasName))
                             {
-                                memberName = typeOverride.GetAliasMember(memberName);
-                                if (!String.IsNullOrEmpty(memberName))
-                                {
-                                    if (!caseSensitive)
-                                    {
-                                        memberName = memberName.ToLower(JaysonConstants.InvariantCulture);
-                                    }
-                                    members.TryGetValue(memberName, out member);
-                                }
-                            }
-
-                            if (member != null)
-                            {
-                                if (existingValues != null)
-                                {
-                                    existingValues[member.Name] = true;
-                                }
-
-                                if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
-                                {
-                                    if (member.CanWrite)
-                                    {
-                                        member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
-                                    }
-                                    else if (entry.Value != null)
-                                    {
-                                        memberValue = member.Get(instance);
-                                        if (instance != null)
-                                        {
-                                            SetObject(memberValue, entry.Value, context);
-                                        }
-                                    }
-                                }
-                            }
-                            else if (raiseErrorOnMissingMember)
-                            {
-                                throw new JaysonException(JaysonError.MissingMember + entry.Key);
+                                member = cache.GetAnyMember(aliasName, settings.CaseSensitive);
+                                memberName = (member != null) ? member.Name : entry.Key;
                             }
                         }
-                    } 
-                    catch (Exception e) 
-                    {
-                        if (errorHandler == null)
-                            throw;
 
-                        bool handled;
-                        errorHandler(instance, entry.Key, e, out handled);
-                        if (!handled)
-                            throw;
+                        if (member != null)
+                        {
+                            if (settings.UseDefaultValues)
+                            {
+                                existingValues[member.Name] = null;
+                            }
+
+                            if (member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                                (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
+                                (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                                (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property)))
+                                continue;
+
+                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
+                            {
+                                if (member.CanWrite)
+                                {
+                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                }
+                                else if (entry.Value != null)
+                                {
+                                    memberValue = member.Get(instance);
+                                    if (instance != null)
+                                    {
+                                        SetObject(memberValue, entry.Value, context);
+                                    }
+                                }
+                            }
+                        }
+                        else if (settings.RaiseErrorOnMissingMember)
+                        {
+                            throw new JaysonException(JaysonError.MissingMember + memberName);
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    var errorHandler = context.Settings.ErrorHandler;
+                    if (errorHandler == null)
+                        throw;
 
-                if ((existingValues != null) && (existingValues.Count < members.Count))
+                    bool handled;
+                    errorHandler(instance, entry.Key, e, out handled);
+                    if (!handled)
+                        throw;
+                }
+            }
+
+            if (existingValues != null)
+            {
+                var existingCount = existingValues.Count;
+                if (existingCount < cache.Count)
                 {
                     string key;
                     object value;
                     object defaultValue;
 
-                    foreach (var memberKvp in members)
+                    var members = cache.AllMembers;
+
+                    foreach (var tm in members)
                     {
-                        try
+                        if (tm != null)
                         {
-                            if (memberKvp.Value.CanWrite)
+                            member = tm;
+                            try
                             {
-                                key = memberKvp.Key;
-                                if (!existingValues.ContainsKey(key))
+                                // Don't check as (settings.IgnoreBackingFields && member.BackingField), some backingfield set to default is causing crash for ISerializable types, such as System.Uri
+                                if ((member != null) && member.CanWrite &&
+                                    !(member.AnonymousField || member.BackingField ||
+                                     (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
+                                     (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                                     (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property))))
                                 {
-                                    defaultValue = null;
-                                    member = memberKvp.Value;
+                                    key = member.Name;
 
-                                    if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                    if ((existingCount > 0) && !existingValues.ContainsKey(key))
                                     {
-                                        defaultValue = member.DefaultValue;
-                                    }
-
-                                    if (defaultValue != null)
-                                    {
-                                        value = member.Get(instance);
-    									if (!defaultValue.Equals(value))
+                                        defaultValue = null;
+                                        if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
                                         {
-                                            member.Set(ref instance, defaultValue);
+                                            defaultValue = member.DefaultValue;
+                                        }
+
+                                        if (defaultValue != null)
+                                        {
+                                            value = member.Get(instance);
+                                            if (!defaultValue.Equals(value))
+                                            {
+                                                member.Set(ref instance, defaultValue);
+                                            }
                                         }
                                     }
                                 }
                             }
-                        } 
-                        catch (Exception e) 
-                        {
-                            if (errorHandler == null)
-                                throw;
+                            catch (Exception e)
+                            {
+                                var errorHandler = context.Settings.ErrorHandler;
+                                if (errorHandler == null)
+                                    throw;
 
-                            bool handled;
-                            errorHandler(instance, memberKvp.Key, e, out handled);
-                            if (!handled)
-                                throw;
+                                bool handled;
+                                errorHandler(instance, member.Name, e, out handled);
+                                if (!handled)
+                                    throw;
+                            }
                         }
                     }
                 }
@@ -1124,7 +1140,7 @@ namespace Sweet.Jayson
         private static bool SetDictionaryGeneric(IDictionary<string, object> obj, object instance, Type instanceType,
             JaysonDeserializationContext context)
         {
-            Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instanceType);
+            var genArgs = JaysonCommon.GetGenericDictionaryArgs(instanceType);
             if (genArgs != null)
             {
                 Action<object, object[]> addMethod = JaysonCommon.GetIDictionaryAddMethod(instanceType);
@@ -1133,16 +1149,16 @@ namespace Sweet.Jayson
                     object key;
                     object value;
 
-                    Type keyType = genArgs[0];
-                    Type valType = genArgs[1];
+                    var keyType = genArgs[0];
+                    var valType = genArgs[1];
 
                     object kvListObj;
                     if (obj.TryGetValue("$kv", out kvListObj))
                     {
-                        List<object> kvList = kvListObj as List<object>;
+                        var kvList = kvListObj as List<object>;
                         if (kvList != null)
                         {
-                            int count = kvList.Count;
+                            var count = kvList.Count;
                             if (count > 0)
                             {
                                 IDictionary<string, object> kvp;
@@ -1161,7 +1177,7 @@ namespace Sweet.Jayson
                         return true;
                     }
 
-                    bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
+                    var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
                     foreach (var entry in obj)
                     {
                         if (!hasSkeyword || !(entry.Key == "$type" || entry.Key == "$id" || entry.Key == "$ref"))
@@ -1185,15 +1201,11 @@ namespace Sweet.Jayson
             var settings = context.Settings;
             if (!settings.IgnoreAnonymousTypes)
             {
-                bool caseSensitive = settings.CaseSensitive;
-                bool raiseErrorOnMissingMember = settings.RaiseErrorOnMissingMember;
+                var cache = JaysonFastMemberCache.GetCache(instanceType);
 
-                IDictionary<string, IJaysonFastMember> members =
-                    JaysonFastMemberCache.GetAllFieldMembers(instanceType, caseSensitive);
-
-                if (members == null || members.Count == 0)
+                if ((cache == null) || (cache.Count == 0))
                 {
-                    if (raiseErrorOnMissingMember)
+                    if (settings.RaiseErrorOnMissingMember)
                     {
                         throw new JaysonException(JaysonError.MissingMembers);
                     }
@@ -1201,15 +1213,12 @@ namespace Sweet.Jayson
                 }
 
                 string key;
-                string memberName;
                 object memberValue;
 
                 IJaysonFastMember member;
 
-                JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
-                bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
-
-                var errorHandler = context.Settings.ErrorHandler;
+                var typeOverride = settings.GetTypeOverride(instanceType);
+                var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
 
                 foreach (var entry in obj)
                 {
@@ -1217,22 +1226,29 @@ namespace Sweet.Jayson
                     {
                         if (!hasSkeyword || !(entry.Key == "$type" || entry.Key == "$id" || entry.Key == "$ref"))
                         {
+                            member = null;
                             key = entry.Key;
 
-                            memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                            if (!members.TryGetValue(memberName, out member) && typeOverride != null)
+                            member = cache.GetAnyMember("<" + key + ">", settings.CaseSensitive);
+
+                            if ((member == null) && (typeOverride != null))
                             {
-                                key = typeOverride.GetAliasMember(key);    
+                                key = typeOverride.GetAliasMember(key);
                                 if (!String.IsNullOrEmpty(key))
                                 {
-                                    memberName = "<" + (caseSensitive ? key : key.ToLower(JaysonConstants.InvariantCulture)) + ">";
-                                    members.TryGetValue(memberName, out member);
+                                    member = cache.GetAnyMember("<" + key + ">");
                                 }
                             }
 
                             if (member != null)
                             {
-                                if (typeOverride == null || !typeOverride.IsMemberIgnored(memberName))
+                                if (member.AnonymousField || (settings.IgnoreBackingFields && member.BackingField) ||
+                                    (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
+                                    (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
+                                    (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property)))
+                                    continue;
+
+                                if (typeOverride == null || !typeOverride.IsMemberIgnored(member.Name))
                                 {
                                     if (member.CanWrite)
                                     {
@@ -1248,14 +1264,15 @@ namespace Sweet.Jayson
                                     }
                                 }
                             }
-                            else if (raiseErrorOnMissingMember)
+                            else if (settings.RaiseErrorOnMissingMember)
                             {
-                                throw new JaysonException(JaysonError.MissingMember + entry.Key);    
+                                throw new JaysonException(JaysonError.MissingMember + entry.Key);
                             }
                         }
-                    } 
-                    catch (Exception e) 
+                    }
+                    catch (Exception e)
                     {
+                        var errorHandler = context.Settings.ErrorHandler;
                         if (errorHandler == null)
                             throw;
 
@@ -1278,11 +1295,11 @@ namespace Sweet.Jayson
             object kvListObj;
             if (obj.TryGetValue("$kv", out kvListObj))
             {
-                List<object> kvList = kvListObj as List<object>;
+                var kvList = kvListObj as List<object>;
 
                 if (kvList != null)
                 {
-                    int count = kvList.Count;
+                    var count = kvList.Count;
                     if (count > 0)
                     {
                         object keyObj;
@@ -1323,7 +1340,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
+            var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
             foreach (var item in obj)
             {
                 key = item.Key;
@@ -1364,11 +1381,11 @@ namespace Sweet.Jayson
             object kvListObj;
             if (obj.TryGetValue("$kv", out kvListObj))
             {
-                List<object> kvList = kvListObj as List<object>;
+                var kvList = kvListObj as List<object>;
 
                 if (kvList != null)
                 {
-                    int count = kvList.Count;
+                    var count = kvList.Count;
                     if (count > 0)
                     {
                         object keyObj;
@@ -1410,7 +1427,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
+            var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
             foreach (var item in obj)
             {
                 key = item.Key;
@@ -1447,19 +1464,19 @@ namespace Sweet.Jayson
             object kvListObj;
             bool hasSkeyword;
 
-            Type[] genArgs = JaysonCommon.GetGenericDictionaryArgs(instance.GetType());
+            var genArgs = JaysonCommon.GetGenericDictionaryArgs(instance.GetType());
 
             if (genArgs != null)
             {
-                Type keyType = genArgs[0];
-                Type valType = genArgs[1];
+                var keyType = genArgs[0];
+                var valType = genArgs[1];
 
                 if (obj.TryGetValue("$kv", out kvListObj))
                 {
-                    List<object> kvList = kvListObj as List<object>;
+                    var kvList = kvListObj as List<object>;
                     if (kvList != null)
                     {
-                        int count = kvList.Count;
+                        var count = kvList.Count;
                         if (count > 0)
                         {
                             object keyObj;
@@ -1491,10 +1508,10 @@ namespace Sweet.Jayson
 
             if (obj.TryGetValue("$kv", out kvListObj))
             {
-                List<object> kvList = kvListObj as List<object>;
+                var kvList = kvListObj as List<object>;
                 if (kvList != null)
                 {
-                    int count = kvList.Count;
+                    var count = kvList.Count;
                     if (count > 0)
                     {
                         object keyObj;
@@ -1532,10 +1549,10 @@ namespace Sweet.Jayson
             object kvListObj;
             if (obj.TryGetValue("$kv", out kvListObj))
             {
-                List<object> kvList = kvListObj as List<object>;
+                var kvList = kvListObj as List<object>;
                 if (kvList != null)
                 {
-                    int count = kvList.Count;
+                    var count = kvList.Count;
                     if (count > 0)
                     {
                         object keyObj;
@@ -1555,7 +1572,7 @@ namespace Sweet.Jayson
                 return;
             }
 
-            bool hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
+            var hasSkeyword = obj.ContainsKey("$type") || obj.ContainsKey("$id") || obj.ContainsKey("$ref");
             foreach (var entry in obj)
             {
                 key = entry.Key;
@@ -1569,7 +1586,7 @@ namespace Sweet.Jayson
         private static void SetMultiDimensionalArray(IList obj, Array instance, Type arrayType,
             int rank, int currRank, int[] rankIndices, JaysonDeserializationContext context)
         {
-            int length = Math.Min(obj.Count, instance.GetLength(currRank));
+            var length = Math.Min(obj.Count, instance.GetLength(currRank));
             if (length > 0)
             {
                 if (currRank == rank - 1)
@@ -1606,7 +1623,7 @@ namespace Sweet.Jayson
         private static void SetMultiDimensionalArray(IList<object> obj, Array instance, Type arrayType,
             int rank, int currRank, int[] rankIndices, JaysonDeserializationContext context)
         {
-            int length = Math.Min(obj.Count, instance.GetLength(currRank));
+            var length = Math.Min(obj.Count, instance.GetLength(currRank));
             if (length > 0)
             {
                 if (currRank == rank - 1)
@@ -1650,13 +1667,13 @@ namespace Sweet.Jayson
             var info = JaysonTypeInfo.GetTypeInfo(instance.GetType());
             if (info.Array)
             {
-                Array aResult = (Array)instance;
-                Type arrayType = info.ElementType;
+                var aResult = (Array)instance;
+                var arrayType = info.ElementType;
 
-                int rank = info.ArrayRank;
+                var rank = info.ArrayRank;
                 if (rank == 1)
                 {
-                    int count = obj.Count;
+                    var count = obj.Count;
                     for (int i = 0; i < count; i++)
                     {
                         aResult.SetValue(ConvertObject(obj[i], arrayType, context), i);
@@ -1673,11 +1690,11 @@ namespace Sweet.Jayson
 
             if (instance is IList)
             {
-                int count = obj.Count;
-                IList lResult = (IList)instance;
+                var count = obj.Count;
+                var lResult = (IList)instance;
 
                 object item;
-                Type argType = JaysonCommon.GetGenericListArgs(info.Type);
+                var argType = JaysonCommon.GetGenericListArgs(info.Type);
                 if (argType != null)
                 {
 #if (NET3500 || NET3000 || NET2000)
@@ -1720,24 +1737,18 @@ namespace Sweet.Jayson
                 {
                     item = ConvertObject(obj[i], typeof(object), context);
 
-                    /* if (item is IDictionary<string, object>) {
-                        item = ConvertDictionary ((IDictionary<string, object>)item, typeof(object), context);
-                    } else if (item is IList<object>) {
-                        item = ConvertList ((IList<object>)item, typeof(object), context);
-                    } */
-
                     lResult.Add(item);
                 }
             }
             else
             {
-                Type argType = JaysonCommon.GetGenericCollectionArgs(info.Type);
+                var argType = JaysonCommon.GetGenericCollectionArgs(info.Type);
                 if (argType != null)
                 {
-                    Action<object, object[]> methodInfo = JaysonCommon.GetICollectionAddMethod(info.Type);
+                    var methodInfo = JaysonCommon.GetICollectionAddMethod(info.Type);
                     if (methodInfo != null)
                     {
-                        int count = obj.Count;
+                        var count = obj.Count;
                         for (int i = 0; i < count; i++)
                         {
                             methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
@@ -1748,9 +1759,9 @@ namespace Sweet.Jayson
 
                 if (instance is Stack)
                 {
-                    Stack stack = (Stack)instance;
+                    var stack = (Stack)instance;
 
-                    int count = obj.Count;
+                    var count = obj.Count;
                     for (int i = count - 1; i > -1; i--)
                     {
                         stack.Push(ConvertObject(obj[i], typeof(object), context));
@@ -1760,9 +1771,9 @@ namespace Sweet.Jayson
 
                 if (instance is Queue)
                 {
-                    Queue queue = (Queue)instance;
+                    var queue = (Queue)instance;
 
-                    int count = obj.Count;
+                    var count = obj.Count;
                     for (int i = 0; i < count; i++)
                     {
                         queue.Enqueue(ConvertObject(obj[i], typeof(object), context));
@@ -1770,7 +1781,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                Type[] argTypes = info.GenericArguments;
+                var argTypes = info.GenericArguments;
 
                 if (argTypes != null && argTypes.Length == 1)
                 {
@@ -1780,7 +1791,7 @@ namespace Sweet.Jayson
                     if (methodInfo != null)
                     {
                         argType = argTypes[0];
-                        int count = obj.Count;
+                        var count = obj.Count;
 
                         for (int i = count - 1; i > -1; i--)
                         {
@@ -1793,7 +1804,7 @@ namespace Sweet.Jayson
                     if (methodInfo != null)
                     {
                         argType = argTypes[0];
-                        int count = obj.Count;
+                        var count = obj.Count;
 
                         for (int i = 0; i < count; i++)
                         {
@@ -1807,7 +1818,7 @@ namespace Sweet.Jayson
                     if (methodInfo != null)
                     {
                         argType = argTypes[0];
-                        int count = obj.Count;
+                        var count = obj.Count;
 
                         for (int i = count - 1; i > -1; i--)
                         {
@@ -1823,7 +1834,7 @@ namespace Sweet.Jayson
                         if (methodInfo != null)
                         {
                             argType = argTypes[0];
-                            int count = obj.Count;
+                            var count = obj.Count;
 
                             for (int i = 0; i < count; i++)
                             {
@@ -1839,21 +1850,21 @@ namespace Sweet.Jayson
 
         private static void SetObject(object obj, object instance, JaysonDeserializationContext context)
         {
-			if (obj != null && instance != null && !JaysonTypeInfo.IsJPrimitive(instance.GetType()))
+            if (obj != null && instance != null && !JaysonTypeInfo.IsJPrimitive(instance.GetType()))
             {
-				var dict = obj as IDictionary<string, object>;
-				if (dict != null) 
-				{
-					SetDictionary (dict, ref instance, context);
-				} 
-				else 
-				{
-					var list = obj as IList<object>;
-					if (list != null) 
-					{
-						SetList (list, instance, context);
-					}
-				}
+                var dict = obj as IDictionary<string, object>;
+                if (dict != null)
+                {
+                    SetDictionary(dict, ref instance, context);
+                }
+                else
+                {
+                    var list = obj as IList<object>;
+                    if (list != null)
+                    {
+                        SetList(list, instance, context);
+                    }
+                }
             }
         }
 
@@ -1994,7 +2005,7 @@ namespace Sweet.Jayson
 
                 if (genericType == typeof(ICollection<>) || genericType == typeof(IEnumerable<>))
                 {
-                    Type firstArgType = info.GenericArguments[0];
+                    var firstArgType = info.GenericArguments[0];
 
                     if (firstArgType == typeof(KeyValuePair<string, object>) ||
                         firstArgType == typeof(KeyValuePair<object, object>))
@@ -2044,7 +2055,7 @@ namespace Sweet.Jayson
 
         private static object ConvertDictionary(IDictionary<string, object> obj, Type toType, JaysonDeserializationContext context, bool forceType = false)
         {
-            bool hasSkeyword = false;
+            var hasSkeyword = false;
 
             object Sref;
             if (obj.TryGetValue("$ref", out Sref))
@@ -2056,7 +2067,7 @@ namespace Sweet.Jayson
                 return context.ReferenceMap[(int)Sref];
             }
 
-            int id = 0;
+            var id = 0;
             if (obj.TryGetValue("$id", out Sref))
             {
                 hasSkeyword = true;
@@ -2071,7 +2082,7 @@ namespace Sweet.Jayson
             }
 
             object Stype;
-            bool binded = false;
+            var binded = false;
 
             var settings = context.Settings;
 
@@ -2085,7 +2096,7 @@ namespace Sweet.Jayson
 
                 if (!forceType || toType == typeof(object) || info.Interface)
                 {
-                    string typeName = Stype as string;
+                    var typeName = Stype as string;
 
                     if (!String.IsNullOrEmpty(typeName))
                     {
@@ -2112,10 +2123,10 @@ namespace Sweet.Jayson
 
                 if (instanceType != null)
                 {
-                    JaysonTypeOverride typeOverride = settings.GetTypeOverride(instanceType);
+                    var typeOverride = settings.GetTypeOverride(instanceType);
                     if (typeOverride != null)
                     {
-                        Type bindToType = typeOverride.BindToType;
+                        var bindToType = typeOverride.BindToType;
                         if (bindToType != null)
                         {
                             instanceType = bindToType;
@@ -2126,6 +2137,11 @@ namespace Sweet.Jayson
                     {
                         toType = instanceType;
                         info = JaysonTypeInfo.GetTypeInfo(toType);
+                    }
+
+                    if (instanceType == typeof(object))
+                    {
+                        return new object();
                     }
                 }
 
@@ -2151,7 +2167,7 @@ namespace Sweet.Jayson
 
                 if (obj.TryGetValue("$values", out Svalues) && (Svalues is IList<object>))
                 {
-                    object ret = ConvertList((IList<object>)Svalues, toType, context);
+                    var ret = ConvertList((IList<object>)Svalues, toType, context);
                     if (id > 0)
                     {
                         context.ReferenceMap[id] = ret;
@@ -2163,7 +2179,7 @@ namespace Sweet.Jayson
 
             if (obj.TryGetValue("$dt", out Stype) && Stype != null)
             {
-                string dataType = Stype as string;
+                var dataType = Stype as string;
                 if (dataType != null)
                 {
                     if (dataType.Equals("Tbl", StringComparison.OrdinalIgnoreCase))
@@ -2188,36 +2204,52 @@ namespace Sweet.Jayson
 
             if (!binded)
             {
-                Type instanceType = BindToType(settings, toType);
+                var instanceType = BindToType(settings, toType);
                 if (instanceType != null && instanceType != toType)
                 {
                     toType = instanceType;
-
                     info = JaysonTypeInfo.GetTypeInfo(toType);
-                    if (settings.IgnoreAnonymousTypes && info.Anonymous)
-                    {
-                        return null;
-                    }
                 }
             }
 
-            object result = null;
-            if (toType != typeof(object))
+            if (settings.IgnoreAnonymousTypes && (info != null) && info.Anonymous)
             {
-                bool useDefaultCtor = true;
-                if (settings.ObjectActivator != null)
-                {
-                    result = settings.ObjectActivator(toType, obj, out useDefaultCtor);
-                }
+                return null;
+            }
 
-                if (useDefaultCtor)
+            object result = null;
+
+            var useDefaultCtor = true;
+            if (settings.ObjectActivator != null)
+            {
+                result = settings.ObjectActivator(toType, obj, out useDefaultCtor);
+            }
+
+            if (useDefaultCtor)
+            {
+                if (toType == typeof(object))
+                {
+#if !(NET3500 || NET3000 || NET2000)
+                    if (settings.DictionaryType == DictionaryDeserializationType.Expando)
+                    {
+                        result = new ExpandoObject();
+                    }
+                    else
+                    {
+                        result = new Dictionary<string, object>(10);
+                    }
+#else
+				    result = new Dictionary<string, object>(10);
+#endif
+                }
+                else
                 {
                     if (info == null || info.Type != toType)
                     {
                         info = JaysonTypeInfo.GetTypeInfo(toType);
                     }
 
-                    JaysonTypeSerializationType serializationType = info.SerializationType;
+                    var serializationType = info.SerializationType;
 
                     switch (serializationType)
                     {
@@ -2229,7 +2261,7 @@ namespace Sweet.Jayson
                                     return null;
                                 }
 
-                                string typeName = asmKvp.Value as string;
+                                var typeName = asmKvp.Value as string;
                                 if (String.IsNullOrEmpty(typeName))
                                 {
                                     return null;
@@ -2246,7 +2278,7 @@ namespace Sweet.Jayson
                                     return null;
                                 }
 
-                                string typeName = asmKvp.Value as string;
+                                var typeName = asmKvp.Value as string;
                                 if (String.IsNullOrEmpty(typeName))
                                 {
                                     return null;
@@ -2347,7 +2379,7 @@ namespace Sweet.Jayson
                                     return null;
                                 }
 
-                                string memberName = asmKvp.Value as string;
+                                var memberName = asmKvp.Value as string;
                                 if (String.IsNullOrEmpty(memberName))
                                 {
                                     return null;
@@ -2390,9 +2422,8 @@ namespace Sweet.Jayson
                             }
                         case JaysonTypeSerializationType.ISerializable:
                             {
-                                JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetISerializableCtorInfo(toType);
-
-                                SerializationInfo serializationInfo = new SerializationInfo(toType, JaysonCommon.FormatterConverter);
+                                var ctorInfo = JaysonCtorInfo.GetISerializableCtorInfo(toType);
+                                var serializationInfo = new SerializationInfo(toType, JaysonCommon.FormatterConverter);
 
                                 string key;
                                 object paramValue;
@@ -2424,7 +2455,7 @@ namespace Sweet.Jayson
                                             if ((kvp != null) && kvp.TryGetValue("$k", out oKey))
                                             {
                                                 key = oKey as string;
-                                                if (!String.IsNullOrEmpty(key) && 
+                                                if (!String.IsNullOrEmpty(key) &&
                                                     kvp.TryGetValue("$v", out paramValue))
                                                 {
                                                     paramValue = ConvertObject(paramValue, typeof(object), context);
@@ -2440,7 +2471,7 @@ namespace Sweet.Jayson
                             }
                         default:
                             {
-                                JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(toType);
+                                var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(toType);
                                 if (!ctorInfo.HasParam)
                                 {
                                     result = JaysonObjectConstructor.New(toType);
@@ -2449,8 +2480,8 @@ namespace Sweet.Jayson
                                 {
                                     object paramValue;
                                     ParameterInfo ctorParam;
-                                    List<object> ctorParams = new List<object>();
 
+                                    var ctorParams = new List<object>();
                                     var matcher = context.Settings.CtorParamMatcher ?? DefaultMatcher;
 
                                     for (int i = 0; i < ctorInfo.ParamLength; i++)
@@ -2483,7 +2514,6 @@ namespace Sweet.Jayson
                                         }
 
                                         ctorParams.Add(paramValue);
-
                                     }
 
                                     result = ctorInfo.New(ctorParams.ToArray());
@@ -2492,21 +2522,6 @@ namespace Sweet.Jayson
                             }
                     }
                 }
-            }
-            else
-            {
-#if !(NET3500 || NET3000 || NET2000)
-                if (settings.DictionaryType == DictionaryDeserializationType.Expando)
-                {
-                    result = new ExpandoObject();
-                }
-                else
-                {
-                    result = new Dictionary<string, object>(10);
-                }
-#else
-				result = new Dictionary<string, object>(10);
-#endif
             }
 
             if (id > 0)
@@ -2555,10 +2570,10 @@ namespace Sweet.Jayson
                 }
             }
 
-            JaysonTypeOverride typeOverride = settings.GetTypeOverride(type);
+            var typeOverride = settings.GetTypeOverride(type);
             if (typeOverride != null)
             {
-                Type bindToType = typeOverride.BindToType;
+                var bindToType = typeOverride.BindToType;
                 if (bindToType != null)
                 {
                     return bindToType;
@@ -2574,7 +2589,7 @@ namespace Sweet.Jayson
             if (obj != null)
             {
                 int count;
-                int index = 0;
+                var index = 0;
 
                 IList list;
                 IList<object> oList;
@@ -2660,7 +2675,7 @@ namespace Sweet.Jayson
             }
 
             bool asList, asArray, asReadOnly;
-            Type listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
+            var listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
 
             object result;
             var info = JaysonTypeInfo.GetTypeInfo(listType);
@@ -2684,6 +2699,7 @@ namespace Sweet.Jayson
             {
                 bool useDefaultCtor;
                 result = settings.ObjectActivator(listType, null, out useDefaultCtor);
+
                 if (useDefaultCtor)
                 {
                     result = JaysonObjectConstructor.New(listType);
@@ -2696,7 +2712,7 @@ namespace Sweet.Jayson
                 return result;
             }
 
-            Type resultType = result.GetType();
+            var resultType = result.GetType();
             if (toType == resultType ||
                 toType.IsAssignableFrom(resultType))
             {
@@ -2745,7 +2761,8 @@ namespace Sweet.Jayson
                 }
 
                 bool useDefaultCtor;
-                object result = context.Settings.ObjectActivator(toType, null, out useDefaultCtor);
+                var result = context.Settings.ObjectActivator(toType, null, out useDefaultCtor);
+
                 if (useDefaultCtor)
                 {
                     return JaysonObjectConstructor.New(toType);
@@ -2753,7 +2770,7 @@ namespace Sweet.Jayson
                 return result;
             }
 
-            Type objType = obj.GetType();
+            var objType = obj.GetType();
             if ((toType == objType ||
                 toType.IsAssignableFrom(objType)) &&
                 !(obj is IDictionary<string, object>))
@@ -2791,7 +2808,7 @@ namespace Sweet.Jayson
             {
                 bool converted;
 
-                JaysonTypeCode jtc = tInfo.JTypeCode;
+                var jtc = tInfo.JTypeCode;
                 if (jtc == JaysonTypeCode.DateTime)
                 {
                     return JaysonCommon.TryConvertDateTime(obj, settings.DateTimeFormat, settings.DateTimeZoneType);
@@ -2808,7 +2825,7 @@ namespace Sweet.Jayson
                     return (DateTime?)dt;
                 }
 
-                object result = JaysonCommon.ConvertToPrimitive(obj, toType, out converted);
+                var result = JaysonCommon.ConvertToPrimitive(obj, toType, out converted);
                 if (converted)
                 {
                     return result;
@@ -2816,8 +2833,8 @@ namespace Sweet.Jayson
 
                 if (JaysonTypeInfo.IsNullable(toType))
                 {
-                    Type argType = JaysonTypeInfo.GetGenericArguments(toType)[0];
-                    object value = ConvertObject(obj, argType, context);
+                    var argType = JaysonTypeInfo.GetGenericArguments(toType)[0];
+                    var value = ConvertObject(obj, argType, context);
 
                     var constructor = toType.GetConstructor(new Type[] { argType });
                     if (constructor != null)
@@ -2865,6 +2882,7 @@ namespace Sweet.Jayson
             {
                 bool useDefaultCtor;
                 object result = settings.ObjectActivator(toType, null, out useDefaultCtor);
+
                 if (useDefaultCtor)
                 {
                     return JaysonObjectConstructor.New(toType);
@@ -2984,7 +3002,7 @@ namespace Sweet.Jayson
                 Settings = settings ?? JaysonDeserializationSettings.Default
             })
             {
-                object result = Parse(context);
+                var result = Parse(context);
 
                 var dResult = result as IDictionary<string, object>;
                 if (dResult != null)
@@ -3038,11 +3056,11 @@ namespace Sweet.Jayson
                     return JaysonCommon.ConvertToPrimitive(result, toType, out converted);
                 }
 
-                bool asReadOnly = false;
+                var asReadOnly = false;
                 if (result is IList<object>)
                 {
                     bool asList, asArray;
-                    Type listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
+                    var listType = GetEvaluatedListType(toType, out asList, out asArray, out asReadOnly);
 
                     result = ConvertList((IList<object>)result, listType, context);
                     if (result == null)
@@ -3050,7 +3068,7 @@ namespace Sweet.Jayson
                         return result;
                     }
 
-                    Type resultType = result.GetType();
+                    var resultType = result.GetType();
                     if (toType == resultType ||
                         toType.IsAssignableFrom(resultType))
                     {
@@ -3090,7 +3108,7 @@ namespace Sweet.Jayson
                     return result;
                 }
 
-                Type resultTypeD = result.GetType();
+                var resultTypeD = result.GetType();
                 if (toType == resultTypeD ||
                     toType.IsAssignableFrom(resultTypeD))
                 {

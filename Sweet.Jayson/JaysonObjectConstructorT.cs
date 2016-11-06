@@ -37,7 +37,7 @@ namespace Sweet.Jayson
 
         private static Func<T> Creator()
         {
-            Type objType = typeof(T);
+            var objType = typeof(T);
             if (objType == typeof(string))
             {
                 return Expression.Lambda<Func<T>>(Expression.Constant(String.Empty)).Compile();
@@ -54,7 +54,7 @@ namespace Sweet.Jayson
                 return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
             }
 
-            JaysonCtorInfo ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+            var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
             if (ctorInfo.HasCtor && !ctorInfo.HasParam)
             {
                 return Expression.Lambda<Func<T>>(Expression.New(objType)).Compile();
