@@ -455,8 +455,9 @@ namespace Sweet.Jayson
                                     defaultValue = member.DefaultValue;
                                 }
 
-                                if ((ReferenceEquals(defaultValue, null) && ReferenceEquals(value, null)) ||
-                                    (!ReferenceEquals(defaultValue, null) && defaultValue.Equals(value)))
+                                if (((defaultValue == null) && (value == null)) ||
+                                    ((defaultValue != null) && (defaultValue.Equals(value) ||
+                                     ((defaultValue is IComparable) && ((IComparable)defaultValue).CompareTo(value) == 0))))
                                     continue;
                             }
 

@@ -1074,7 +1074,7 @@ namespace Sweet.Jayson
                 }
             }
 
-            if (existingValues != null)
+            if (settings.UseDefaultValues && (existingValues != null))
             {
                 var existingCount = existingValues.Count;
                 if (existingCount < cache.Count)
@@ -1104,15 +1104,17 @@ namespace Sweet.Jayson
                                     if ((existingCount > 0) && !existingValues.ContainsKey(key))
                                     {
                                         defaultValue = null;
-                                        if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue) || (defaultValue == null))
+                                        if ((typeOverride == null) || !typeOverride.TryGetDefaultValue(key, out defaultValue))
                                         {
                                             defaultValue = member.DefaultValue;
                                         }
 
-                                        if (defaultValue != null)
+                                        if (!ReferenceEquals(defaultValue, null))
                                         {
                                             value = member.Get(instance);
-                                            if (!defaultValue.Equals(value))
+
+                                            if ((!ReferenceEquals(value, null) && !defaultValue.Equals(value)) ||
+                                                (!ReferenceEquals(defaultValue, null) && !defaultValue.Equals(value)))
                                             {
                                                 member.Set(ref instance, defaultValue);
                                             }

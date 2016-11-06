@@ -136,21 +136,15 @@ namespace Sweet.Jayson
 
             private IJaysonFastMember[] GetItemsOf(Dictionary<string, IJaysonFastMember> map)
             {
-                if (m_AllIndex.Count == 0)
+                IJaysonFastMember[] items = null;
+                if ((map != null) && (map.Count > 0))
                 {
-                    return new IJaysonFastMember[0];
+                    items = map.Values.Cast<IJaysonFastMember>()
+                        .Where(m => m != null)
+                        .OrderBy(m => String.IsNullOrEmpty(m.Alias) ? m.Name : m.Alias)
+                        .ToArray();
                 }
-
-                var items = map.Values.ToArray();
-                Array.Sort(items, delegate(IJaysonFastMember x, IJaysonFastMember y)
-                {
-                    if (x == null) return 1;
-                    if (y == null) return -1;
-                    if (x.Name == null) return 1;
-                    if (y.Name == null) return 1;
-                    return x.Name.CompareTo(y.Name);
-                });
-                return items;
+                return items ?? new IJaysonFastMember[0];
             }
 
             public IJaysonFastMember GetAnyMember(string memberName)
@@ -250,8 +244,11 @@ namespace Sweet.Jayson
 
         private void FillMembers()
         {
-            var pis = m_Type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
-                BindingFlags.GetProperty | BindingFlags.SetProperty);
+            var pis = m_Type.GetProperties(BindingFlags.Instance | 
+                BindingFlags.Public | 
+                BindingFlags.NonPublic | 
+                BindingFlags.GetProperty | 
+                BindingFlags.SetProperty);
 
             string name;
             IJaysonFastMember member;
@@ -269,20 +266,20 @@ namespace Sweet.Jayson
                 {
                     var iParams = pi.GetIndexParameters();
 
-                    if ((iParams == null || iParams.Length == 0) && !pi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
+                    if ((iParams == null || iParams.Length == 0) && 
+                        !pi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
                     {
-                        var ma = pi.GetCustomAttributes(typeof(JaysonMemberAttribute), true).FirstOrDefault() as JaysonMemberAttribute;
-                        if (ma == null || !ma.Ignored)
+                        member = new JaysonFastProperty(pi, true, true);
+                        if (!member.Ignored)
                         {
                             name = pi.Name;
-                            member = new JaysonFastProperty(pi, true, true);
 
                             members[name] = member;
                             invariantMembers[name.ToLower(JaysonConstants.InvariantCulture)] = member;
 
-                            if ((ma != null) && !String.IsNullOrEmpty(ma.Alias))
+                            if (!String.IsNullOrEmpty(member.Alias))
                             {
-                                JaysonTypeOverrideGlobal.SetMemberAlias(m_Type, name, ma.Alias);
+                                JaysonTypeOverrideGlobal.SetMemberAlias(m_Type, name, member.Alias);
                             }
                         }
                     }
@@ -299,18 +296,17 @@ namespace Sweet.Jayson
                 fi = fis[i];
                 if ((fi.FieldType != typeof(void*)) && !fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
                 {
-                    var ma = fi.GetCustomAttributes(typeof(JaysonMemberAttribute), true).FirstOrDefault() as JaysonMemberAttribute;
-                    if (ma == null || !ma.Ignored)
+                    member = new JaysonFastField(fi, true, true);
+                    if (!member.Ignored)
                     {
                         name = fi.Name;
-                        member = new JaysonFastField(fi, true, true);
 
                         members[name] = member;
                         invariantMembers[name.ToLower(JaysonConstants.InvariantCulture)] = member;
 
-                        if ((ma != null) && !String.IsNullOrEmpty(ma.Alias))
+                        if (!String.IsNullOrEmpty(member.Alias))
                         {
-                            JaysonTypeOverrideGlobal.SetMemberAlias(m_Type, name, ma.Alias);
+                            JaysonTypeOverrideGlobal.SetMemberAlias(m_Type, name, member.Alias);
                         }
                     }
                 }

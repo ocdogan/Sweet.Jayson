@@ -33,33 +33,81 @@ namespace Sweet.Jayson
         # region Field Members
 
         private string m_Alias;
+        private object m_DefaultValue;
 
         # endregion Field Members
 
-        public JaysonMemberAttribute(string alias = null, object defaultValue = null)
+        public JaysonMemberAttribute()
+        { }
+
+        public JaysonMemberAttribute(object defaultValue)
+        {
+            DefaultValue = defaultValue;
+        }
+
+        public JaysonMemberAttribute(string alias)
+        {
+            Alias = alias;
+        }
+
+        public JaysonMemberAttribute(string alias, object defaultValue)
         {
             Alias = alias;
             DefaultValue = defaultValue;
         }
-        
-        public JaysonMemberAttribute(bool ignored, string alias = null, object defaultValue = null)
+
+        public JaysonMemberAttribute(bool ignored)
+        {
+            Ignored = ignored;
+        }
+
+        public JaysonMemberAttribute(bool ignored, string alias)
+        {
+            Alias = alias;
+            Ignored = ignored;
+        }
+
+        public JaysonMemberAttribute(bool ignored, object defaultValue)
+        {
+            Ignored = ignored;
+            DefaultValue = defaultValue;
+        }
+
+        public JaysonMemberAttribute(bool ignored, string alias, object defaultValue)
 		{
-			Alias = alias;
-			Ignored = ignored;
+            Alias = alias;
+            Ignored = ignored;
             DefaultValue = defaultValue;
 		}
 
-        public object DefaultValue { get; set; }
+        public object DefaultValue
+        {
+            get { return m_DefaultValue; }
+            set
+            {
+                m_DefaultValue = value;
+                HasDefaultValue = true;
+            }
+        }
 
-        public bool Ignored { get; set; }
+        public bool HasDefaultValue { get; private set; }
+
+        public bool? Ignored { get; set; }
 
         public string Alias
         {
             get { return m_Alias; }
             set
             {
-                value = (!String.IsNullOrEmpty(value) ? value.Trim() : null);
-                m_Alias = (value == String.Empty) ? null : value;
+                if (value != null)
+                {
+                    value = value.Trim();
+                    if (value == String.Empty)
+                    {
+                        value = null;
+                    }
+                }
+                m_Alias = value;
             }
         }
     }

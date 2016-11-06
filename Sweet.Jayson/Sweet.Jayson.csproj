@@ -39,7 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JaysonDefaultValueAttribute.cs" />
     <Compile Include="JaysonDeserializationReferenceMap.cs" />
+    <Compile Include="JaysonDefaultCollectionAttribute.cs" />
     <Compile Include="JaysonFastMember.cs" />
     <Compile Include="JaysonMemberAttribute.cs" />
     <Compile Include="JaysonOrderedDictionary.cs" />

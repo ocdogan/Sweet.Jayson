@@ -44,7 +44,6 @@ namespace Sweet.Jayson
 
         protected string m_Alias;
         protected string m_Name;
-        protected string m_NameLower;
 
         protected Type m_MemberType;
         protected MemberInfo m_MemberInfo;
@@ -61,6 +60,8 @@ namespace Sweet.Jayson
 
         protected object m_DefaultValue;
 
+        protected JaysonMemberAttribute[] m_MemberAttributes;
+
 #if (NET3500 || NET3000 || NET2000)
         protected bool m_IsValueType;
 #endif
@@ -76,18 +77,6 @@ namespace Sweet.Jayson
         public string Name
         {
             get { return m_Name; }
-        }
-
-        public string NameLower
-        {
-            get { return m_NameLower; }
-        }
-
-        public abstract JaysonFastMemberType Type { get; }
-
-        public Type MemberType
-        {
-            get { return m_MemberType; }
         }
 
         public bool AnonymousField
@@ -110,7 +99,7 @@ namespace Sweet.Jayson
             get { return m_CanWrite; }
         }
 
-        public bool Ignores
+        public bool Ignored
         {
             get { return m_Ignored; }
         }
@@ -130,12 +119,25 @@ namespace Sweet.Jayson
             get { return m_DefaultValue; }
         }
 
+        public bool HasDefaultAttribute { get; private set; }
+
+        public Type MemberType
+        {
+            get { return m_MemberType; }
+        }
+
+        public abstract JaysonFastMemberType Type { get; }
+
+        public JaysonMemberAttribute[] MemberAttributes
+        {
+            get { return m_MemberAttributes; }
+        }
+
         public JaysonFastMember(MemberInfo mi, bool initGet = true, bool initSet = true)
         {
             m_MemberInfo = mi;
 
             m_Name = mi.Name;
-            m_NameLower = m_Name.ToLower(JaysonConstants.InvariantCulture);
 
             if (mi is PropertyInfo)
             {
@@ -149,12 +151,15 @@ namespace Sweet.Jayson
 #if (NET3500 || NET3000 || NET2000)
             m_IsValueType = mi.DeclaringType.IsValueType;
 #endif
+
+            SetMemberAttributes();
+            SetDefaultValue();
+
             Init(initGet, initSet);
         }
 
         protected virtual void Init(bool initGet, bool initSet)
-        {
-            SetDefaultValue();
+        {            
             InitCanReadWrite();
 
             if (initGet)
@@ -169,36 +174,74 @@ namespace Sweet.Jayson
             }
         }
 
-        protected override void SetMemberAttributes()
+        protected virtual void SetMemberAttributes()
         {
             if (m_MemberInfo != null)
             {
-                var ma = m_MemberInfo.GetCustomAttributes(typeof(JaysonMemberAttribute), true).FirstOrDefault() as JaysonMemberAttribute;
-                if (ma != null)
+                m_MemberAttributes = m_MemberInfo
+#if (NET4000 || NET3500 || NET3000 || NET2000)
+                    .GetCustomAttributes(typeof(JaysonMemberAttribute), true)
+                    .Cast<JaysonMemberAttribute>()
+#else
+                    .GetCustomAttributes<JaysonMemberAttribute>(true)
+#endif
+                    .ToArray();
+
+                if ((m_MemberAttributes != null) && (m_MemberAttributes.Length > 0))
                 {
-                    m_Alias = ma.Alias;
-                    m_Ignored = ma.Ignored;
+                    if (m_MemberAttributes.Length == 1)
+                    {
+                        var mAttr = m_MemberAttributes[0];
+
+                        m_Alias = mAttr.Alias;
+                        m_Ignored = mAttr.Ignored.HasValue ? mAttr.Ignored.Value : false;
+
+                        m_DefaultValue = mAttr.DefaultValue;
+                        HasDefaultAttribute = mAttr.HasDefaultValue;
+                    }
+                    else
+                    {
+                        var mAttr = m_MemberAttributes
+                            .Where((attr) => (attr.Alias != null))
+                            .FirstOrDefault();
+
+                        if (mAttr != null)
+                        {
+                            m_Alias = mAttr.Alias;
+                        }
+
+                        mAttr = m_MemberAttributes
+                            .Where((attr) => attr.HasDefaultValue)
+                            .FirstOrDefault();
+
+                        if (mAttr != null)
+                        {
+                            HasDefaultAttribute = true;
+                            m_DefaultValue = mAttr.DefaultValue;
+                        }
+
+                        mAttr = m_MemberAttributes
+                            .Where((attr) => attr.Ignored.HasValue)
+                            .FirstOrDefault();
+
+                        m_Ignored = (mAttr != null) ? mAttr.Ignored.Value : false;
+                    }
+
+                    if (m_Alias != null)
+                    {
+                        m_Alias = m_Alias.Trim();
+                        if (m_Alias == String.Empty)
+                        {
+                            m_Alias = null;
+                        }
+                    }
                 }
             }
         }
 
         protected virtual void SetDefaultValue()
         {
-            var mAttr = m_MemberInfo
-#if (NET4000 || NET3500 || NET3000 || NET2000)
-                .GetCustomAttributes(typeof(JaysonMemberAttribute), true)
-                .Cast<JaysonMemberAttribute>()
-#else
-                .GetCustomAttributes<JaysonMemberAttribute>(true)
-#endif
-                .Where((attr) => !ReferenceEquals(attr.DefaultValue, null))
-                .FirstOrDefault();
-
-            if (mAttr != null)
-            {
-                m_DefaultValue = mAttr.DefaultValue;
-            }
-            else
+            if ((m_MemberInfo != null) && !HasDefaultAttribute)
             {
                 var dAttr = m_MemberInfo
 #if (NET4000 || NET3500 || NET3000 || NET2000)
@@ -211,10 +254,12 @@ namespace Sweet.Jayson
 
                 if (dAttr == null)
                 {
-                    m_DefaultValue = MemberType != null ? JaysonTypeInfo.GetDefault(MemberType) : null;
+                    HasDefaultAttribute = false;
+                    m_DefaultValue = (MemberType != null) ? JaysonTypeInfo.GetDefault(MemberType) : null;
                 }
                 else
                 {
+                    HasDefaultAttribute = true;
                     m_DefaultValue = ReferenceEquals(dAttr.Value, null) ? JaysonNull.Value : dAttr.Value;
                 }
             }
