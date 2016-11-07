@@ -177,7 +177,8 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.True(json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1);
+            Assert.True((json.IndexOf("AnonType", StringComparison.OrdinalIgnoreCase) > -1) ||
+                        (json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1));
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
@@ -217,7 +218,8 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.True(json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1);
+            Assert.True((json.IndexOf("AnonType", StringComparison.OrdinalIgnoreCase) > -1) ||
+                        (json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1));
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
@@ -279,7 +281,8 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.True(json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1);
+            Assert.True((json.IndexOf("AnonType", StringComparison.OrdinalIgnoreCase) > -1) ||
+                        (json.IndexOf("AnonymousType", StringComparison.OrdinalIgnoreCase) > -1));
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
