@@ -54,7 +54,7 @@ namespace Sweet.Jayson
                 JaysonTypeMemberCache cache;
                 if (!s_TypeMembers.TryGetValue(objType, out cache))
                 {
-                    lock (s_TypeMembers)
+                    lock (s_TypeMembersLock)
                     {
                         if (!s_TypeMembers.TryGetValue(objType, out cache))
                         {
@@ -75,7 +75,7 @@ namespace Sweet.Jayson
                 JaysonTypeMemberCache cache;
                 if (!s_TypeMembers.TryGetValue(objType, out cache))
                 {
-                    lock (s_TypeMembers)
+                    lock (s_TypeMembersLock)
                     {
                         if (!s_TypeMembers.TryGetValue(objType, out cache))
                         {
@@ -100,7 +100,7 @@ namespace Sweet.Jayson
                 JaysonTypeMemberCache cache;
                 if (!s_TypeMembers.TryGetValue(objType, out cache))
                 {
-                    lock (s_TypeMembers)
+                    lock (s_TypeMembersLock)
                     {
                         if (!s_TypeMembers.TryGetValue(objType, out cache))
                         {
@@ -125,7 +125,7 @@ namespace Sweet.Jayson
                 JaysonTypeMemberCache cache;
                 if (!s_TypeMembers.TryGetValue(objType, out cache))
                 {
-                    lock (s_TypeMembers)
+                    lock (s_TypeMembersLock)
                     {
                         if (!s_TypeMembers.TryGetValue(objType, out cache))
                         {
@@ -150,7 +150,7 @@ namespace Sweet.Jayson
                 JaysonTypeMemberCache cache;
                 if (!s_TypeMembers.TryGetValue(objType, out cache))
                 {
-                    lock (s_TypeMembers)
+                    lock (s_TypeMembersLock)
                     {
                         if (!s_TypeMembers.TryGetValue(objType, out cache))
                         {
