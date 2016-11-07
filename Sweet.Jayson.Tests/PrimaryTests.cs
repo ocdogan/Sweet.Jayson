@@ -234,8 +234,6 @@ namespace Sweet.Jayson.Tests
             Assert.IsNotNull(dto2.B);
             Assert.AreEqual(dto2.B.GetType(), dto1.B.GetType());
 
-            var dto3 = CastToAnonymous(dto2, dto1);
-
             var dto1B = CastToAnonymous(dto1.B, anonymous);
             var dto2B = CastToAnonymous(dto2.B, anonymous);
 

@@ -825,6 +825,11 @@ namespace Sweet.Jayson.Tests
                 obj2.ProtectedPropPrivateGetter == ProtectedPropPrivateGetter &&
                 obj2.ProtectedField == ProtectedField;
         }
+
+        public override int GetHashCode ()
+        {
+            return base.GetHashCode ();
+        }
     }
 
     public class A

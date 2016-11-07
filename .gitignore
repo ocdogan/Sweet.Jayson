@@ -11,3 +11,12 @@ TemporaryGeneratedFile*.cs
 *\bin\*.*
 *\obj\*.*
 *FileListAbsolute.txt
+*.dll
+
+*.mdb
+
+*.exe
+
+*.xml
+
+*.nupkg
