@@ -24,13 +24,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
     # region JaysonDeserializationSettings
 
-    public class JaysonDeserializationSettings : ICloneable
+    public class JaysonDeserializationSettings : JaysonSerDeserSettings, ICloneable
     {
         # region Constants
 
@@ -40,9 +41,6 @@ namespace Sweet.Jayson
         # endregion Constants
 
         # region Field Members
-
-        private object m_TypeOverrideLock = new object();
-        private Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
         public SerializationBinder Binder;
 
@@ -78,44 +76,37 @@ namespace Sweet.Jayson
         { }
 
         public JaysonDeserializationSettings(JaysonTypeOverride[] typeOverrides)
+            : base(typeOverrides)
+        { }
+
+        protected internal override void AssignTo(JaysonSerDeserSettings destination)
         {
-            if (typeOverrides != null && typeOverrides.Length > 0)
+            var dsDestination = destination as JaysonDeserializationSettings;
+            if (dsDestination != null)
             {
-                m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(typeOverrides.Length);
-                foreach (var typeOverride in typeOverrides)
-                {
-                    if (typeOverride != null)
-                    {
-                        m_TypeOverrides[typeOverride.Type] = typeOverride;
-                    }
-                }
+                dsDestination.ArrayType = ArrayType;
+                dsDestination.Binder = Binder;
+                dsDestination.CaseSensitive = CaseSensitive;
+                dsDestination.CommentHandling = CommentHandling;
+                dsDestination.ConvertDecimalToDouble = ConvertDecimalToDouble;
+                dsDestination.DateTimeFormat = DateTimeFormat;
+                dsDestination.DateTimeUTCFormat = DateTimeUTCFormat;
+                dsDestination.DateTimeOffsetFormat = DateTimeOffsetFormat;
+                dsDestination.DateTimeZoneType = DateTimeZoneType;
+                dsDestination.DictionaryType = DictionaryType;
+                dsDestination.ErrorHandler = ErrorHandler;
+                dsDestination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
+                dsDestination.IgnoreBackingFields = IgnoreBackingFields;
+                dsDestination.IgnoreFields = IgnoreFields;
+                dsDestination.IgnoreNonPublicFields = IgnoreNonPublicFields;
+                dsDestination.IgnoreNonPublicProperties = IgnoreNonPublicProperties;
+                dsDestination.MaxObjectDepth = MaxObjectDepth;
+                dsDestination.ObjectActivator = ObjectActivator;
+                dsDestination.RaiseErrorOnMissingMember = RaiseErrorOnMissingMember;
+                dsDestination.UseDefaultValues = UseDefaultValues;
             }
-        }
 
-        internal void AssignTo(JaysonDeserializationSettings destination)
-        {
-            destination.ArrayType = ArrayType;
-            destination.Binder = Binder;
-            destination.CaseSensitive = CaseSensitive;
-            destination.CommentHandling = CommentHandling;
-            destination.ConvertDecimalToDouble = ConvertDecimalToDouble;
-            destination.DateTimeFormat = DateTimeFormat;
-            destination.DateTimeUTCFormat = DateTimeUTCFormat;
-            destination.DateTimeOffsetFormat = DateTimeOffsetFormat;
-            destination.DateTimeZoneType = DateTimeZoneType;
-            destination.DictionaryType = DictionaryType;
-            destination.ErrorHandler = ErrorHandler;
-            destination.IgnoreAnonymousTypes = IgnoreAnonymousTypes;
-            destination.IgnoreBackingFields = IgnoreBackingFields;
-            destination.IgnoreFields = IgnoreFields;
-            destination.IgnoreNonPublicFields = IgnoreNonPublicFields;
-            destination.IgnoreNonPublicProperties = IgnoreNonPublicProperties;
-            destination.MaxObjectDepth = MaxObjectDepth;
-            destination.ObjectActivator = ObjectActivator;
-            destination.RaiseErrorOnMissingMember = RaiseErrorOnMissingMember;
-            destination.UseDefaultValues = UseDefaultValues;
-
-            AssignTypeOverridesTo(destination);
+            base.AssignTo(destination);
         }
 
         public object Clone()
@@ -134,107 +125,6 @@ namespace Sweet.Jayson
         public static JaysonDeserializationSettings DefaultClone()
         {
             return (JaysonDeserializationSettings)Default.Clone();
-        }
-
-        private void AssignTypeOverridesTo(JaysonDeserializationSettings destination)
-        {
-            lock (m_TypeOverrideLock)
-            {
-                lock (destination.m_TypeOverrideLock)
-                {
-                    if (m_TypeOverrides == null || m_TypeOverrides.Count == 0)
-                    {
-                        destination.m_TypeOverrides = null;
-                    }
-                    else
-                    {
-                        if (destination.m_TypeOverrides == null)
-                        {
-                            destination.m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(m_TypeOverrides.Count);
-                        }
-                        else
-                        {
-                            destination.m_TypeOverrides.Clear();
-                        }
-
-                        foreach (var toKvp in m_TypeOverrides)
-                        {
-                            destination.m_TypeOverrides.Add(toKvp.Key, (JaysonTypeOverride)toKvp.Value.Clone());
-                        }
-                    }
-                }
-            }
-        }
-
-        public JaysonTypeOverride GetTypeOverride(Type type)
-        {
-            if (type != null)
-            {
-                if (m_TypeOverrides == null || m_TypeOverrides.Count == 0)
-                {
-                    return JaysonTypeOverrideGlobal.GetTypeOverride(type);
-                }
-
-                JaysonTypeOverride result;
-                while (type != null)
-                {
-                    if (m_TypeOverrides.TryGetValue(type, out result))
-                    {
-                        return result;
-                    }
-                    type = type.BaseType;
-                }
-                return JaysonTypeOverrideGlobal.GetTypeOverride(type);
-            }
-            return null;
-        }
-
-        public JaysonDeserializationSettings AddTypeOverride(JaysonTypeOverride typeOverride)
-        {
-            if (typeOverride != null)
-            {
-                if (m_TypeOverrides == null)
-                {
-                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
-                }
-                m_TypeOverrides[typeOverride.Type] = typeOverride;
-            }
-            return this;
-        }
-
-        public JaysonDeserializationSettings AddTypeOverrides(JaysonTypeOverride[] typeOverrides)
-        {
-            if (typeOverrides != null && typeOverrides.Length > 0)
-            {
-                if (m_TypeOverrides == null)
-                {
-                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
-                }
-
-                foreach (var typeOverride in typeOverrides)
-                {
-                    if (typeOverride != null)
-                    {
-                        m_TypeOverrides[typeOverride.Type] = typeOverride;
-                    }
-                }
-            }
-            return this;
-        }
-
-        public JaysonDeserializationSettings RemoveTypeOverride(Type type)
-        {
-            if (type != null && m_TypeOverrides != null)
-            {
-                lock (m_TypeOverrideLock)
-                {
-                    if (m_TypeOverrides.ContainsKey(type))
-                    {
-                        m_TypeOverrides.Remove(type);
-                    }
-                }
-            }
-            return this;
         }
     }
 

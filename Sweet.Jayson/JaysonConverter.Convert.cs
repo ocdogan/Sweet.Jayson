@@ -1039,18 +1039,26 @@ namespace Sweet.Jayson
                                 (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property)))
                                 continue;
 
-                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(memberName))
+                            if (!settings.IsMemberIgnored(instanceType, memberName) && 
+                                (typeOverride == null || !typeOverride.IsMemberIgnored(memberName)))
                             {
                                 if (member.CanWrite)
                                 {
-                                    member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                    memberValue = ConvertObject(entry.Value, member.MemberType, context);
+                                    if (!settings.IsMemberIgnored(instanceType, memberName, memberValue))
+                                    {
+                                        member.Set(ref instance, memberValue);
+                                    }
                                 }
                                 else if (entry.Value != null)
                                 {
                                     memberValue = member.Get(instance);
                                     if (instance != null)
                                     {
-                                        SetObject(memberValue, entry.Value, context);
+                                        if (!settings.IsMemberIgnored(instanceType, memberName, memberValue))
+                                        {
+                                            SetObject(memberValue, entry.Value, context);
+                                        }
                                     }
                                 }
                             }
@@ -1215,6 +1223,7 @@ namespace Sweet.Jayson
                 }
 
                 string key;
+                string memberName;
                 object memberValue;
 
                 IJaysonFastMember member;
@@ -1250,18 +1259,28 @@ namespace Sweet.Jayson
                                     (settings.IgnoreNonPublicProperties && !member.IsPublic && (member.Type == JaysonFastMemberType.Property)))
                                     continue;
 
-                                if (typeOverride == null || !typeOverride.IsMemberIgnored(member.Name))
+                                memberName = member.Name;
+
+                                if (!settings.IsMemberIgnored(instanceType, memberName) &&
+                                    (typeOverride == null || !typeOverride.IsMemberIgnored(memberName)))
                                 {
                                     if (member.CanWrite)
                                     {
-                                        member.Set(ref instance, ConvertObject(entry.Value, member.MemberType, context));
+                                        memberValue = ConvertObject(entry.Value, member.MemberType, context);
+                                        if (!settings.IsMemberIgnored(instanceType, memberName, memberValue))
+                                        {
+                                            member.Set(ref instance, memberValue);
+                                        }
                                     }
                                     else if (entry.Value != null)
                                     {
                                         memberValue = member.Get(instance);
                                         if (instance != null)
                                         {
-                                            SetObject(memberValue, entry.Value, context);
+                                            if (!settings.IsMemberIgnored(instanceType, memberName, memberValue))
+                                            {
+                                                SetObject(memberValue, entry.Value, context);
+                                            }
                                         }
                                     }
                                 }
@@ -1852,7 +1871,7 @@ namespace Sweet.Jayson
 
         private static void SetObject(object obj, object instance, JaysonDeserializationContext context)
         {
-            if (obj != null && instance != null && !JaysonTypeInfo.IsJPrimitive(instance.GetType()))
+            if ((obj != null) && (instance != null) && !JaysonTypeInfo.IsJPrimitive(instance.GetType()))
             {
                 var dict = obj as IDictionary<string, object>;
                 if (dict != null)

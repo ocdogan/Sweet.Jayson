@@ -2576,7 +2576,8 @@ namespace Sweet.Jayson
                         {
                             key = member.Name;
 
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                            if (!settings.IsMemberIgnored(objType, key) && 
+                                (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                             {
                                 value = member.Get(obj);
 
@@ -2603,8 +2604,11 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                context.CurrentType = member.MemberType;
-                                isFirst = WriteProperty(key, value, null, context, isFirst);
+                                if (!settings.IsMemberIgnored(objType, key, value))
+                                {
+                                    context.CurrentType = member.MemberType;
+                                    isFirst = WriteProperty(key, value, null, context, isFirst);
+                                }
                             }
                         }
                     }
@@ -2621,7 +2625,8 @@ namespace Sweet.Jayson
                 foreach (var dKey in memberNames)
                 {
                     key = dKey;
-                    if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                    if (!settings.IsMemberIgnored(objType, key) && 
+                        (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                     {
                         value = dObj[key];
 
@@ -2648,7 +2653,10 @@ namespace Sweet.Jayson
                             }
                         }
 
-                        isFirst = WriteProperty(key, value, null, context, isFirst);
+                        if (!settings.IsMemberIgnored(objType, key, value))
+                        {
+                            isFirst = WriteProperty(key, value, null, context, isFirst);
+                        }
                     }
                 }
             }
@@ -2710,7 +2718,8 @@ namespace Sweet.Jayson
                         {
                             key = member.Name;
 
-                            if ((typeOverride == null) || !typeOverride.IsMemberIgnored(key))
+                            if (!settings.IsMemberIgnored(objType, key) && 
+                                (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                             {
                                 value = member.Get(obj);
 
@@ -2751,8 +2760,11 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                context.CurrentType = member.MemberType;
-                                isFirst = WriteProperty(key, value, null, context, isFirst);
+                                if (!settings.IsMemberIgnored(objType, key, value))
+                                {
+                                    context.CurrentType = member.MemberType;
+                                    isFirst = WriteProperty(key, value, null, context, isFirst);
+                                }
                             }
                         }
                     }
@@ -2814,7 +2826,8 @@ namespace Sweet.Jayson
                     foreach (SerializationEntry se in info)
                     {
                         key = se.Name;
-                        if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                        if (!settings.IsMemberIgnored(objType, key) && 
+                            (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                         {
                             value = se.Value;
 
@@ -2832,8 +2845,11 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            context.CurrentType = null;
-                            isFirst = WriteProperty(key, value, null, context, isFirst, true);
+                            if (!settings.IsMemberIgnored(objType, key, value))
+                            {
+                                context.CurrentType = null;
+                                isFirst = WriteProperty(key, value, null, context, isFirst, true);
+                            }
                         }
                     }
                 }
@@ -2917,7 +2933,8 @@ namespace Sweet.Jayson
                         foreach (SerializationEntry se in info)
                         {
                             key = se.Name;
-                            if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                            if (!settings.IsMemberIgnored(objType, key) && 
+                                (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                             {
                                 value = se.Value;
 
@@ -2935,34 +2952,37 @@ namespace Sweet.Jayson
                                     }
                                 }
 
-                                context.CurrentType = null;
+                                if (!settings.IsMemberIgnored(objType, key, value))
+                                {
+                                    context.CurrentType = null;
 
-                                if (!isFirstItem)
-                                {
-                                    builder.Append(',');
-                                }
-                                if (formatting)
-                                {
-                                    WriteIndent(context, context.ObjectDepth - 1);
-                                }
-
-                                try
-                                {
-                                    builder.Append('{');
-
-                                    WriteKeyValueEntry(key: "$k", value: key, expectedValueType: typeof(string), context: context,
-                                        isFirst: true, forceNullValues: true);
-                                    WriteKeyValueEntry(key: "$v", value: value, expectedValueType: null, context: context,
-                                        isFirst: false, forceNullValues: true);
-                                }
-                                finally
-                                {
-                                    isFirstItem = false;
+                                    if (!isFirstItem)
+                                    {
+                                        builder.Append(',');
+                                    }
                                     if (formatting)
                                     {
                                         WriteIndent(context, context.ObjectDepth - 1);
                                     }
-                                    builder.Append('}');
+
+                                    try
+                                    {
+                                        builder.Append('{');
+
+                                        WriteKeyValueEntry(key: "$k", value: key, expectedValueType: typeof(string), context: context,
+                                            isFirst: true, forceNullValues: true);
+                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: null, context: context,
+                                            isFirst: false, forceNullValues: true);
+                                    }
+                                    finally
+                                    {
+                                        isFirstItem = false;
+                                        if (formatting)
+                                        {
+                                            WriteIndent(context, context.ObjectDepth - 1);
+                                        }
+                                        builder.Append('}');
+                                    }
                                 }
                             }
                         }

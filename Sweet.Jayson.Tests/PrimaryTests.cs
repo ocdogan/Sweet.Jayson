@@ -53,6 +53,53 @@ namespace Sweet.Jayson.Tests
         {
             return (T)input;
         }
+        
+        [Test]
+        public static void TestIgnoreMemberFunc1()
+        {
+            Exception ex = null;
+            try
+            {
+                throw new ArgumentNullException("xyz", new Exception("Inner exception"));
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.CustomDate;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffzzz"; // 2014-07-03T03:06:51.129+03:00
+            jaysonSerializationSettings.DateTimeUTCFormat = "yyyy-MM-ddTHH:mm:ss.fffZ"; // 2014-07-03T03:06:51.129Z
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.IgnoreDefaultValues = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.IgnoreEmptyCollections = true;
+            jaysonSerializationSettings.UseEnumNames = true;
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All; // xxx
+            jaysonSerializationSettings.IgnoreAnonymousTypes = false; // xxx
+
+            jaysonSerializationSettings.IgnoreMember((t, mn, m) =>
+                m == null ||
+                ((t != null) && typeof(ArgumentNullException).IsAssignableFrom(t) &&
+                 (mn.Equals("WatsonBuckets", StringComparison.OrdinalIgnoreCase) ||
+                 mn.Equals("InnerException", StringComparison.OrdinalIgnoreCase))));
+
+            jaysonSerializationSettings.IgnoreMember((t, mn, m, o) => 
+                m == null ||
+                ((o == null) && (t != null) &&
+                 typeof(ArgumentNullException).IsAssignableFrom(t)));
+
+            var json = JaysonConverter.ToJsonString(ex, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.IndexOf("InnerException", StringComparison.OrdinalIgnoreCase) == -1);
+            Assert.IsTrue(json.IndexOf("WatsonBuckets", StringComparison.OrdinalIgnoreCase) == -1);
+
+            Assert.IsTrue(json.IndexOf("Data", StringComparison.OrdinalIgnoreCase) == -1);
+            Assert.IsTrue(json.IndexOf("HelpURL", StringComparison.OrdinalIgnoreCase) == -1);
+            Assert.IsTrue(json.IndexOf("ParamName", StringComparison.OrdinalIgnoreCase) == -1);
+            Assert.IsTrue(json.IndexOf("RemoteStackTraceString", StringComparison.OrdinalIgnoreCase) == -1);
+        }
 
         [Test]
         public static void TestAnonymousTypes1()
@@ -835,11 +882,11 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             Assert.True(json.Contains("\"D1\":\"NaN\""));
-            Assert.True(json.Contains("\"D2\":\"Infinity\""));
-            Assert.True(json.Contains("\"D3\":\"-Infinity\""));
+            Assert.True(json.Contains("\"D2\":\"Infinity\"") || json.Contains("\"D2\":\"∞\""));
+            Assert.True(json.Contains("\"D3\":\"-Infinity\"") || json.Contains("\"D3\":\"-∞\""));
             Assert.True(json.Contains("\"F1\":\"NaN\""));
-            Assert.True(json.Contains("\"F2\":\"Infinity\""));
-            Assert.True(json.Contains("\"F3\":\"-Infinity\""));
+            Assert.True(json.Contains("\"F2\":\"Infinity\"") || json.Contains("\"F2\":\"∞\""));
+            Assert.True(json.Contains("\"F3\":\"-Infinity\"") || json.Contains("\"F3\":\"-∞\""));
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
@@ -884,7 +931,7 @@ namespace Sweet.Jayson.Tests
             jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "\"Infinity\"");
+            Assert.True(json == "\"Infinity\"" || json == "\"∞\"");
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
@@ -903,7 +950,7 @@ namespace Sweet.Jayson.Tests
             jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "\"-Infinity\"");
+            Assert.True(json == "\"-Infinity\"" || json == "\"-∞\"");
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;

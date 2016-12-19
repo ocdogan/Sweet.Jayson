@@ -2135,7 +2135,23 @@ namespace Sweet.Jayson
                 {
                     return (float?)null;
                 }
+#if !(NET3500 || NET3000 || NET2000)
+                float result;
+                if (float.TryParse(s, NumberStyles.Float, JaysonConstants.InvariantCulture, out result))
+                {
+                    return (float?)result;
+                }
+                if (s == "∞")
+                {
+                    return (float?)float.PositiveInfinity;
+                }
+                if (s == "-∞")
+                {
+                    return (float?)float.NegativeInfinity;
+                }
+#else
                 return (float?)float.Parse(s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+#endif
             }
             return (float?)Convert.ToSingle(value);
         }
@@ -2279,7 +2295,23 @@ namespace Sweet.Jayson
                 {
                     return 0f;
                 }
+#if !(NET3500 || NET3000 || NET2000)
+                float result;
+                if (float.TryParse(s, NumberStyles.Float, JaysonConstants.InvariantCulture, out result))
+                {
+                    return result;
+                }
+                if (s == "∞")
+                {
+                    return float.PositiveInfinity;
+                }
+                if (s == "-∞")
+                {
+                    return float.NegativeInfinity;
+                }
+#else
                 return float.Parse(s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+#endif
             }
             return Convert.ToSingle(value);
         }
@@ -2315,7 +2347,23 @@ namespace Sweet.Jayson
                 {
                     return (double?)null;
                 }
+#if !(NET3500 || NET3000 || NET2000)
+                double result;
+                if (double.TryParse(s, NumberStyles.Float, JaysonConstants.InvariantCulture, out result))
+                {
+                    return (double?)result;
+                }
+                if (s == "∞")
+                {
+                    return (double?)double.PositiveInfinity;
+                }
+                if (s == "-∞")
+                {
+                    return (double?)double.NegativeInfinity;
+                }
+#else
                 return (double?)decimal.Parse(s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+#endif
             }
             return (double?)Convert.ToDouble(value);
         }
@@ -2405,7 +2453,23 @@ namespace Sweet.Jayson
                 {
                     return 0d;
                 }
+#if !(NET3500 || NET3000 || NET2000)
+                double result;
+                if (double.TryParse(s, NumberStyles.Float, JaysonConstants.InvariantCulture, out result))
+                {
+                    return result;
+                }
+                if (s == "∞")
+                {
+                    return double.PositiveInfinity;
+                }
+                if (s == "-∞")
+                {
+                    return double.NegativeInfinity;
+                }
+#else
                 return double.Parse(s, NumberStyles.Float, JaysonConstants.InvariantCulture);
+#endif
             }
             return Convert.ToDouble(value);
         }

@@ -10,6 +10,8 @@ TemporaryGeneratedFile*.cs
 *.vsp
 *\bin\*.*
 *\obj\*.*
+*/bin/*.*
+*/obj/*.*
 *FileListAbsolute.txt
 *.dll
 
@@ -22,3 +24,9 @@ TemporaryGeneratedFile*.cs
 *.nupkg
 
 *.nupkg
+*.config
+*.config
+*.pdb
+*.manifest
+*.cache
+Sweet.Jayson.Tests/bin/Debug/NET35/nunit.framework.xml

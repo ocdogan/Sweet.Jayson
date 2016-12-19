@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Reflection;
 
 namespace Sweet.Jayson
 {
@@ -32,6 +33,7 @@ namespace Sweet.Jayson
     {
         JaysonFastMemberType Type { get; }
         Type MemberType { get; }
+        MemberInfo Info { get; }
 
         string Alias { get; }
         string Name { get; }

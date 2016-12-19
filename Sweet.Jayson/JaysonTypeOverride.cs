@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
@@ -38,6 +39,7 @@ namespace Sweet.Jayson
         # region Static Members
 
         private static readonly ReaderWriterLock s_GlobalTypeOverrideLock = new ReaderWriterLock();
+
         private static readonly Dictionary<Type, JaysonTypeOverride> s_GlobalTypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
 
         # endregion Static Members
@@ -138,6 +140,26 @@ namespace Sweet.Jayson
                     }
 
                     overrider.IgnoreMember(memberName);
+                }
+                finally
+                {
+                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
+                }
+            }
+        }
+
+        public static void IncludeMember(Type type, string memberName)
+        {
+            if ((type != null) && !String.IsNullOrEmpty(memberName))
+            {
+                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
+                try
+                {
+                    JaysonTypeOverride overrider;
+                    if (s_GlobalTypeOverrides.TryGetValue(type, out overrider) && (overrider != null))
+                    {
+                        overrider.IncludeMember(memberName);
+                    }
                 }
                 finally
                 {

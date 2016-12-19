@@ -314,7 +314,8 @@ namespace Sweet.Jayson
                     {
                         key = member.Name;
 
-                        if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                        if (!settings.IsMemberIgnored(objType, key) && 
+                            (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                         {
                             value = member.Get(obj);
 
@@ -363,7 +364,8 @@ namespace Sweet.Jayson
             foreach (var dKey in obj.GetDynamicMemberNames())
             {
                 key = dKey;
-                if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                if (!settings.IsMemberIgnored(objType, key) && 
+                    (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                 {
                     value = dObj[key];
 
@@ -443,7 +445,8 @@ namespace Sweet.Jayson
                     {
                         key = member.Name;
 
-                        if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                        if (!settings.IsMemberIgnored(objType, key) && 
+                            (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                         {
                             value = member.Get(obj);
 
@@ -649,7 +652,8 @@ namespace Sweet.Jayson
                 foreach (SerializationEntry se in info)
                 {
                     key = se.Name;
-                    if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                    if (!settings.IsMemberIgnored(objType, key) && 
+                        (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                     {
                         value = se.Value;
 
@@ -716,7 +720,8 @@ namespace Sweet.Jayson
                 foreach (SerializationEntry se in info)
                 {
                     key = se.Name;
-                    if (typeOverride == null || !typeOverride.IsMemberIgnored(key))
+                    if (!settings.IsMemberIgnored(objType, key) && 
+                        (typeOverride == null || !typeOverride.IsMemberIgnored(key)))
                     {
                         value = se.Value;
 
@@ -744,7 +749,7 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            ctx.Add(new Dictionary<string, object>() { { "$k", key} });
+                            ctx.Add(new Dictionary<string, object>() { { "$k", key } });
                             ctx.Add(new Dictionary<string, object>() { { "$v", value } });
                         }
                     }

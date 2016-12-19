@@ -128,6 +128,11 @@ namespace Sweet.Jayson
 
         public abstract JaysonFastMemberType Type { get; }
 
+        public MemberInfo Info
+        {
+            get { return m_MemberInfo; }
+        }
+
         public JaysonMemberAttribute[] MemberAttributes
         {
             get { return m_MemberAttributes; }
