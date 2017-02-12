@@ -31,6 +31,10 @@ namespace Sweet.Jayson
 
     internal static class JaysonEnumCache
     {
+        private static object s_NameLock = new object();
+        private static object s_ValueLock = new object();
+        private static object s_TypeLock = new object();
+
         private static Dictionary<Enum, string> s_EnumNameCache = new Dictionary<Enum, string>();
         private static Dictionary<Enum, string> s_EnumValueCache = new Dictionary<Enum, string>();
         private static Dictionary<Type, Dictionary<string, object>> s_EnumTypeCache =
@@ -41,8 +45,14 @@ namespace Sweet.Jayson
             string result;
             if (!s_EnumValueCache.TryGetValue(enumValue, out result))
             {
-                result = enumValue.ToString("D");
-                s_EnumValueCache[enumValue] = result;
+                lock(s_ValueLock) 
+                {
+                    if (!s_EnumValueCache.TryGetValue (enumValue, out result)) 
+                    {
+                        result = enumValue.ToString ("D");
+                        s_EnumValueCache [enumValue] = result;
+                    }
+                }
             }
             return result;
         }
@@ -52,8 +62,14 @@ namespace Sweet.Jayson
             string result;
             if (!s_EnumNameCache.TryGetValue(enumValue, out result))
             {
-                result = enumValue.ToString("F");
-                s_EnumNameCache[enumValue] = result;
+                lock(s_NameLock) 
+                {
+                    if (!s_EnumNameCache.TryGetValue (enumValue, out result)) 
+                    {
+                        result = enumValue.ToString ("F");
+                        s_EnumNameCache [enumValue] = result;
+                    }
+                }
             }
             return result;
         }
@@ -63,15 +79,27 @@ namespace Sweet.Jayson
             Dictionary<string, object> typeDict;
             if (!s_EnumTypeCache.TryGetValue(enumType, out typeDict))
             {
-                typeDict = new Dictionary<string, object>();
-                s_EnumTypeCache[enumType] = typeDict;
+                lock(s_TypeLock) 
+                {
+                    if (!s_EnumTypeCache.TryGetValue (enumType, out typeDict)) 
+                    {
+                        typeDict = new Dictionary<string, object> ();
+                        s_EnumTypeCache [enumType] = typeDict;
+                    }
+                }
             }
 
             object result;
-            if (!typeDict.TryGetValue(str, out result))
+            if (!typeDict.TryGetValue (str, out result)) 
             {
-                result = Enum.Parse(enumType, str);
-                typeDict[str] = result;
+                lock(typeDict) 
+                {
+                    if (!typeDict.TryGetValue (str, out result)) 
+                    {
+                        result = Enum.Parse (enumType, str);
+                        typeDict [str] = result;
+                    }
+                }
             }
 
             return result;
