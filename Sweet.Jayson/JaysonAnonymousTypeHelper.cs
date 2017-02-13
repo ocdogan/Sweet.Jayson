@@ -33,6 +33,7 @@ namespace Sweet.Jayson
 
     internal static class JaysonAnonymousTypeHelper
     {
+        private static object s_SyncObj = new object();
         private static Dictionary<Type, bool> s_AnonymousTypeCache = new Dictionary<Type, bool>(10);
 
         public static bool IsAnonymousType(Type objType)
@@ -40,20 +41,21 @@ namespace Sweet.Jayson
             if (objType != null)
             {
                 bool result;
-
-                if (!s_AnonymousTypeCache.TryGetValue(objType, out result) && objType.IsGenericType &&
-                    (objType.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
+                if (!s_AnonymousTypeCache.TryGetValue(objType, out result))
                 {
-                    var typeName = objType.Name;
+                    lock (s_SyncObj)
+                    {
+                        if (!s_AnonymousTypeCache.TryGetValue(objType, out result))
+                        {
+                            result = objType.IsGenericType &&
+                                (objType.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic &&
+                                IsAnonymousType(objType.Name) &&
+                                Attribute.IsDefined(objType, typeof(CompilerGeneratedAttribute), false);
 
-                    result = (typeName.Length > 12) &&
-                        ((typeName[0] == '<' && typeName[1] == '>') ||
-                            (typeName[0] == 'V' && typeName[1] == 'B' && typeName[2] == '$')) &&
-                        (typeName.Contains("AnonType") || typeName.Contains("AnonymousType")) &&
-                        Attribute.IsDefined(objType, typeof(CompilerGeneratedAttribute), false);
-
-                    s_AnonymousTypeCache[objType] = result;
-                    return result;
+                            s_AnonymousTypeCache[objType] = result;
+                            return result;
+                        }
+                    }
                 }
             }
             return false;
