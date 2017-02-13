@@ -112,6 +112,7 @@ namespace Sweet.Jayson
 
         # region Static Members
 
+        private static readonly object s_InfoCacheLock = new object();
         private static Dictionary<Type, JaysonTypeInfo> s_InfoCache = new Dictionary<Type, JaysonTypeInfo>();
 
         # endregion Static Members
@@ -610,24 +611,12 @@ namespace Sweet.Jayson
 
         public static int GetArrayRank(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ArrayRank;
+            return GetTypeInfo(type).ArrayRank;
         }
 
         public static object GetDefault(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Default;
+            return GetTypeInfo(type).Default;
         }
 
         private static T GetDefaultValue<T>()
@@ -637,90 +626,42 @@ namespace Sweet.Jayson
 
         public static Type GetElementRootType(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ElementRootType;
+            return GetTypeInfo(type).ElementRootType;
         }
 
         public static Type GetElementType(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ElementType;
+            return GetTypeInfo(type).ElementType;
         }
 
         public static Type[] GetGenericArguments(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.GenericArguments;
+            return GetTypeInfo(type).GenericArguments;
         }
 
         public static Type GetGenericTypeDefinition(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.GenericTypeDefinitionType;
+            return GetTypeInfo(type).GenericTypeDefinitionType;
         }
 
         public static Type[] GetInterfaces(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Interfaces;
+            return GetTypeInfo(type).Interfaces;
         }
 
         public static JaysonTypeCode GetJTypeCode(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.JTypeCode;
+            return GetTypeInfo(type).JTypeCode;
         }
 
         public static JaysonTypeSerializationType GetSerializationType(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.SerializationType;
+            return GetTypeInfo(type).SerializationType;
         }
 
         public static TypeCode GetTypeCode(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.TypeCode;
+            return GetTypeInfo(type).TypeCode;
         }
 
         public static JaysonTypeInfo GetTypeInfo(Type type)
@@ -728,54 +669,36 @@ namespace Sweet.Jayson
             JaysonTypeInfo info;
             if (!s_InfoCache.TryGetValue(type, out info))
             {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
+                lock (s_InfoCacheLock)
+                {
+                    if (!s_InfoCache.TryGetValue(type, out info))
+                    {
+                        info = new JaysonTypeInfo(type);
+                        s_InfoCache[type] = info;
+                    }
+                }
             }
             return info;
         }
 
         public static string GetTypeName(Type type, JaysonTypeNameInfo nameInfo)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.TypeName[(int)nameInfo];
+            return GetTypeInfo(type).TypeName[(int)nameInfo];
         }
 
         public static Type GetUnderlyingType(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.UnderlyingType;
+            return GetTypeInfo(type).UnderlyingType;
         }
 
         public static bool HasDefaultJConstructor(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.DefaultJConstructor;
+            return GetTypeInfo(type).DefaultJConstructor;
         }
 
         public static bool IsAnonymous(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Anonymous;
+            return GetTypeInfo(type).Anonymous;
         }
 
         public static bool IsAnonymous(string typeName)
@@ -789,90 +712,42 @@ namespace Sweet.Jayson
 
         public static bool IsArray(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Array;
+            return GetTypeInfo(type).Array;
         }
 
         public static bool IsClass(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Class;
+            return GetTypeInfo(type).Class;
         }
 
         public static bool IsEnum(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Enum;
+            return GetTypeInfo(type).Enum;
         }
 
         public static bool IsGeneric(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Generic;
+            return GetTypeInfo(type).Generic;
         }
 
         public static bool IsGenericTypeDefinition(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.GenericTypeDefinition;
+            return GetTypeInfo(type).GenericTypeDefinition;
         }
 
         public static bool IsInterface(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Interface;
+            return GetTypeInfo(type).Interface;
         }
 
         public static bool IsISerializable(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ISerializable;
+            return GetTypeInfo(type).ISerializable;
         }
 
         public static bool IsJPrimitive(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.JPrimitive;
+            return GetTypeInfo(type).JPrimitive;
         }
 
         public static bool IsJPrimitiveObject(object obj)
@@ -887,13 +762,7 @@ namespace Sweet.Jayson
 
         public static bool IsNullable(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Nullable;
+            return GetTypeInfo(type).Nullable;
         }
 
         private static bool IsNumberType(Type type)
@@ -904,35 +773,17 @@ namespace Sweet.Jayson
 
         public static bool IsNumber(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Number;
+            return GetTypeInfo(type).Number;
         }
 
         public static bool IsPrimitive(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.Primitive;
+            return GetTypeInfo(type).Primitive;
         }
 
         public static bool IsValue(Type type)
         {
-            JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
-            {
-                info = new JaysonTypeInfo(type);
-                s_InfoCache[type] = info;
-            }
-            return info.ValueType;
+            return GetTypeInfo(type).ValueType;
         }
 
         private static JaysonTypeCode JTypeCodeOf(Type type)

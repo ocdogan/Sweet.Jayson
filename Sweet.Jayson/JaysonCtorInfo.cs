@@ -34,6 +34,9 @@ namespace Sweet.Jayson
 
     internal sealed class JaysonCtorInfo
     {
+        private static readonly object s_CtorSyncLock = new object();
+        private static readonly object s_ISerCtorSyncLock = new object();
+
         private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
         private static readonly Dictionary<Type, JaysonCtorInfo> s_ISerializableCtorInfos = new Dictionary<Type, JaysonCtorInfo>();
 
@@ -69,24 +72,30 @@ namespace Sweet.Jayson
             JaysonCtorInfo result;
             if (!s_ISerializableCtorInfos.TryGetValue(objType, out result))
             {
-                var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (ctors.Length > 0)
+                lock (s_ISerCtorSyncLock)
                 {
-                    ParameterInfo[] ctorParams;
-
-                    // Check ISerializable ctor
-                    foreach (var ctor in ctors)
+                    if (!s_ISerializableCtorInfos.TryGetValue(objType, out result))
                     {
-                        ctorParams = ctor.GetParameters();
-                        if (ctorParams.Length == 2 && ctorParams[0].ParameterType == typeof(SerializationInfo) &&
-                           ctorParams[1].ParameterType == typeof(StreamingContext))
+                        var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (ctors.Length > 0)
                         {
-                            result = new JaysonCtorInfo(ctor, ctorParams);
-                            break;
+                            ParameterInfo[] ctorParams;
+
+                            // Check ISerializable ctor
+                            foreach (var ctor in ctors)
+                            {
+                                ctorParams = ctor.GetParameters();
+                                if (ctorParams.Length == 2 && ctorParams[0].ParameterType == typeof(SerializationInfo) &&
+                                   ctorParams[1].ParameterType == typeof(StreamingContext))
+                                {
+                                    result = new JaysonCtorInfo(ctor, ctorParams);
+                                    break;
+                                }
+                            }
                         }
+                        s_ISerializableCtorInfos[objType] = result;
                     }
                 }
-                s_ISerializableCtorInfos[objType] = result;
             }
             return result;
         }
@@ -96,41 +105,47 @@ namespace Sweet.Jayson
             JaysonCtorInfo result;
             if (!s_CtorInfos.TryGetValue(objType, out result))
             {
-                var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-                if (ctors.Length == 0)
+                lock (s_CtorSyncLock)
                 {
-                    ctors = objType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
-                }
-
-                if (ctors.Length == 0)
-                {
-                    result = new JaysonCtorInfo(null);
-                }
-                else
-                {
-                    ParameterInfo[] ctorParams;
-
-                    // Check first parameterized ctor
-                    if (result == null)
+                    if (!s_CtorInfos.TryGetValue(objType, out result))
                     {
-                        foreach (var ctor in ctors)
+                        var ctors = objType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+                        if (ctors.Length == 0)
                         {
-                            ctorParams = ctor.GetParameters();
-                            if (ctorParams.Length == 0)
+                            ctors = objType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
+                        }
+
+                        if (ctors.Length == 0)
+                        {
+                            result = new JaysonCtorInfo(null);
+                        }
+                        else
+                        {
+                            ParameterInfo[] ctorParams;
+
+                            // Check first parameterized ctor
+                            if (result == null)
                             {
-                                result = new JaysonCtorInfo(ctor, ctorParams);
-                                break;
+                                foreach (var ctor in ctors)
+                                {
+                                    ctorParams = ctor.GetParameters();
+                                    if (ctorParams.Length == 0)
+                                    {
+                                        result = new JaysonCtorInfo(ctor, ctorParams);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (result == null)
+                            {
+                                result = new JaysonCtorInfo(ctors[0]);
                             }
                         }
-                    }
 
-                    if (result == null)
-                    {
-                        result = new JaysonCtorInfo(ctors[0]);
+                        s_CtorInfos[objType] = result;
                     }
                 }
-
-                s_CtorInfos[objType] = result;
             }
 
             return result;

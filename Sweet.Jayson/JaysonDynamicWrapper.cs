@@ -52,9 +52,11 @@ namespace Sweet.Jayson
 
         private static class CallSiteCache
         {
+            private static readonly object s_GetterLock = new object();
             private static readonly Dictionary<string, CallSite<Func<CallSite, object, object>>> s_Getters =
                 new Dictionary<string, CallSite<Func<CallSite, object, object>>>(JaysonConstants.CacheInitialCapacity);
 
+            private static readonly object s_SetterLock = new object();
             private static readonly Dictionary<string, CallSite<Func<CallSite, object, object, object>>> s_Setters =
                 new Dictionary<string, CallSite<Func<CallSite, object, object, object>>>(JaysonConstants.CacheInitialCapacity);
 
@@ -63,7 +65,7 @@ namespace Sweet.Jayson
                 CallSite<Func<CallSite, object, object>> callSite;
                 if (!s_Getters.TryGetValue(name, out callSite))
                 {
-                    lock (s_Getters)
+                    lock (s_GetterLock)
                     {
                         if (!s_Getters.TryGetValue(name, out callSite))
                         {
@@ -87,7 +89,7 @@ namespace Sweet.Jayson
                 CallSite<Func<CallSite, object, object, object>> callSite;
                 if (!s_Setters.TryGetValue(name, out callSite))
                 {
-                    lock (s_Setters)
+                    lock (s_SetterLock)
                     {
                         if (!s_Setters.TryGetValue(name, out callSite))
                         {
