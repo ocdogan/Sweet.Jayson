@@ -401,7 +401,6 @@ namespace Sweet.Jayson.Tests
             Assert.True(json.Contains("\"PublicProp\":"));
 
             Assert.True(json.Contains("\"PublicPropPrivateSetter\":"));
-            Assert.True(json.Contains("\"PrivatePropDefaultGetterSetter\":"));
 
             Assert.True(json.Contains("\"PublicPropProtectedSetter\":"));
             Assert.True(json.Contains("\"ProtectedPropDefaultGettterSetter\":"));
@@ -442,6 +441,43 @@ namespace Sweet.Jayson.Tests
             Assert.True(json.Contains("\"PublicPropProtectedSetter\":"));
             Assert.True(json.Contains("\"ProtectedPropDefaultGettterSetter\":"));
             Assert.True(json.Contains("\"ProtectedPropPrivateGetter\":"));
+        }
+
+
+        [Test]
+        public static void TestIgnoreNonPublicFields1c()
+        {
+            var dto1 = new List<Accesiblity> { new Accesiblity("a", "b", "c", "d", "e", "f", "g", "h", "i", "j") };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.CustomDate;
+            jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffzzz"; // 2014-07-03T03:06:51.129+03:00
+            jaysonSerializationSettings.DateTimeUTCFormat = "yyyy-MM-ddTHH:mm:ss.fffZ"; // 2014-07-03T03:06:51.129Z
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.IgnoreDefaultValues = true;
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.IgnoreEmptyCollections = true;
+            jaysonSerializationSettings.UseEnumNames = true;
+
+            jaysonSerializationSettings.IgnoreReadOnlyMembers = false; // xxx
+            jaysonSerializationSettings.IgnoreNonPublicFields = true; // xxx
+            jaysonSerializationSettings.IgnoreNonPublicProperties = true; // xxx
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            Assert.True(json.Contains("\"PublicField\":"));
+            Assert.True(!json.Contains("\"ProtectedField\":"));
+            Assert.True(!json.Contains("\"PrivateField\":"));
+            Assert.True(!json.Contains("\"m_PrivateFieldForPublicPropNoSetter\":"));
+
+            Assert.True(json.Contains("\"PublicProp\":"));
+
+            Assert.True(json.Contains("\"PublicPropPrivateSetter\":"));
+            Assert.True(!json.Contains("\"PrivatePropDefaultGetterSetter\":"));
+
+            Assert.True(json.Contains("\"PublicPropProtectedSetter\":"));
+            Assert.True(!json.Contains("\"ProtectedPropDefaultGettterSetter\":"));
+            Assert.True(!json.Contains("\"ProtectedPropPrivateGetter\":"));
         }
 
         [Test]
