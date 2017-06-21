@@ -457,7 +457,8 @@ namespace Sweet.Jayson
             {
                 if (!m_IsPrimitive.HasValue)
                 {
-                    m_IsPrimitive = (JaysonTypeCode.Primitive & JTypeCode) == JTypeCode;
+                    m_IsPrimitive = ((JaysonTypeCode.Primitive & JTypeCode) == JTypeCode) ||
+                        (Type != null ? Type.IsPrimitive : false);
                 }
                 return m_IsPrimitive.Value;
             }

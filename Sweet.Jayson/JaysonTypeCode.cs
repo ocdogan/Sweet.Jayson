@@ -106,6 +106,7 @@ namespace Sweet.Jayson
             Object,
 
         Primitive =
+            Short |
             Int |
             Long |
             Bool |
