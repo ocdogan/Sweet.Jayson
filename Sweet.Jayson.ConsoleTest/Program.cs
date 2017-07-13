@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -81,6 +82,43 @@ namespace Sweet.Jayson.ConsoleTest
             return (int)(key - ConsoleKey.D1) + 1;
         }
 
+        private static void TestResult(string methodName, Exception e)
+        {
+            ConsoleColor clr = Console.ForegroundColor;
+            try
+            {
+                if (JaysonCommon.IsOnMono())
+                {
+                    clr = ConsoleColor.Black;
+                }
+
+                if (e == null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("{0} passed.", methodName);
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.WriteLine("{0} failed.", methodName);
+                    while (e is TargetInvocationException)
+                    {
+                        if (e.InnerException == null)
+                            break;
+                        e = e.InnerException;
+                    }
+
+                    Console.WriteLine(e.Message);
+                }
+            }
+            finally
+            {
+                Console.ForegroundColor = clr;
+            }
+            Console.WriteLine();
+        }
+
         private static void Test(int testType)
         {
             IOrderedEnumerable<MethodInfo> methods;
@@ -93,45 +131,42 @@ namespace Sweet.Jayson.ConsoleTest
                 methods = typeof(PerformanceTests).GetMethods().OrderBy(m => m.Name);
             }
 
+            List<string> failedTests = new List<string>();
+
             foreach (var method in methods)
             {
                 if (method.Name.StartsWith("Test"))
                 {
+                    Exception err = null;
                     try
                     {
                         Console.WriteLine("Testing {0} ...", method.Name);
                         method.Invoke(null, new object[0]);
-                        Console.WriteLine("Test {0} passed.", method.Name);
                     }
                     catch (Exception e)
                     {
-                        ConsoleColor clr = Console.ForegroundColor;
-                        try
+                        failedTests.Add(method.Name);
+
+                        while (e is TargetInvocationException)
                         {
-                            if (JaysonCommon.IsOnMono())
-                            {
-                                clr = ConsoleColor.Black;
-                            }
-
-                            Console.ForegroundColor = ConsoleColor.Red;
-
-                            Console.WriteLine("Test {0} failed.", method.Name);
-                            while (e is TargetInvocationException)
-                            {
-                                if (e.InnerException == null)
-                                    break;
-                                e = e.InnerException;
-                            }
-
-                            Console.WriteLine(e.Message);
+                            if (e.InnerException == null)
+                                break;
+                            e = e.InnerException;
                         }
-                        finally
-                        {
-                            Console.ForegroundColor = clr;
-                        }
+                        err = e;
                     }
-                    Console.WriteLine();
+                    TestResult(method.Name, err);
                 }
+            }
+
+            Console.WriteLine();
+            if (failedTests.Count == 0)
+            {
+                TestResult("All tests", null);
+            }
+            else
+            {
+                TestResult(String.Join(", ", failedTests), new Exception("!!!"));
             }
         }
     }
