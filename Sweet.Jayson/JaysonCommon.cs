@@ -93,26 +93,26 @@ namespace Sweet.Jayson
             }
             if ((dateTime.Ticks / TimeSpan.TicksPerHour) == (DateTime.UtcNow.Ticks / TimeSpan.TicksPerHour))
             {
-                return GetCurrentUtcOffset();
+                return GetLocalUtcOffset();
             }
-            return JaysonConstants.CurrentTimeZone.GetUtcOffset(dateTime);
+#if (NET3000 || NET2000)
+            return TimeZone.CurrentTimeZone.GetUtcOffset(dateTime);
+#else
+            return TimeZoneInfo.Local.GetUtcOffset(dateTime);
+#endif
         }
 
-        public static TimeSpan GetCurrentUtcOffset()
+        public static TimeSpan GetLocalUtcOffset()
         {
-            if (s_LastUtcOffsetUpdate < 0)
+            long utcNow = 0;
+            if ((s_LastUtcOffsetUpdate < 0) || ((utcNow = DateTime.UtcNow.Ticks) - s_LastUtcOffsetUpdate > 10000000))
             {
-                s_LastUtcOffsetUpdate = DateTime.UtcNow.Ticks;
-                s_UtcOffsetUpdate = JaysonConstants.CurrentTimeZone.GetUtcOffset(DateTime.Now);
-            }
-            else
-            {
-                long utcNow = DateTime.UtcNow.Ticks;
-                if (utcNow - s_LastUtcOffsetUpdate > 10000000)
-                {
-                    s_LastUtcOffsetUpdate = utcNow;
-                    s_UtcOffsetUpdate = JaysonConstants.CurrentTimeZone.GetUtcOffset(DateTime.Now);
-                }
+                s_LastUtcOffsetUpdate = utcNow > 0 ? utcNow : DateTime.UtcNow.Ticks;
+#if (NET3000 || NET2000)
+                s_UtcOffsetUpdate = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+#else
+                s_UtcOffsetUpdate = TimeZoneInfo.Local.BaseUtcOffset;
+#endif
             }
             return s_UtcOffsetUpdate;
         }

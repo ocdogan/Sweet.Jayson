@@ -100,8 +100,6 @@ namespace Sweet.Jayson
         public static readonly string[] Indentation = new string[61];
         public static readonly string[] IndentationTabbed = new string[61];
 
-        public static readonly TimeZone CurrentTimeZone = TimeZone.CurrentTimeZone;
-
         // Min: 621355968000000000L, Max: 642830688000000000L
         public static readonly long UnixEpochMinValue = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Ticks;
         public static readonly long UnixEpochMaxValue = (new DateTime(2038, 1, 19, 0, 0, 0, DateTimeKind.Utc)).Ticks;

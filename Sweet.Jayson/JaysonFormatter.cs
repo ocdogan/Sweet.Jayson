@@ -203,7 +203,7 @@ namespace Sweet.Jayson
                         }
                         else
                         {
-                            TimeSpan tz = TimeZone.CurrentTimeZone.GetUtcOffset(dt);
+                            TimeSpan tz = JaysonCommon.GetUtcOffset(dt);
                             if (tz.Ticks != 0L)
                             {
                                 chArr[index++] = tz.Ticks > 0 ? '+' : '-';
@@ -244,7 +244,7 @@ namespace Sweet.Jayson
 
                             if (kind != DateTimeKind.Utc)
                             {
-                                var tz = JaysonConstants.CurrentTimeZone.GetUtcOffset(dt);
+                                var tz = JaysonCommon.GetUtcOffset(dt);
                                 if (tz.Ticks != 0L)
                                 {
                                     index -= 2;
