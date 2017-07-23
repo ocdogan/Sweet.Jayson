@@ -39,6 +39,18 @@ namespace Sweet.Jayson
 
     public static partial class JaysonConverter
     {
+        # region Constants
+
+        private const string IntMinValueText = "2147483648";
+        private const string IntMaxValueText = "2147483647";
+
+        private const string LongMinValueText = "9223372036854775808";
+        private const string LongMaxValueText = "9223372036854775807";
+
+        private const string ULongMaxValueText = "18446744073709551615";
+
+        # endregion Constants
+
         # region Parse
 
         # region Parse String
@@ -283,499 +295,747 @@ namespace Sweet.Jayson
 
         # region Parse Number
 
-        # region ParseDouble
-
-        private static double ParseDouble(string str, int start, int length, NumberStyles numStyle)
+        private static object ParseAsUnordinaryNumber(JaysonNumberParts number)
         {
-            var pos = start;
-            var end = start + length;
-            double sign = 1d;
+            string tStr;
+            Tuple<string, object> t;
 
-            if ((numStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
+            var str = number.Text;
+            var len = JaysonConstants.UnordinaryNumbers.Length;
+
+            for (var i = 0; i < len; i++) 
             {
-                ++pos;
-                if (pos >= end)
+                t = JaysonConstants.UnordinaryNumbers[i];
+
+                tStr = t.Item1;
+                if (tStr.Length == number.Length) 
                 {
-                    throw new JaysonException(JaysonError.InvalidFlotingNumber);
-                }
-                sign = -1;
-            }
+                    var matched = true;
 
-            char ch;
-            double result = 0d;
+                    var tPos = 0;
+                    var end = number.Start + number.Length;
 
-            while (true) // breaks inside on pos >= len or non-digit character
-            {
-                if (pos >= end)
-                {
-                    return sign * result;
-                }
-
-                ch = str[pos++];
-                if (ch < '0' || ch > '9')
-                {
-                    break;
-                }
-
-                result = (result * 10d) + (ch - '0');
-            }
-
-            if (ch == '.')
-            {
-                double exp = 0.1d;
-                while (pos < end)
-                {
-                    ch = str[pos++];
-                    if (ch < '0' || ch > '9')
+                    for (var strPos = number.Start; strPos < end; strPos++) 
                     {
-                        if (ch == 'E' || ch == 'e')
+                        if (str[strPos] != tStr[tPos++]) 
+                        {
+                            matched = false;
                             break;
-
-                        throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                        }
                     }
 
-                    result += (ch - '0') * exp;
-                    exp *= 0.1d;
+                    if (matched) 
+                    {
+                        return t.Item2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static void SetNumberType(JaysonNumberParts number)
+        {
+            number.Type = JaysonNumberType.Long;
+
+            var wholePart = number.Parts [0];
+            var wholeLen = wholePart.Length;
+
+            var floatingPart = number.Parts[1];
+            var floatingLen = 0;
+
+            if (floatingPart != null) 
+            {                
+                floatingLen = floatingPart.Length;
+
+                if (floatingLen > 0) 
+                {
+                    var significancy = floatingLen + wholeLen;
+                    if (significancy > JaysonConstants.DoubleSignificantDigits) 
+                    {
+                        number.Type = JaysonNumberType.Decimal;
+                    } 
+                    else if (significancy > JaysonConstants.FloatSignificantDigits) 
+                    {
+                        number.Type = JaysonNumberType.Double;
+                    } 
+                    else 
+                    {
+                        number.Type = JaysonNumberType.Float;
+                    }
+                }
+                else if (wholePart.Sign == -1)
+                {
+                    if (wholeLen >= 19) 
+                    {
+                        number.Type = JaysonNumberType.Decimal;
+                    } 
+                    else if (wholeLen >= 10) 
+                    {
+                        number.Type = JaysonNumberType.Double;
+                    }
+                } 
+            }
+
+            var expPart = number.Parts[2];
+            if (expPart != null)
+            {
+                var len = expPart.Length;
+                if (len > 0) 
+                {
+                    if ((number.Type == JaysonNumberType.Long) ||
+                        (number.Type == JaysonNumberType.Int) && (expPart.Sign == -1))
+                    {
+                        number.Type = JaysonNumberType.Double;
+                    }
+
+                    var exp = ParseAsLong(number.Text, expPart.Start, len);
+                    if (exp > 0) 
+                    {
+                        if (exp > JaysonConstants.FloatMaxExponent)
+                        {
+                            number.Type = JaysonNumberType.Double;
+                        }                            
+                        else if (exp > JaysonConstants.DecimalMaxExponent) 
+                        {
+                            if (number.Type == JaysonNumberType.Decimal) 
+                            {
+                                number.Type = JaysonNumberType.Float;
+                            } 
+                            else
+                            {
+                                number.Type = JaysonNumberType.Double;
+                            }
+                        } 
+                        else if (number.Type != JaysonNumberType.Double) 
+                        {
+                            number.Type = JaysonNumberType.Decimal;
+                        } 
+                    } 
                 }
             }
 
-            // scientific part
-            if (pos < end)
+            if (number.Type == JaysonNumberType.Long)
             {
-                if (!(ch == 'e' || ch == 'E'))
+                var comparisonText = LongMaxValueText;
+                var maxWholeLen = LongMaxValueText.Length;
+
+                if (wholeLen > maxWholeLen)
                 {
-                    throw new JaysonException(JaysonError.InvalidFlotingNumber);
+                    number.Type = JaysonNumberType.ULong;
+
+                    comparisonText = ULongMaxValueText;
+                    maxWholeLen = ULongMaxValueText.Length;
                 }
 
-                var eValue = 0;
-                var eNegative = (str[++pos] == '-');
-
-                for (++pos; pos < end; pos++)
+                if ((wholeLen > maxWholeLen) || 
+                    ((number.Type == JaysonNumberType.ULong) && (wholePart.Sign == -1)))
                 {
-                    ch = str[pos];
-                    if (ch < '0' || ch > '9')
-                    {
-                        throw new JaysonException(JaysonError.InvalidFlotingNumber);
-                    }
-
-                    eValue = (eValue * 10) + (int)(ch - '0');
+                    number.Type = JaysonNumberType.Decimal;
                 }
-
-                if (eValue > 0)
+                else if (wholeLen == maxWholeLen)
                 {
-                    if (eNegative)
+                    var str = number.Text;
+
+                    int comparison;
+                    var start = wholePart.Start;
+
+                    for (var i = 0; i < maxWholeLen; i++)
                     {
-                        if (eValue < JaysonConstants.PowerOf10Long.Length)
+                        comparison = str[start + i] - comparisonText[i];
+                        if (comparison < 0)
                         {
-                            result /= JaysonConstants.PowerOf10Long[eValue];
-                        }
-                        else
+                            break;
+                        } 
+
+                        if (comparison > 0)
                         {
-                            while (eValue-- > 0)
+                            if ((number.Type == JaysonNumberType.Long) && (i == maxWholeLen-1) && 
+                                (wholePart.Sign == -1) && (str[start + i] == '8'))
                             {
-                                result /= 10;
+                                continue;
+                            }
+                            number.Type = JaysonNumberType.Decimal;
+                            break;
+                        }
+                    }
+                } 
+                else 
+                {
+                    var maxIntLen = IntMaxValueText.Length;
+                    if (wholeLen < maxIntLen) 
+                    {
+                        number.Type = JaysonNumberType.Int;
+                    } 
+                    else if (wholeLen == maxIntLen) 
+                    {
+                        number.Type = JaysonNumberType.Int;
+                        var str = number.Text;
+
+                        int comparison;
+                        var start = wholePart.Start;
+
+                        for (var i = 0; i < maxIntLen; i++) 
+                        {
+                            comparison = str[start + i] - IntMaxValueText[0];
+                            if (comparison < 0) 
+                            {
+                                break;
+                            }
+
+                            if (comparison > 0) 
+                            {
+                                if ((i == maxWholeLen - 1) && (wholePart.Sign == -1) && (str[start + i] == '8')) 
+                                {
+                                    continue;
+                                }
+                                number.Type = JaysonNumberType.Long;
+                                break;
                             }
                         }
                     }
-                    else
-                    {
-                        if (eValue < JaysonConstants.PowerOf10Long.Length)
-                        {
-                            result *= JaysonConstants.PowerOf10Long[eValue];
-                        }
-                        else
-                        {
-                            while (eValue-- > 0)
-                            {
-                                result *= 10;
-                            }
-                        }
-                    }
                 }
             }
-
-            return sign * result;
         }
 
-        # endregion ParseDouble
-
-        # region ParseDecimal
-
-        private static decimal ParseDecimal(string str, int start, int length, NumberStyles numStyle)
+        private static JaysonNumberParts ParseNumberParts(JaysonDeserializationContext context, JaysonSerializationToken currToken)
         {
-            var pos = start;
-            var end = start + length;
-
-            var negative = false;
-            if ((numStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
+            int length = context.Length;
+            if (context.Position > length - 1) 
             {
-                ++pos;
-                negative = true;
-
-                if (pos >= end)
-                {
-                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
-                }
-            }
-
-            var ch = (char)0;
-            long value = 0L;
-            var decimalPosition = end;
-
-            for (; pos < end; pos++)
-            {
-                ch = str[pos];
-                if (!(ch < '0' || ch > '9'))
-                {
-                    value = (value * 10) + (long)(ch - '0');
-                    continue;
-                }
-
-                if (ch == '.')
-                {
-                    if (decimalPosition != end)
-                    {
-                        throw new JaysonException(JaysonError.InvalidDecimalNumber);
-                    }
-                    decimalPosition = pos + 1;
-                    continue;
-                }
-
-                if (ch == 'E' || ch == 'e')
-                {
-                    break;
-                }
-
-                throw new JaysonException(JaysonError.InvalidDecimalNumber);
-            }
-
-            var scale = pos - decimalPosition;
-
-            // scientific part
-            var eValue = 0;
-            if (pos < end)
-            {
-                if (!(ch == 'e' || ch == 'E'))
-                {
-                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
-                }
-
-                var eNegative = (str[++pos] == '-');
-
-                for (++pos; pos < end; pos++)
-                {
-                    ch = str[pos];
-                    if (!(ch < '0' || ch > '9'))
-                    {
-                        eValue = (eValue * 10) + (int)(ch - '0');
-                        continue;
-                    }
-
-                    throw new JaysonException(JaysonError.InvalidDecimalNumber);
-                }
-
-                if (eValue > 0)
-                {
-                    if (eNegative)
-                    {
-                        scale += eValue;
-                        eValue = 0;
-                    }
-                    else
-                    {
-                        scale -= eValue;
-                        eValue = 0;
-
-                        if (scale < 0)
-                        {
-                            eValue = -scale;
-                            scale = 0;
-                        }
-                    }
-                }
-            }
-
-            var result = new decimal((int)value, (int)(value >> 32), 0, negative, (byte)scale);
-
-            if (eValue > 0)
-            {
-                if (eValue < JaysonConstants.PowerOf10Decimal.Length)
-                {
-                    result *= JaysonConstants.PowerOf10Decimal[eValue];
-                }
-                else
-                {
-                    while (eValue-- > 0)
-                    {
-                        result *= 10;
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        # endregion ParseDecimal
-
-        # region ParseLong
-
-        private static long ParseLong(string str, int start, int length, NumberStyles numberStyle)
-        {
-            char ch;
-            if (length == 1)
-            {
-                ch = str[start];
-                if (ch < '0' || ch > '9')
-                {
-                    throw new JaysonException(JaysonError.InvalidNumber);
-                }
-                return (long)(ch - '0');
-            }
-
-            var pos = start;
-            var end = start + length;
-            var sign = 1;
-
-            if ((numberStyle & NumberStyles.AllowLeadingSign) == NumberStyles.AllowLeadingSign)
-            {
-                pos++;
-                sign = -1;
-            }
-
-            ch = (char)0;
-            long value = 0L;
-
-            for (; pos < end; pos++)
-            {
-                ch = str[pos];
-                if (!(ch < '0' || ch > '9'))
-                {
-                    value = (value * 10) + (long)(ch - '0');
-                    continue;
-                }
-
-                if (ch == 'E' || ch == 'e')
-                {
-                    break;
-                }
-
                 throw new JaysonException(JaysonError.InvalidNumber);
             }
 
-            // scientific part
-            if (pos < end)
+            var number = new JaysonNumberParts {
+                Text = context.Text,
+                Start = context.Position,
+            };
+            number.Parts[0].Start = context.Position;
+
+            char ch;
+            var currState = JaysonNumberPartType.Start;
+
+            do {
+                ch = number.Text[context.Position];
+
+                if ((ch >= '0') && (ch <= '9')) 
+                {
+                    switch (currState) 
+                    {
+	                    case JaysonNumberPartType.Whole:
+	                        number.Parts[0].Length++;
+	                        break;
+	                    case JaysonNumberPartType.Floating:
+	                        number.Parts[1].Length++;
+	                        break;
+	                    case JaysonNumberPartType.Exponent:
+	                        number.Parts[2].Length++;
+	                        break;
+	                    case JaysonNumberPartType.Start:
+	                        currState = JaysonNumberPartType.Whole;
+
+                            var wholePart1 = number.Parts[0];
+
+                            wholePart1.Sign = 1;
+	                        wholePart1.Start = context.Position;
+	                        wholePart1.Length = 1;
+	                        break;
+	                    case JaysonNumberPartType.WholeSign:
+	                        currState = JaysonNumberPartType.Whole;
+                            var signCh1 = number.Text [context.Position - 1];
+
+                            number.Style |= NumberStyles.AllowLeadingSign;
+
+                            var wholePart2 = number.Parts[0];
+
+                            wholePart2.Sign = (signCh1 == '-') ? -1 : 1;
+                            wholePart2.Start = context.Position;
+                            wholePart2.Length = 1;
+	                        break;
+	                    case JaysonNumberPartType.FloatingSign:
+	                        currState = JaysonNumberPartType.Floating;
+                            number.Type = JaysonNumberType.Double;
+                            number.Style |= NumberStyles.AllowDecimalPoint;
+
+                            number.Parts[1] = new JaysonNumberPart {
+	                            Start = context.Position,
+	                            Length = 1
+	                        };
+	                        break;
+	                    case JaysonNumberPartType.ExponentChar:
+	                        currState = JaysonNumberPartType.Exponent;
+
+                            number.Style |= NumberStyles.AllowExponent;
+
+                            number.Parts[2] = new JaysonNumberPart {
+	                            Sign = 1,
+	                            Start = context.Position,
+	                            Length = 1
+	                        };
+	                        break;
+                        case JaysonNumberPartType.ExponentSign:
+                            currState = JaysonNumberPartType.Exponent;
+
+                            number.Style |= NumberStyles.AllowExponent;
+
+                            var signCh2 = number.Text[context.Position - 1];
+
+	                        number.Parts [2] = new JaysonNumberPart {
+	                            Sign = (signCh2 == '-') ? -1 : 1,
+	                            Start = context.Position,
+	                            Length = 1
+	                        };
+                            break;
+                        default:
+	                        throw new JaysonException(JaysonError.InvalidNumberChar);
+                    }
+
+                    context.Position++;
+                    continue;
+                }
+
+                if (ch == '.') 
+                {
+                    if (!((currState == JaysonNumberPartType.Whole) || 
+                          (currState == JaysonNumberPartType.WholeSign) ||
+                          (currState == JaysonNumberPartType.Start))) 
+                    {
+                        throw new JaysonException(JaysonError.InvalidNumberChar);
+                    }
+
+                    currState = JaysonNumberPartType.FloatingSign;
+
+                    context.Position++;
+                    continue;
+                }
+
+                if ((ch == '-') || (ch == '+')) 
+                {
+                    switch (currState) 
+                    {
+	                    case JaysonNumberPartType.Start:
+	                        currState = JaysonNumberPartType.WholeSign;
+	                        break;
+                        case JaysonNumberPartType.ExponentChar:
+	                        currState = JaysonNumberPartType.ExponentSign;
+	                        break;
+	                    default:
+	                        throw new JaysonException(JaysonError.InvalidNumberChar);
+                    }
+
+                    context.Position++;
+                    continue;
+                }
+
+                if (ch == 'e' || ch == 'E') 
+                {
+                    if (!((currState == JaysonNumberPartType.Whole) ||
+                          (currState == JaysonNumberPartType.Floating)))
+                    {
+                        throw new JaysonException(JaysonError.InvalidNumberChar);
+                    }
+
+                    currState = JaysonNumberPartType.ExponentChar;
+
+                    context.Position++;
+                    continue;
+                }
+
+                if ((currToken == JaysonSerializationToken.Value) &&
+                    (ch == ',' || ch == ']' || ch == '}' || JaysonCommon.IsWhiteSpace (ch))) 
+                {
+                    break;
+                }
+
+                throw new JaysonException(JaysonError.InvalidNumberChar);
+            } while (context.Position < length);
+
+            number.Length = context.Position - number.Start;
+            SetNumberType(number);
+
+            return number;
+        }
+
+        private static int ParseAsInt(string s, int start, int length)
+        {
+            var value = ParseAsLong(s, start, length);
+            if ((value < int.MinValue) || (value > int.MaxValue)) 
             {
-                if (!(ch == 'e' || ch == 'E'))
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
+            return (int)value;
+        }
+
+        private static long ParseAsLong(string s, int start, int length)
+        {
+            var value = 0L;
+            if ((s != null) && (start > -1) && (length > 0)) 
+            {
+                var end = start + length;
+                if (end <= s.Length) 
+                {
+                    char ch;
+                    for (var i = start; i < end; i++) 
+                    {
+                        ch = s[i];
+                        if ((ch < '0') || (ch > '9')) 
+                        {
+                            throw new JaysonException(JaysonError.InvalidNumber);
+                        }
+                        value = (10 * value) + (ch - '0');
+                    }
+                }
+            }
+            return value;
+        }
+
+        private static uint ParseAsUInt(string s, int start, int length)
+        {
+            var l = ParseAsULong(s, start, length);
+            if (l > uint.MaxValue)
+            {
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
+            return (uint)l;
+        }
+
+        private static ulong ParseAsULong(string s, int start, int length)
+        {
+            var value = (ulong)0;
+            if ((s != null) && (start > -1) && (length > 0)) 
+            {
+                var end = start + length;
+                if (end <= s.Length) 
+                {
+                    char ch;
+                    for (var i = start; i < end; i++) 
+                    {
+                        ch = s [i];
+                        if ((ch < '0') || (ch > '9')) 
+                        {
+                            throw new JaysonException(JaysonError.InvalidNumber);
+                        }
+                        value = (10 * value) + (ulong)(ch - '0');
+                    }
+                }
+            }
+            return value;
+        }
+
+        private static float ParseAsFloat(string s, int start, int length)
+        {
+            var value = ParseAsDouble(s, start, length);
+            if ((value < float.MinValue) || (value > float.MaxValue)) 
+            {
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
+            return (float)value;
+        }
+
+        private static double ParseAsDouble(string s, int start, int length)
+        {
+            var value = 0d;
+            if ((s != null) && (start > -1) && (length > 0)) 
+            {
+                var end = start + length;
+                if (end <= s.Length) 
+                {
+                    char ch;
+                    for (var i = start; i < end; i++) 
+                    {
+                        ch = s[i];
+                        if ((ch < '0') || (ch > '9')) 
+                        {
+                            throw new JaysonException(JaysonError.InvalidNumber);
+                        }
+                        value = (10 * value) + (ch - '0');
+                    }
+                }
+            }
+            return value;
+        }
+
+        private static decimal ParseAsDecimal(string s, int start, int length)
+        {
+            var value = 0m;
+            if ((s != null) && (start > -1) && (length > 0)) 
+            {
+                var end = start + length;
+                if (end <= s.Length) 
+                {
+                    char ch;
+                    for (var i = start; i < end; i++) 
+                    {
+                        ch = s[i];
+                        if ((ch < '0') || (ch > '9'))
+                        {
+                            throw new JaysonException (JaysonError.InvalidNumber);
+                        }
+                        value = (10 * value) + (ch - '0');
+                    }
+                }
+            }
+            return value;
+        }
+
+        private static double ParseAsDouble(JaysonNumberParts number)
+        {
+            var value = 0d;
+
+            var wholePart = number.Parts[0];
+            if ((wholePart != null) && (wholePart.Length > 0) && (wholePart.Start > -1)) 
+            {
+                value = ParseAsDouble(number.Text, wholePart.Start, wholePart.Length);
+            }
+
+            var floatingPart = number.Parts[1];
+            if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1)) 
+            {
+                var floatingLen = Math.Min((int)floatingPart.Length, JaysonConstants.DoubleSignificantDigits - wholePart.Length);
+                if (floatingLen > 0) 
+                {
+                    var floating = ParseAsDouble(number.Text, floatingPart.Start, floatingLen);
+                    floating /= JaysonConstants.PowerOf10Double [floatingLen];
+
+                    value += floating;
+                }
+            }
+
+            var exponentPart = number.Parts[2];
+            if ((exponentPart != null) && (exponentPart.Length > 0) && (exponentPart.Start > -1)) 
+            {
+                var exp = ParseAsInt(number.Text, exponentPart.Start, exponentPart.Length);
+                if (exp > JaysonConstants.PowerOf10Double.Length) 
                 {
                     throw new JaysonException(JaysonError.InvalidNumber);
                 }
 
-                var eValue = 0;
-                var eNegative = (str[++pos] == '-');
-
-                for (++pos; pos < end; pos++)
+                if (exponentPart.Sign == -1) 
                 {
-                    ch = str[pos];
-                    if (ch < '0' || ch > '9')
+                    value /= JaysonConstants.PowerOf10Double[exp];
+                } 
+                else 
+                {
+                    value *= JaysonConstants.PowerOf10Double[exp];
+                }
+            }
+
+            return wholePart.Sign * value;
+        }
+
+        private static float ParseAsFloat(JaysonNumberParts number)
+        {
+            var value = ParseAsDouble(number);
+            if ((value < float.MinValue) || (value > float.MaxValue)) 
+            {
+                throw new JaysonException (JaysonError.InvalidNumber);
+            }
+            return (float)value;
+        }
+
+        private static decimal ParseAsDecimal(JaysonNumberParts number)
+        {
+            var value = 0m;
+
+            var wholePart = number.Parts[0];
+            if ((wholePart != null) && (wholePart.Length > 0) && (wholePart.Start > -1)) 
+            {
+                value = ParseAsDecimal(number.Text, wholePart.Start, wholePart.Length);
+            }
+
+            var floatingPart = number.Parts[1];
+            if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1)) 
+            {
+                var floatingLen = Math.Min((int)floatingPart.Length, JaysonConstants.DecimalSignificantDigits - wholePart.Length);
+                if (floatingLen > 0) 
+                {
+                    var floating = ParseAsDecimal(number.Text, floatingPart.Start, floatingLen);
+                    floating /= JaysonConstants.PowerOf10Decimal[floatingLen];
+
+                    value += floating;
+                }
+            }
+
+            var exponentPart = number.Parts[2];
+            if ((exponentPart != null) && (exponentPart.Length > 0) && (exponentPart.Start > -1)) 
+            {
+                var exp = ParseAsInt(number.Text, exponentPart.Start, exponentPart.Length);
+                if (exp > JaysonConstants.PowerOf10Decimal.Length) 
+                {
+                    throw new JaysonException (JaysonError.InvalidNumber);
+                }
+
+                if (exponentPart.Sign == -1) 
+                {
+                    value /= JaysonConstants.PowerOf10Decimal[exp];
+                } 
+                else 
+                {
+                    value *= JaysonConstants.PowerOf10Decimal[exp];
+                }
+            }
+
+            return wholePart.Sign * value;
+        }
+
+        private static long ParseAsLong(JaysonNumberParts number)
+        {
+            var value = 0L;
+
+            var wholePart = number.Parts[0];
+            if ((wholePart != null) && (wholePart.Length > 0) && (wholePart.Start > -1)) 
+            {
+                value = ParseAsLong(number.Text, wholePart.Start, wholePart.Length);
+            }
+
+            var floatingPart = number.Parts[1];
+            var exponentPart = number.Parts[2];
+
+            if ((exponentPart != null) && (exponentPart.Length > 0) && (exponentPart.Start > -1))
+            {
+                if (exponentPart.Sign == -1) 
+                {
+                    throw new JaysonException(JaysonError.InvalidNumber);
+                }
+
+                var exp = ParseAsInt(number.Text, exponentPart.Start, exponentPart.Length);
+                if (exp > JaysonConstants.PowerOf10Long.Length)
+                {
+                    throw new JaysonException(JaysonError.InvalidNumber);
+                }
+                value *= JaysonConstants.PowerOf10Long[exp];
+
+                if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1))
+                {
+                    if (exp == 0)
                     {
                         throw new JaysonException(JaysonError.InvalidNumber);
                     }
 
-                    eValue = (eValue * 10) + (int)(ch - '0');
-                }
+                    var floatingLen = Math.Min(exp, floatingPart.Length);
+                    floatingLen = Math.Min(floatingLen, JaysonConstants.LongMaxExponent - wholePart.Length);
 
-                if (eValue > 0)
-                {
-                    if (eNegative)
+                    if (floatingLen > 0) 
                     {
-                        if (eValue < JaysonConstants.PowerOf10Long.Length)
-                        {
-                            value /= JaysonConstants.PowerOf10Long[eValue];
-                        }
-                        else
-                        {
-                            value /= (long)Math.Pow(10, eValue);
-                        }
-                    }
-                    else
-                    {
-                        if (eValue < JaysonConstants.PowerOf10Long.Length)
-                        {
-                            value /= JaysonConstants.PowerOf10Long[eValue];
-                        }
-                        else
-                        {
-                            value *= (long)Math.Pow(10, eValue);
-                        }
+                        var floating = ParseAsLong (number.Text, floatingPart.Start, floatingLen);
+                        floating *= JaysonConstants.PowerOf10Long [exp];
+
+                        value += floating;
                     }
                 }
+            } 
+            else if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1))
+            {
+                throw new JaysonException(JaysonError.InvalidNumber);
             }
 
-            return value * sign;
+            return wholePart.Sign * value;
         }
 
-        # endregion ParseLong
+        private static int ParseAsInt(JaysonNumberParts number)
+        {
+            var value = ParseAsLong(number);
+            if ((value > int.MaxValue) || (value < int.MinValue))
+            {
+                throw new JaysonException (JaysonError.InvalidNumber);
+            }
+            return (int)value;
+        }
+
+        private static ulong ParseAsULong(JaysonNumberParts number)
+        {
+            var value = (ulong)0L;
+
+            var wholePart = number.Parts [0];
+            if ((wholePart != null) && (wholePart.Length > 0) && (wholePart.Start > -1)) 
+            {
+                value = ParseAsULong(number.Text, wholePart.Start, wholePart.Length);
+            }
+
+            var floatingPart = number.Parts[1];
+            var exponentPart = number.Parts[2];
+
+            if ((exponentPart != null) && (exponentPart.Length > 0) && (exponentPart.Start > -1)) 
+            {
+                if (exponentPart.Sign == -1) 
+                {
+                    throw new JaysonException (JaysonError.InvalidNumber);
+                }
+
+                var exp = ParseAsInt(number.Text, exponentPart.Start, exponentPart.Length);
+                if (exp > JaysonConstants.PowerOf10ULong.Length) 
+                {
+                    throw new JaysonException(JaysonError.InvalidNumber);
+                }
+                value *= JaysonConstants.PowerOf10ULong[exp];
+
+                if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1)) 
+                {
+                    if (exp == 0) 
+                    {
+                        throw new JaysonException (JaysonError.InvalidNumber);
+                    }
+
+                    var floatingLen = Math.Min (exp, floatingPart.Length);
+                    floatingLen = Math.Min (floatingLen, JaysonConstants.ULongMaxExponent - wholePart.Length);
+
+                    if (floatingLen > 0) 
+                    {
+                        var floating = ParseAsULong (number.Text, floatingPart.Start, floatingLen);
+                        floating *= JaysonConstants.PowerOf10ULong [exp];
+
+                        value += floating;
+                    }
+                }
+            } else if ((floatingPart != null) && (floatingPart.Length > 0) && (floatingPart.Start > -1)) 
+            {
+                throw new JaysonException (JaysonError.InvalidNumber);
+            }
+
+            return value;
+        }
 
         private static object ParseNumber(JaysonDeserializationContext context, JaysonSerializationToken currToken)
         {
-            int length = context.Length;
-            if (context.Position < length)
+            if (context.Position > context.Length - 1) 
             {
-                var numType = JaysonNumberType.Long;
-                var numStyle = NumberStyles.None;
+                throw new JaysonException(JaysonError.InvalidNumber);
+            }
 
-                var str = context.Text;
-                var start = context.Position;
+            var start = context.Position;
+            var number = ParseNumberParts(context, currToken);
 
-                var ch = str[start];
-                if (ch == '-')
+            if ((number != null) && (number.Length > 0))
+            {
+                var value = ParseAsUnordinaryNumber(number);
+                if (value != null)
                 {
-                    context.Position++;
-                    numStyle |= NumberStyles.AllowLeadingSign;
-                }
-                else if (ch < '0' || ch > '9')
-                {
-                    throw new JaysonException(JaysonError.InvalidNumberChar);
+                    return value;
                 }
 
-                var digitCount = 0;
-                var exponent = false;
-                var startChar = str[context.Position];
-
-                var decimalPointCount = 0;
-                var inDecimalPoint = false;
-
-                do
-                {
-                    ch = str[context.Position];
-
-                    if (!(ch < '0' || ch > '9'))
-                    {
-                        context.Position++;
-                        if (!exponent)
+                switch (number.Type)
+                {                    
+                    case JaysonNumberType.Long:
+                    case JaysonNumberType.Int:
+	                    var l = ParseAsLong(number);
+	                    if (l <= JaysonConstants.IntMaxValueAsLong && l >= JaysonConstants.IntMinValueAsLong) 
                         {
-                            digitCount++;
-                        }
-                        if (inDecimalPoint)
-                        {
-                            decimalPointCount++;
-                        }
-                        continue;
-                    }
-
-                    if (ch == '.')
-                    {
-                        if (numType != JaysonNumberType.Long)
-                        {
-                            throw new JaysonException(JaysonError.InvalidNumberChar);
-                        }
-
-                        context.Position++;
-                        inDecimalPoint = true;
-
-                        numType = JaysonNumberType.Double;
-                        numStyle |= NumberStyles.AllowDecimalPoint;
-                        continue;
-                    }
-
-                    if (ch == 'e' || ch == 'E')
-                    {
-                        if (numType == JaysonNumberType.Decimal)
-                        {
-                            throw new JaysonException(JaysonError.InvalidNumberChar);
-                        }
-
-                        context.Position++;
-                        inDecimalPoint = false;
-
-                        numType = JaysonNumberType.Decimal;
-                        numStyle |= NumberStyles.AllowExponent;
-                        continue;
-                    }
-
-                    if (ch == '-' || ch == '+')
-                    {
-                        if (numType != JaysonNumberType.Decimal)
-                        {
-                            throw new JaysonException(JaysonError.InvalidNumberChar);
-                        }
-
-                        context.Position++;
-                        continue;
-                    }
-
-                    if ((currToken == JaysonSerializationToken.Value) &&
-                        (ch == ',' || ch == ']' || ch == '}' || JaysonCommon.IsWhiteSpace(ch)))
-                    {
-                        break;
-                    }
-
-                    throw new JaysonException(JaysonError.InvalidNumberChar);
-                } while (context.Position < length);
-
-                var len = context.Position - start;
-                if (len > 0)
-                {
-                    if (digitCount > 19 || decimalPointCount > 10 || (digitCount == 19 && startChar == '9'))
-                    {
-                        decimal d;
-                        if (!decimal.TryParse(str.Substring(start, len), numStyle, JaysonConstants.InvariantCulture, out d))
-                        {
-                            throw new JaysonException(JaysonError.InvalidDecimalNumber);
-                        }
-
-                        if ((numStyle == NumberStyles.None || numStyle == NumberStyles.AllowTrailingSign) &&
-                            d <= JaysonConstants.LongMaxValueAsDecimal && d >= JaysonConstants.LongMinValueAsDecimal)
-                        {
-                            return Convert.ToInt64(d);
-                        }
-
+	                        return (int)l;
+	                    }
+	                    return l;
+                    case JaysonNumberType.Double:
+                    case JaysonNumberType.Float:
+                        return ParseAsDouble(number);
+                    case JaysonNumberType.Decimal:
+                        var d = ParseAsDecimal(number);
                         if (context.Settings.ConvertDecimalToDouble)
                         {
-                            return Convert.ToDouble(d);
+                            return (double)d;
                         }
                         return d;
-                    }
-
-                    switch (numType)
-                    {
-                        case JaysonNumberType.Long:
-                            var l = ParseLong(str, start, len, numStyle);
-                            if (l <= JaysonConstants.IntMaxValueAsLong && l >= JaysonConstants.IntMinValueAsLong)
-                            {
-                                return (int)l;
-                            }
-                            return l;
-                        case JaysonNumberType.Double:
-                            if (digitCount > 16)
-                            {
-                                var d = ParseDecimal(str, start, len, numStyle);
-
-                                if ((numStyle == NumberStyles.None || numStyle == NumberStyles.AllowTrailingSign) &&
-                                    d <= JaysonConstants.LongMaxValueAsDecimal && d >= JaysonConstants.LongMinValueAsDecimal)
-                                {
-                                    return decimal.ToInt64(d);
-                                }
-
-                                if (context.Settings.ConvertDecimalToDouble)
-                                {
-                                    return Convert.ToDouble(d);
-                                }
-                                return d;
-                            }
-                            return ParseDouble(str, start, len, numStyle);
-                        case JaysonNumberType.Decimal:
-                            {
-                                var d = ParseDecimal(str, start, len, numStyle);
-                                if (context.Settings.ConvertDecimalToDouble)
-                                {
-                                    return Convert.ToDouble(d);
-                                }
-                                return d;
-                            }
-                        default:
-                            break;
-                    }
+                    case JaysonNumberType.ULong:
+                        return ParseAsULong (number);
+                    default:
+                        break;
                 }
             }
 

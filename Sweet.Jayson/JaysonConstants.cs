@@ -70,6 +70,23 @@ namespace Sweet.Jayson
 
         # region Static Members
 
+        public const int FloatMinExponent = -38;
+        public const int FloatMaxExponent = 38;
+        public const int FloatSignificantDigits = 7;
+
+        public const int DoubleNanExponent = -324;
+        public const int DoubleMinExponent = -308;
+        public const int DoubleMaxExponent = 308;
+        public const int DoubleSignificantDigits = 15;
+        
+        public const int DecimalMinExponent = -28;
+        public const int DecimalMaxExponent = 28;
+        public const int DecimalSignificantDigits = 28;
+
+        public const int IntMaxExponent = 10;
+        public const int LongMaxExponent = 19;
+        public const int ULongMaxExponent = 20;
+
         internal static readonly int MicrosoftDateFormatLen = "/Date()/".Length;
         internal static readonly int MicrosoftDateFormatStartLen = "/Date(".Length;
         internal static readonly int MicrosoftDateFormatEndLen = ")/".Length;
@@ -96,6 +113,9 @@ namespace Sweet.Jayson
         public static readonly long IntMaxValueAsLong = (long)int.MaxValue;
         public static readonly long IntMinValueAsLong = (long)int.MinValue;
 
+        public static readonly double FloatMaxValueAsDouble = (double)float.MaxValue;
+        public static readonly double FloatMinValueAsDouble = (double)float.MinValue;
+
         public static readonly char[] NewLine = Environment.NewLine.ToCharArray();
         public static readonly string[] Indentation = new string[61];
         public static readonly string[] IndentationTabbed = new string[61];
@@ -109,87 +129,86 @@ namespace Sweet.Jayson
         public static readonly DateTime DateTimeUnixEpochMaxValue = new DateTime(2038, 1, 19, 0, 0, 0, DateTimeKind.Utc);
         public static readonly DateTime DateTimeUnixEpochMinValueUnspecified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
-        public static readonly long[] PowerOf10Long = new long[] { 
-			1L,
-			10L,
-			100L,
-			1000L,
-			10000L,
-			100000L,
-			1000000L,
-			10000000L,
-			100000000L,
-			1000000000L,
-			10000000000L,
-			100000000000L,
-			1000000000000L,
-			10000000000000L,
-			100000000000000L,
-			1000000000000000L,
-			10000000000000000L,
-			100000000000000000L,
-			1000000000000000000L
-		};
+        public static readonly int[] PowerOf10Int;
+        public static readonly long[] PowerOf10Long;
+        public static readonly ulong[] PowerOf10ULong;
+        public static readonly float[] PowerOf10Float;
+        public static readonly double[] PowerOf10Double;
+        public static readonly decimal[] PowerOf10Decimal;
 
-        public static readonly double[] PowerOf10Double = new double[] { 
-			1d,
-			10d,
-			100d,
-			1000d,
-			10000d,
-			100000d,
-			1000000d,
-			10000000d,
-			100000000d,
-			1000000000d,
-			10000000000d,
-			100000000000d,
-			1000000000000d,
-			10000000000000d,
-			100000000000000d,
-			1000000000000000d,
-			10000000000000000d,
-			100000000000000000d,
-			1000000000000000000d,
-			10000000000000000000d
-		};
-
-        public static readonly decimal[] PowerOf10Decimal = new decimal[] { 
-			1m,
-			10m,
-			100m,
-			1000m,
-			10000m,
-			100000m,
-			1000000m,
-			10000000m,
-			100000000m,
-			1000000000m,
-			10000000000m,
-			100000000000m,
-			1000000000000m,
-			10000000000000m,
-			100000000000000m,
-			1000000000000000m,
-			10000000000000000m,
-			100000000000000000m,
-			1000000000000000000m,
-			10000000000000000000m
-		};
+        public static readonly Tuple<string, object>[] UnordinaryNumbers = new Tuple<string, object> [] {
+            new Tuple<string, object>(decimal.MinValue.ToString(JaysonConstants.InvariantCulture), decimal.MinValue),
+            new Tuple<string, object>(decimal.MaxValue.ToString(JaysonConstants.InvariantCulture), decimal.MaxValue),
+            new Tuple<string, object>(double.MinValue.ToString(JaysonConstants.InvariantCulture), double.MinValue),
+            new Tuple<string, object>(double.MaxValue.ToString(JaysonConstants.InvariantCulture), double.MaxValue),
+            new Tuple<string, object>(float.MinValue.ToString(JaysonConstants.InvariantCulture), float.MinValue),
+            new Tuple<string, object>(float.MaxValue.ToString(JaysonConstants.InvariantCulture), float.MaxValue),
+            new Tuple<string, object>(double.NaN.ToString(JaysonConstants.InvariantCulture), double.NaN),
+            new Tuple<string, object>(double.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), double.NegativeInfinity),
+            new Tuple<string, object>(double.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), double.PositiveInfinity),
+            new Tuple<string, object>(double.Epsilon.ToString(JaysonConstants.InvariantCulture), double.Epsilon),
+            new Tuple<string, object>(float.NaN.ToString(JaysonConstants.InvariantCulture), float.NaN),
+            new Tuple<string, object>(float.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), float.NegativeInfinity),
+            new Tuple<string, object>(float.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), float.PositiveInfinity),
+            new Tuple<string, object>(float.Epsilon.ToString(JaysonConstants.InvariantCulture), float.Epsilon),
+        };
 
         # endregion Static Members
 
         static JaysonConstants()
         {
-            string newLine = Environment.NewLine;
+            PowerOf10Float = new float[FloatMaxExponent];
+            PowerOf10Float[0] = 1f;
 
-            Indentation[0] = newLine;
-            IndentationTabbed[0] = newLine;
+            var pflt = 1f;
+            for (var i = 1; i < FloatMaxExponent; i++) {
+                pflt *= 10;
+                PowerOf10Float[i] = pflt;
+            }
 
-            for (int i = 1; i < Indentation.Length; i++)
-            {
-                Indentation[i] = newLine.PadRight(newLine.Length + (4 * i), ' ');
-                IndentationTabbed[i] = newLine.PadRight(newLine.Length + i, '\t');
+            PowerOf10Double = new double[DoubleMaxExponent];
+            PowerOf10Double[0] = 1d;
+
+            var pdbl = 1d;
+            for (var i = 1; i < DoubleMaxExponent; i++) {
+                pdbl *= 10;
+                PowerOf10Double[i] = pdbl;
+            }
+
+            PowerOf10Decimal = new decimal[DecimalMaxExponent];
+            PowerOf10Decimal[0] = 1m;
+
+            var pdcl = 1m;
+            for (var i = 1; i < DecimalMaxExponent; i++) {
+                pdcl *= 10;
+                PowerOf10Decimal[i] = pdcl;
+            }
+
+            PowerOf10ULong = new ulong[ULongMaxExponent];
+            PowerOf10ULong[0] = 1;
+
+            var pul = (ulong)1;
+            for (var i = 1; i < ULongMaxExponent; i++) {
+                pul *= 10;
+                PowerOf10ULong[i] = pul;
+            }
+
+            PowerOf10Long = new long[LongMaxExponent];
+            PowerOf10Long[0] = 1;
+
+            var pl = 1L;
+            for (var i = 1; i < LongMaxExponent; i++) {
+                pl *= 10;
+                PowerOf10Long[i] = pl;
+            }
+
+            PowerOf10Int = new int[IntMaxExponent];
+            PowerOf10Int[0] = 1;
+
+            var pi = 1;
+            for (var i = 1; i < IntMaxExponent; i++) {
+                pi *= 10;
+                PowerOf10Int[i] = pi;
             }
         }
     }

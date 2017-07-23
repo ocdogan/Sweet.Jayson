@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <TargetFrameworkProfile />
     <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
     <!--<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>-->
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +44,8 @@
     <Compile Include="JaysonDefaultCollectionAttribute.cs" />
     <Compile Include="JaysonFastMember.cs" />
     <Compile Include="JaysonMemberAttribute.cs" />
+    <Compile Include="JaysonNumber.cs" />
+    <Compile Include="JaysonNumberKind.cs" />
     <Compile Include="JaysonOrderedDictionary.cs" />
     <Compile Include="JaysonSerDeserSettings.cs" />
     <Compile Include="JaysonSerializationReferenceMap.cs" />
@@ -107,6 +109,12 @@
     <Compile Include="JaysonTuppleT.cs" />
     <Compile Include="JaysonErrorHandler.cs" />
     <Compile Include="JaysonFloatSerStrategy.cs" />
+    <Compile Include="JaysonNumberPartType.cs" />
+    <Compile Include="JaysonNumberParts.cs" />
+    <Compile Include="JaysonNumberPart.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

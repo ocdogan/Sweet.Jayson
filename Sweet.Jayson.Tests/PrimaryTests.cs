@@ -553,6 +553,17 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
+        public static void TestDouble1a()
+        {
+            var d1 = 2.2999999999999998d;
+
+            var json = JaysonConverter.ToJsonString(d1);
+            var d2 = JaysonConverter.ToObject<double>(json);
+
+            Assert.AreEqual(d1, d2);
+        }
+
+        [Test]
         public static void TestDoubleNaN1a1()
         {
             var dto1 = new NaNType
@@ -4123,7 +4134,7 @@ namespace Sweet.Jayson.Tests
                 Value = date1
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
+            var jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -4148,7 +4159,7 @@ namespace Sweet.Jayson.Tests
                 Value = date1
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
+            var jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -4173,7 +4184,7 @@ namespace Sweet.Jayson.Tests
                 Value = date1
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
+            var jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.Microsoft;
@@ -4254,65 +4265,6 @@ namespace Sweet.Jayson.Tests
             Assert.IsNotNull(date2);
             Assert.AreEqual(date1, date2);
             Assert.AreEqual(date2.Kind, DateTimeKind.Local);
-        }
-
-        [Test]
-        public static void TestDecimal1()
-        {
-            var dcml1 = 12345.67890123456789m;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
-
-            var json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
-            var dcml2 = JaysonConverter.ToObject(json);
-
-            Assert.IsTrue(json.Contains(".Decimal"));
-            Assert.IsNotNull(dcml2);
-            Assert.IsTrue(dcml2 is decimal);
-            Assert.AreEqual(dcml1, (decimal)dcml2);
-        }
-
-        [Test]
-        public static void TestDecimal2()
-        {
-            var dcml1 = 12345.67890123456789m;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
-            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
-
-            var json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
-            var dcml2 = JaysonConverter.ToObject(json);
-
-            Assert.IsTrue(json == "12345.67890123456789");
-            Assert.IsNotNull(dcml2);
-            Assert.IsTrue(dcml2 is decimal);
-            Assert.IsTrue(dcml1 == (decimal)dcml2);
-        }
-
-        [Test]
-        public static void TestDecimal3()
-        {
-            var dcml1 = 12345.67890123456789m;
-            var dto1 = new VerySimpleJsonValue
-            {
-                Value = dcml1
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
-            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
-
-            Assert.IsTrue(json.Contains(".Decimal"));
-            Assert.IsNotNull(dto2);
-            Assert.IsNotNull(dto2.Value);
-            Assert.IsTrue(dto2.Value is decimal);
-            Assert.AreEqual(dcml1, (Decimal)dto2.Value);
         }
 
         [Test]
@@ -5216,7 +5168,7 @@ namespace Sweet.Jayson.Tests
 					}
 				});
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings();
+            var jaysonSerializationSettings = new JaysonSerializationSettings();
             jaysonSerializationSettings.IgnoreNullValues = false;
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
@@ -5284,7 +5236,7 @@ namespace Sweet.Jayson.Tests
                 Value2 = "World"
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None
                 };
@@ -5304,7 +5256,7 @@ namespace Sweet.Jayson.Tests
                 Value2 = "World"
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab
                 };
@@ -5324,7 +5276,7 @@ namespace Sweet.Jayson.Tests
                 Value2 = "World"
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeName,
@@ -5336,13 +5288,12 @@ namespace Sweet.Jayson.Tests
             Assert.IsTrue(json.Contains("\"$type\":\"Sweet.Jayson.Tests.SimpleObj\""));
         }
 
-
         [Test]
         public static void TestIncludeTypeInfoAuto1b()
         {
             var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5365,6 +5316,1220 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
+        public static void TestIncludeTypeInfoAuto1c()
+        {
+            var dto1 = new Dictionary<string, object>
+            { 
+                { "DateTime", new DateTime(1900, 1, 1, 12, 30, 45, 60) },
+                { "DateTime?", (DateTime?)new DateTime(1900, 1, 1, 12, 30, 45, 60) },
+                { "long", long.MaxValue-1 },
+                { "long?", (long?)long.MinValue+1 },
+                { "int", int.MaxValue-1 },
+                { "int?", (int?)int.MinValue+1 },
+                { "short", short.MaxValue-1 },
+                { "short?", (short?)short.MinValue-1 },
+                { "byte", byte.MaxValue },
+                { "byte?", (byte?)byte.MaxValue },
+                { "ulong", ulong.MaxValue },
+                { "ulong?", (ulong?)ulong.MaxValue-1 },
+                { "uint", uint.MaxValue-1 },
+                { "uint?", (uint?)uint.MaxValue-1 },
+                { "ushort", ushort.MaxValue-1 },
+                { "ushort?", (ushort?)ushort.MaxValue-1 },
+                { "decimal", decimal.MaxValue-1 },
+                { "decimal?", (decimal?)decimal.MinValue+1 },
+                { "float", float.MaxValue-1 },
+                { "float?", (float?)float.MinValue+1 },
+                { "double", double.MaxValue-1 },
+                { "double?", (double?)double.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+        }
+
+        [Test]
+        public static void TestParseLong1a()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "long1a", long.MaxValue },
+                { "long1b", long.MaxValue-1 },
+                { "long2a", long.MinValue },
+                { "long2b", long.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+        }
+
+        [Test]
+        public static void TestParseLong1b()
+        {
+            var l1 = long.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(l1, l2);
+        }
+
+        [Test]
+        public static void TestParseLong1c ()
+        {
+            var l1 = long.MaxValue-1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseLong1d ()
+        {
+            var l1 = long.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseLong1e ()
+        {
+            var l1 = long.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDouble1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "double1a", double.MaxValue },
+                { "double1b", double.MaxValue-1 },
+                { "double2a", double.MinValue },
+                { "double2b", double.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseDouble1b ()
+        {
+            var l1 = double.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDouble1c ()
+        {
+            var l1 = double.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDouble1d ()
+        {
+            var l1 = double.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDouble1e ()
+        {
+            var l1 = double.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseFloat1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "float1a", float.MaxValue },
+                { "float1b", float.MaxValue-1 },
+                { "float2a", float.MinValue },
+                { "float2b", float.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseFloat1b ()
+        {
+            var l1 = float.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseFloat1c ()
+        {
+            var l1 = float.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseFloat1d ()
+        {
+            var l1 = float.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseFloat1e ()
+        {
+            var l1 = float.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "decimal1a", decimal.MaxValue },
+                { "decimal1b", decimal.MaxValue-1 },
+                { "decimal2a", decimal.MinValue },
+                { "decimal2b", decimal.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1b ()
+        {
+            var l1 = decimal.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1c ()
+        {
+            var l1 = decimal.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1d ()
+        {
+            var l1 = decimal.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1e ()
+        {
+            var l1 = decimal.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1f ()
+        {
+            var dcml1 = 12345.67890123456789m;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
+
+            var json = JaysonConverter.ToJsonString (dcml1, jaysonSerializationSettings);
+            var dcml2 = JaysonConverter.ToObject (json);
+
+            Assert.IsTrue (json.Contains (".Decimal"));
+            Assert.IsNotNull (dcml2);
+            Assert.IsTrue (dcml2 is decimal);
+            Assert.AreEqual (dcml1, (decimal)dcml2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1g ()
+        {
+            var dcml1 = 12345.67890123456789m;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
+
+            var json = JaysonConverter.ToJsonString (dcml1, jaysonSerializationSettings);
+            var dcml2 = JaysonConverter.ToObject (json);
+
+            Assert.IsTrue (json == "12345.67890123456789");
+            Assert.IsNotNull (dcml2);
+            Assert.IsTrue (dcml2 is decimal);
+            Assert.IsTrue (dcml1 == (decimal)dcml2);
+        }
+
+        [Test]
+        public static void TestParseDecimal1h ()
+        {
+            var dcml1 = 12345.67890123456789m;
+            var dto1 = new VerySimpleJsonValue {
+                Value = dcml1
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
+            jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue> (json);
+
+            Assert.IsTrue (json.Contains (".Decimal"));
+            Assert.IsNotNull (dto2);
+            Assert.IsNotNull (dto2.Value);
+            Assert.IsTrue (dto2.Value is decimal);
+            Assert.AreEqual (dcml1, (Decimal)dto2.Value);
+        }
+
+        [Test]
+        public static void TestParseInt1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "int1a", int.MaxValue },
+                { "int1b", int.MaxValue-1 },
+                { "int2a", int.MinValue },
+                { "int2b", int.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseInt1b ()
+        {
+            var l1 = int.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseInt1c ()
+        {
+            var l1 = int.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseInt1d ()
+        {
+            var l1 = int.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseInt1e ()
+        {
+            var l1 = int.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseShort1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "short1a", short.MaxValue },
+                { "short1b", short.MaxValue-1 },
+                { "short2a", short.MinValue },
+                { "short2b", short.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseShort1b ()
+        {
+            var l1 = short.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseShort1c ()
+        {
+            var l1 = short.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseShort1d ()
+        {
+            var l1 = short.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseShort1e ()
+        {
+            var l1 = short.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseByte1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "byte1a", byte.MaxValue },
+                { "byte1b", byte.MaxValue-1 },
+                { "byte2a", byte.MinValue },
+                { "byte2b", byte.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseByte1b ()
+        {
+            var l1 = byte.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseByte1c ()
+        {
+            var l1 = byte.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseByte1d ()
+        {
+            var l1 = byte.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseByte1e ()
+        {
+            var l1 = byte.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUShort1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "ushort1a", ushort.MaxValue },
+                { "ushort1b", ushort.MaxValue-1 },
+                { "ushort2a", ushort.MinValue },
+                { "ushort2b", ushort.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseUShort1b ()
+        {
+            var l1 = ushort.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUShort1c ()
+        {
+            var l1 = ushort.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUShort1d ()
+        {
+            var l1 = ushort.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUShort1e ()
+        {
+            var l1 = ushort.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUInt1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "uint1a", uint.MaxValue },
+                { "uint1b", uint.MaxValue-1 },
+                { "uint2a", uint.MinValue },
+                { "uint2b", uint.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseUInt1b ()
+        {
+            var l1 = uint.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUInt1c ()
+        {
+            var l1 = uint.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUInt1d ()
+        {
+            var l1 = uint.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseUInt1e ()
+        {
+            var l1 = uint.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseULong1a ()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "ulong1a", ulong.MaxValue },
+                { "ulong1b", ulong.MaxValue-1 },
+                { "ulong2a", ulong.MinValue },
+                { "ulong2b", ulong.MinValue+1 },
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull (dto2);
+        }
+
+        [Test]
+        public static void TestParseULong1b ()
+        {
+            var l1 = ulong.MaxValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseULong1c ()
+        {
+            var l1 = ulong.MaxValue - 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseULong1d ()
+        {
+            var l1 = ulong.MinValue;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
+        public static void TestParseULong1e ()
+        {
+            var l1 = ulong.MinValue + 1;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+
+            Assert.AreEqual (l1, l2);
+        }
+
+        [Test]
         public static void TestIncludeTypeInfo()
         {
             var dto1 = new SimpleObj
@@ -5373,7 +6538,7 @@ namespace Sweet.Jayson.Tests
                 Value2 = "World"
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeName,
@@ -5394,7 +6559,7 @@ namespace Sweet.Jayson.Tests
                 Value2 = "World"
             };
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5429,7 +6594,7 @@ namespace Sweet.Jayson.Tests
 					Value2 = "World 2"
 				}});
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5465,7 +6630,7 @@ namespace Sweet.Jayson.Tests
 
             ds.Tables.Add(dt1);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5510,7 +6675,7 @@ namespace Sweet.Jayson.Tests
             dt1.ExtendedProperties.Add(5, 6m);
             dt1.ExtendedProperties.Add(7, 8m);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5583,7 +6748,7 @@ namespace Sweet.Jayson.Tests
             dt1.ExtendedProperties.Add(5, 6m);
             dt1.ExtendedProperties.Add(7, 8m);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.None,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5655,7 +6820,7 @@ namespace Sweet.Jayson.Tests
 
             ds1.Tables.Add(dt1);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5753,7 +6918,7 @@ namespace Sweet.Jayson.Tests
 
             ds1.Relations.Add(new DataRelation("dr1", dt1.Columns[0], dt2.Columns[1], true));
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5861,7 +7026,7 @@ namespace Sweet.Jayson.Tests
             ds1.Table2.ExtendedProperties.Add("x3", 3);
             ds1.ExtendedProperties.Add("x4", true);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -5938,7 +7103,7 @@ namespace Sweet.Jayson.Tests
             ds1.Table2.ExtendedProperties.Add("x3", 3);
             ds1.ExtendedProperties.Add("x4", true);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
@@ -6015,7 +7180,7 @@ namespace Sweet.Jayson.Tests
             ds1.Table2.ExtendedProperties.Add("x3", 3);
             ds1.ExtendedProperties.Add("x4", true);
 
-            JaysonSerializationSettings jaysonSerializationSettings = new JaysonSerializationSettings
+            var jaysonSerializationSettings = new JaysonSerializationSettings
                 {
                     Formatting = JaysonFormatting.Tab,
                     TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,

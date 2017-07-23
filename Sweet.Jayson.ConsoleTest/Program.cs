@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 #if !(NET3500 || NET3000 || NET2000)
@@ -121,15 +120,16 @@ namespace Sweet.Jayson.ConsoleTest
 
         private static void Test(int testType)
         {
-            IOrderedEnumerable<MethodInfo> methods;
+            List<MethodInfo> methods;
             if (testType == 1)
             {
-                methods = typeof(PrimaryTests).GetMethods().OrderBy(m => m.Name);
+                methods = new List<MethodInfo>(typeof(PrimaryTests).GetMethods());
             }
             else
             {
-                methods = typeof(PerformanceTests).GetMethods().OrderBy(m => m.Name);
+                methods = new List<MethodInfo>(typeof(PerformanceTests).GetMethods());
             }
+            methods.Sort(new Comparison<MethodInfo>((m1, m2) => String.Compare(m1.Name, m2.Name)));
 
             List<string> failedTests = new List<string>();
 
@@ -166,7 +166,7 @@ namespace Sweet.Jayson.ConsoleTest
             }
             else
             {
-                TestResult(String.Join(", ", failedTests), new Exception("!!!"));
+                TestResult(String.Join(", ", failedTests.ToArray()), new Exception("!!!"));
             }
         }
     }

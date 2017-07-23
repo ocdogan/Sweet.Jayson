@@ -22,21 +22,25 @@
 //		THE SOFTWARE.
 # endregion License
 
-using System;
-
 namespace Sweet.Jayson
 {
-    # region JaysonNumberType
+    # region JaysonNumberKind
 
-    internal enum JaysonNumberType
+    public enum JaysonNumberKind
     {
-        Int = 0,
-        Long = 1,
-        ULong = 2,
-        Float = 3,
-        Decimal = 4,
-        Double = 5
+        Undefined = 0,
+        Int = 1,
+        Long = 2,
+        Double = 3,
+        Short = 4,
+        Float = 5,
+        Decimal = 6,
+        Byte = 7,
+        UInt = 8,
+        ULong = 9,
+        UShort = 10,
+        SByte = 11
     }
 
-    # endregion JaysonNumberType
+    # endregion JaysonNumberKind
 }
