@@ -4908,6 +4908,30 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
+        public static void TestIncludeTypeInfoAuto1d()
+        {
+            var dto1 = new Dictionary<string, object>
+            {
+                { "date1", new DateTime(1900, 12, 31, 12, 30, 45) }
+            };
+
+            var jaysonDeserializationSettings = new JaysonDeserializationSettings();
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                TypeNameInfo = JaysonTypeNameInfo.Auto,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.IsTrue(dto2.ContainsKey("date1"));
+            Assert.AreEqual(dto1["date1"], dto2["date1"]); 
+        }
+
+        [Test]
         public static void TestParseLong1a()
         {
             var dto1 = new Dictionary<string, object>
