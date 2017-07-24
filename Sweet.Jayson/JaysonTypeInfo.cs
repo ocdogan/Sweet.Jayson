@@ -57,49 +57,81 @@ namespace Sweet.Jayson
 
         public sealed class JaysonTypeName
         {
+            # region Static Readonly Members
+
+            private static readonly int s_NameLength;
+            private static readonly Assembly SystemAssembly = typeof(Uri).Assembly;
+            private static readonly Assembly MSCoreLibAssembly = typeof(int).Assembly;
+
+            # endregion Static Readonly Members
+
+            # region Field Members
+
             private Type m_Type;
             private JaysonTypeInfo m_Info;
-            private string[] m_TypeNames = new string[3];
+            private string[] m_TypeNames;
+
+            # endregion Field Members
+
+            static JaysonTypeName()
+            {
+                s_NameLength = System.Enum.GetValues(typeof(JaysonTypeNameInfo)).Length;
+            }
 
             public JaysonTypeName(JaysonTypeInfo info)
             {
                 m_Info = info;
                 m_Type = info.Type;
+                m_TypeNames = new string[s_NameLength];
             }
 
             public string this[int indexer]
             {
                 get
                 {
-                    string result = m_TypeNames[indexer];
+                    var result = m_TypeNames[indexer];
                     if (result == null)
                     {
-                        if (indexer == 0)
+                        switch (indexer)
                         {
-                            m_TypeNames[0] = m_Type.ToString();
-                        }
-                        else if (indexer == 2)
-                        {
-                            m_TypeNames[2] = m_Type.AssemblyQualifiedName;
-                        }
-                        else if (indexer == 1)
-                        {
-                            if (!m_Info.Generic)
-                            {
-                                if (m_TypeNames[0] == null)
+                            case (int)JaysonTypeNameInfo.Auto:
                                 {
-                                    m_TypeNames[0] = m_Type.ToString();
+                                    var asm = m_Type.Assembly;
+                                    if ((asm == MSCoreLibAssembly) || (asm == SystemAssembly) ||
+                                        asm.GetName().Name.StartsWith("System.", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        return this[(int)JaysonTypeNameInfo.TypeName];
+                                    }
+                                    return this[(int)JaysonTypeNameInfo.TypeNameWithAssembly];
                                 }
-                                m_TypeNames[1] = m_TypeNames[0] + ", " + JaysonCommon.GetAssemblyName(m_Type.Assembly);
-                            }
-                            else
-                            {
-                                if (m_TypeNames[2] == null)
+                            case (int)JaysonTypeNameInfo.TypeName:
+                                m_TypeNames[indexer] = m_Type.ToString();
+                                break;
+                            case (int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion:
+                                m_TypeNames[indexer] = m_Type.AssemblyQualifiedName;
+                                break;
+                            case (int)JaysonTypeNameInfo.TypeNameWithAssembly:
                                 {
-                                    m_TypeNames[2] = m_Type.AssemblyQualifiedName;
+                                    if (!m_Info.Generic)
+                                    {
+                                        if (m_TypeNames[(int)JaysonTypeNameInfo.TypeName] == null)
+                                        {
+                                            m_TypeNames[(int)JaysonTypeNameInfo.TypeName] = m_Type.ToString();
+                                        }
+                                        m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssembly] = m_TypeNames[(int)JaysonTypeNameInfo.TypeName] + ", " + JaysonCommon.GetAssemblyName(m_Type.Assembly);
+                                    }
+                                    else
+                                    {
+                                        if (m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion] == null)
+                                        {
+                                            m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion] = m_Type.AssemblyQualifiedName;
+                                        }
+                                        m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssembly] = GetTypeNameWithAssembly(m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion]);
+                                    }
+                                    break;
                                 }
-                                m_TypeNames[1] = GetTypeNameWithAssembly(m_TypeNames[2]);
-                            }
+                            default:
+                                return null;
                         }
                         return m_TypeNames[indexer];
                     }
@@ -837,7 +869,7 @@ namespace Sweet.Jayson
             var length = qualifiedTypeName.Length;
             var builder = new StringBuilder(length / 2);
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 ch = qualifiedTypeName[i];
                 switch (ch)

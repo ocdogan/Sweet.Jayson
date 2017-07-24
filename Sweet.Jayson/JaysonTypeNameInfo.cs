@@ -30,9 +30,10 @@ namespace Sweet.Jayson
 
     public enum JaysonTypeNameInfo : int
     {
-        TypeName = 0,
-        TypeNameWithAssembly = 1,
-        TypeNameWithAssemblyAndVersion = 2
+        Auto = 0,
+        TypeName = 1,
+        TypeNameWithAssembly = 2,
+        TypeNameWithAssemblyAndVersion = 3
     }
 
     # endregion JaysonTypeNameInfo
