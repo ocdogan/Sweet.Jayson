@@ -53,7 +53,7 @@ namespace Sweet.Jayson.Tests
         {
             return (T)input;
         }
-        
+
         [Test]
         public static void TestIgnoreMemberFunc1()
         {
@@ -85,7 +85,7 @@ namespace Sweet.Jayson.Tests
                  (mn.Equals("WatsonBuckets", StringComparison.OrdinalIgnoreCase) ||
                  mn.Equals("InnerException", StringComparison.OrdinalIgnoreCase))));
 
-            jaysonSerializationSettings.IgnoreMember((t, mn, m, o) => 
+            jaysonSerializationSettings.IgnoreMember((t, mn, m, o) =>
                 m == null ||
                 ((o == null) && (t != null) &&
                  typeof(ArgumentNullException).IsAssignableFrom(t)));
@@ -141,7 +141,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestAnonymousTypes2a()
         {
-            var dto1 = new 
+            var dto1 = new
             {
                 A = 1,
                 B = 2.0,
@@ -246,11 +246,12 @@ namespace Sweet.Jayson.Tests
                 E = (byte)5
             };
 
-            var dto1 = new ClassWithObjectProperty{
+            var dto1 = new ClassWithObjectProperty
+            {
                 A = 1,
                 B = anonymous
             };
-        
+
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.DateFormatType = JaysonDateFormatType.CustomDate;
             jaysonSerializationSettings.DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fffzzz"; // 2014-07-03T03:06:51.129+03:00
@@ -550,462 +551,7 @@ namespace Sweet.Jayson.Tests
             Assert.True(json.Contains("\"PublicPropProtectedSetter\":"));
             Assert.True(!json.Contains("\"ProtectedPropDefaultGettterSetter\":"));
             Assert.True(!json.Contains("\"ProtectedPropPrivateGetter\":"));
-        }
-
-        [Test]
-        public static void TestDouble1a()
-        {
-            var d1 = 2.2999999999999998d;
-
-            var json = JaysonConverter.ToJsonString(d1);
-            var d2 = JaysonConverter.ToObject<double>(json);
-
-            Assert.AreEqual(d1, d2);
-        }
-
-        [Test]
-        public static void TestDoubleNaN1a1()
-        {
-            var dto1 = new NaNType
-            {
-                D1 = double.NaN,
-                D2 = double.PositiveInfinity,
-                D3 = double.NegativeInfinity,
-                F1 = float.NaN,
-                F2 = float.PositiveInfinity,
-                F3 = float.NegativeInfinity
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
-
-            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
-        }
-
-        [Test]
-        public static void TestDoubleNaN1a2()
-        {
-            var dto1 = double.NaN;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
-
-            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
-        }
-
-        [Test]
-        public static void TestDoubleNaN1a3()
-        {
-            var dto1 = double.PositiveInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
-
-            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
-        }
-
-        [Test]
-        public static void TestDoubleNaN1a4()
-        {
-            var dto1 = double.NegativeInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
-
-            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
-        }
-
-        [Test]
-        public static void TestDoubleNaN1b1()
-        {
-            var dto1 = new NaNType
-            {
-                D1 = double.NaN,
-                D2 = double.PositiveInfinity,
-                D3 = double.NegativeInfinity,
-                F1 = float.NaN,
-                F2 = float.PositiveInfinity,
-                F3 = float.NegativeInfinity
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json.Contains("\"D1\":"));
-            Assert.True(json.Contains("\"D2\":"));
-            Assert.True(json.Contains("\"D3\":"));
-            Assert.True(json.Contains("\"F1\":"));
-            Assert.True(json.Contains("\"F2\":"));
-            Assert.True(json.Contains("\"F3\":"));
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
-
-            Assert.IsNotNull(dto2);
-            Assert.AreEqual(dto2.D1, default(double));
-            Assert.AreEqual(dto2.D2, default(double));
-            Assert.AreEqual(dto2.D3, default(double));
-            Assert.AreEqual(dto2.F1, default(float));
-            Assert.AreEqual(dto2.F2, default(float));
-            Assert.AreEqual(dto2.F3, default(float));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1b2()
-        {
-            var dto1 = double.NaN;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "0");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1b3()
-        {
-            var dto1 = double.PositiveInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "0");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1b4()
-        {
-            var dto1 = double.NegativeInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "0");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1c1()
-        {
-            var dto1 = new NaNType
-            {
-                D1 = double.NaN,
-                D2 = double.PositiveInfinity,
-                D3 = double.NegativeInfinity,
-                F1 = float.NaN,
-                F2 = float.PositiveInfinity,
-                F3 = float.NegativeInfinity
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json.Contains("\"D1\":null"));
-            Assert.True(json.Contains("\"D2\":null"));
-            Assert.True(json.Contains("\"D3\":null"));
-            Assert.True(json.Contains("\"F1\":null"));
-            Assert.True(json.Contains("\"F2\":null"));
-            Assert.True(json.Contains("\"F3\":null"));
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
-
-            Assert.IsNotNull(dto2);
-            Assert.AreEqual(dto2.D1, default(double));
-            Assert.AreEqual(dto2.D2, default(double));
-            Assert.AreEqual(dto2.D3, default(double));
-            Assert.AreEqual(dto2.F1, default(float));
-            Assert.AreEqual(dto2.F2, default(float));
-            Assert.AreEqual(dto2.F3, default(float));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1c2()
-        {
-            var dto1 = double.NaN;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1c3()
-        {
-            var dto1 = double.PositiveInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1c4()
-        {
-            var dto1 = double.NegativeInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = false;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1d1()
-        {
-            var dto1 = new NaNType
-            {
-                D1 = double.NaN,
-                D2 = double.PositiveInfinity,
-                D3 = double.NegativeInfinity,
-                F1 = float.NaN,
-                F2 = float.PositiveInfinity,
-                F3 = float.NegativeInfinity
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = true;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "{}");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
-
-            Assert.IsNotNull(dto2);
-            Assert.AreEqual(dto2.D1, default(double));
-            Assert.AreEqual(dto2.D2, default(double));
-            Assert.AreEqual(dto2.D3, default(double));
-            Assert.AreEqual(dto2.F1, default(float));
-            Assert.AreEqual(dto2.F2, default(float));
-            Assert.AreEqual(dto2.F3, default(float));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1d2()
-        {
-            var dto1 = double.NaN;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = true;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1d3()
-        {
-            var dto1 = double.PositiveInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = true;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1d4()
-        {
-            var dto1 = double.NegativeInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.IgnoreNullValues = true;
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "null");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, default(double));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1e1()
-        {
-            var dto1 = new NaNType
-            {
-                D1 = double.NaN,
-                D2 = double.PositiveInfinity,
-                D3 = double.NegativeInfinity,
-                F1 = float.NaN,
-                F2 = float.PositiveInfinity,
-                F3 = float.NegativeInfinity
-            };
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json.Contains("\"D1\":\"NaN\""));
-            Assert.True(json.Contains("\"D2\":\"Infinity\"") || json.Contains("\"D2\":\"∞\""));
-            Assert.True(json.Contains("\"D3\":\"-Infinity\"") || json.Contains("\"D3\":\"-∞\""));
-            Assert.True(json.Contains("\"F1\":\"NaN\""));
-            Assert.True(json.Contains("\"F2\":\"Infinity\"") || json.Contains("\"F2\":\"∞\""));
-            Assert.True(json.Contains("\"F3\":\"-Infinity\"") || json.Contains("\"F3\":\"-∞\""));
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
-
-            Assert.IsNotNull(dto2);
-            Assert.IsTrue(double.IsNaN(dto2.D1));
-            Assert.IsTrue(double.IsPositiveInfinity(dto2.D2));
-            Assert.IsTrue(double.IsNegativeInfinity(dto2.D3));
-            Assert.IsTrue(float.IsNaN(dto2.F1));
-            Assert.IsTrue(float.IsPositiveInfinity(dto2.F2));
-            Assert.IsTrue(float.IsNegativeInfinity(dto2.F3));
-        }
-
-        [Test]
-        public static void TestDoubleNaN1e2()
-        {
-            var dto1 = double.NaN;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "\"NaN\"");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, double.NaN);
-        }
-
-        [Test]
-        public static void TestDoubleNaN1e3()
-        {
-            var dto1 = double.PositiveInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "\"Infinity\"" || json == "\"∞\"");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, double.PositiveInfinity);
-        }
-
-        [Test]
-        public static void TestDoubleNaN1e4()
-        {
-            var dto1 = double.NegativeInfinity;
-
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
-            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
-            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
-
-            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
-            Assert.True(json == "\"-Infinity\"" || json == "\"-∞\"");
-
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
-            jaysonDeserializationSettings.UseDefaultValues = true;
-
-            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
-            Assert.AreEqual(dto2, double.NegativeInfinity);
-        }
-
+        }        
 
         [Test]
         public static void TestInheritedOverridenTypes1a()
@@ -5372,18 +4918,19 @@ namespace Sweet.Jayson.Tests
                 { "long2b", long.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
         }
@@ -5393,7 +4940,8 @@ namespace Sweet.Jayson.Tests
         {
             var l1 = long.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
@@ -5401,7 +4949,7 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
             var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
@@ -5410,70 +4958,73 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestParseLong1c ()
+        public static void TestParseLong1c()
         {
-            var l1 = long.MaxValue-1;
+            var l1 = long.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseLong1d ()
+        public static void TestParseLong1d()
         {
             var l1 = long.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseLong1e ()
+        public static void TestParseLong1e()
         {
             var l1 = long.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<long> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDouble1a ()
+        public static void TestParseDouble1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -5483,108 +5034,645 @@ namespace Sweet.Jayson.Tests
                 { "double2b", double.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseDouble1b ()
+        public static void TestParseDouble1b()
         {
             var l1 = double.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDouble1c ()
+        public static void TestParseDouble1c()
         {
             var l1 = double.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDouble1d ()
+        public static void TestParseDouble1d()
         {
             var l1 = double.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDouble1e ()
+        public static void TestParseDouble1e()
         {
             var l1 = double.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<double> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseFloat1a ()
+        public static void TestParseDouble1f()
+        {
+            var json = "0.0012";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+            
+            var d1 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, 0.0012d);
+        }
+
+        [Test]
+        public static void TestParseDouble1g()
+        {
+            var json = ".0012";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var d1 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, 0.0012d);
+        }
+
+        [Test]
+        public static void TestParseDouble1h()
+        {
+            var d1 = 0.0012E3d;
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var d2 = JaysonConverter.ToObject<double>(d1.ToString(CultureInfo.InvariantCulture), jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, d2);
+        }
+
+        [Test]
+        public static void TestParseDouble1i()
+        {
+            var json = ".0012E3";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var d1 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, 0.0012E3d);
+        }
+
+        [Test]
+        public static void TestParseDouble1j()
+        {
+            var d1 = 0.123E-2d;
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var d2 = JaysonConverter.ToObject<double>(d1.ToString(CultureInfo.InvariantCulture), jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, d2);
+        }
+
+        [Test]
+        public static void TestParseDouble1k()
+        {
+            var json = ".123E-2";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var d1 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(d1, 0.123E-2d);
+        }
+
+        [Test]
+        public static void TestParseDouble2a()
+        {
+            var d1 = 2.2999999999999998d;
+
+            var json = JaysonConverter.ToJsonString(d1);
+            var d2 = JaysonConverter.ToObject<double>(json);
+
+            Assert.AreEqual(d1, d2);
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1a1()
+        {
+            var dto1 = new NaNType
+            {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1a2()
+        {
+            var dto1 = double.NaN;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1a3()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1a4()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.Error;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.Error;
+
+            Assert.Catch(() => { JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings); });
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1b1()
+        {
+            var dto1 = new NaNType
+            {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json.Contains("\"D1\":"));
+            Assert.True(json.Contains("\"D2\":"));
+            Assert.True(json.Contains("\"D3\":"));
+            Assert.True(json.Contains("\"F1\":"));
+            Assert.True(json.Contains("\"F2\":"));
+            Assert.True(json.Contains("\"F3\":"));
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.AreEqual(dto2.D1, default(double));
+            Assert.AreEqual(dto2.D2, default(double));
+            Assert.AreEqual(dto2.D3, default(double));
+            Assert.AreEqual(dto2.F1, default(float));
+            Assert.AreEqual(dto2.F2, default(float));
+            Assert.AreEqual(dto2.F3, default(float));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1b2()
+        {
+            var dto1 = double.NaN;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "0");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1b3()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "0");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1b4()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToDefault;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToDefault;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "0");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1c1()
+        {
+            var dto1 = new NaNType
+            {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json.Contains("\"D1\":null"));
+            Assert.True(json.Contains("\"D2\":null"));
+            Assert.True(json.Contains("\"D3\":null"));
+            Assert.True(json.Contains("\"F1\":null"));
+            Assert.True(json.Contains("\"F2\":null"));
+            Assert.True(json.Contains("\"F3\":null"));
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.AreEqual(dto2.D1, default(double));
+            Assert.AreEqual(dto2.D2, default(double));
+            Assert.AreEqual(dto2.D3, default(double));
+            Assert.AreEqual(dto2.F1, default(float));
+            Assert.AreEqual(dto2.F2, default(float));
+            Assert.AreEqual(dto2.F3, default(float));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1c2()
+        {
+            var dto1 = double.NaN;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1c3()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1c4()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = false;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1d1()
+        {
+            var dto1 = new NaNType
+            {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "{}");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.AreEqual(dto2.D1, default(double));
+            Assert.AreEqual(dto2.D2, default(double));
+            Assert.AreEqual(dto2.D3, default(double));
+            Assert.AreEqual(dto2.F1, default(float));
+            Assert.AreEqual(dto2.F2, default(float));
+            Assert.AreEqual(dto2.F3, default(float));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1d2()
+        {
+            var dto1 = double.NaN;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1d3()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1d4()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.IgnoreNullValues = true;
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToNull;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToNull;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "null");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, default(double));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1e1()
+        {
+            var dto1 = new NaNType
+            {
+                D1 = double.NaN,
+                D2 = double.PositiveInfinity,
+                D3 = double.NegativeInfinity,
+                F1 = float.NaN,
+                F2 = float.PositiveInfinity,
+                F3 = float.NegativeInfinity
+            };
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json.Contains("\"D1\":\"NaN\""));
+            Assert.True(json.Contains("\"D2\":\"Infinity\"") || json.Contains("\"D2\":\"∞\""));
+            Assert.True(json.Contains("\"D3\":\"-Infinity\"") || json.Contains("\"D3\":\"-∞\""));
+            Assert.True(json.Contains("\"F1\":\"NaN\""));
+            Assert.True(json.Contains("\"F2\":\"Infinity\"") || json.Contains("\"F2\":\"∞\""));
+            Assert.True(json.Contains("\"F3\":\"-Infinity\"") || json.Contains("\"F3\":\"-∞\""));
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<NaNType>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            Assert.IsTrue(double.IsNaN(dto2.D1));
+            Assert.IsTrue(double.IsPositiveInfinity(dto2.D2));
+            Assert.IsTrue(double.IsNegativeInfinity(dto2.D3));
+            Assert.IsTrue(float.IsNaN(dto2.F1));
+            Assert.IsTrue(float.IsPositiveInfinity(dto2.F2));
+            Assert.IsTrue(float.IsNegativeInfinity(dto2.F3));
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1e2()
+        {
+            var dto1 = double.NaN;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "\"NaN\"");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, double.NaN);
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1e3()
+        {
+            var dto1 = double.PositiveInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "\"Infinity\"" || json == "\"∞\"");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, double.PositiveInfinity);
+        }
+
+        [Test]
+        public static void TestParseDoubleNaN1e4()
+        {
+            var dto1 = double.NegativeInfinity;
+
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
+            jaysonSerializationSettings.FloatNanStrategy = JaysonFloatSerStrategy.ToString;
+            jaysonSerializationSettings.FloatInfinityStrategy = JaysonFloatSerStrategy.ToString;
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            Assert.True(json == "\"-Infinity\"" || json == "\"-∞\"");
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<double>(json, jaysonDeserializationSettings);
+            Assert.AreEqual(dto2, double.NegativeInfinity);
+        }
+
+        [Test]
+        public static void TestParseFloat1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -5594,108 +5682,113 @@ namespace Sweet.Jayson.Tests
                 { "float2b", float.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseFloat1b ()
+        public static void TestParseFloat1b()
         {
             var l1 = float.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<float>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseFloat1c ()
+        public static void TestParseFloat1c()
         {
             var l1 = float.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<float>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseFloat1d ()
+        public static void TestParseFloat1d()
         {
             var l1 = float.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<float>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseFloat1e ()
+        public static void TestParseFloat1e()
         {
             var l1 = float.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<float> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<float>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDecimal1a ()
+        public static void TestParseDecimal1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -5705,166 +5798,172 @@ namespace Sweet.Jayson.Tests
                 { "decimal2b", decimal.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseDecimal1b ()
+        public static void TestParseDecimal1b()
         {
             var l1 = decimal.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<decimal>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDecimal1c ()
+        public static void TestParseDecimal1c()
         {
             var l1 = decimal.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<decimal>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDecimal1d ()
+        public static void TestParseDecimal1d()
         {
             var l1 = decimal.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<decimal>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDecimal1e ()
+        public static void TestParseDecimal1e()
         {
             var l1 = decimal.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<decimal> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<decimal>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseDecimal1f ()
+        public static void TestParseDecimal1f()
         {
             var dcml1 = 12345.67890123456789m;
 
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
-            var json = JaysonConverter.ToJsonString (dcml1, jaysonSerializationSettings);
-            var dcml2 = JaysonConverter.ToObject (json);
+            var json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
+            var dcml2 = JaysonConverter.ToObject(json);
 
-            Assert.IsTrue (json.Contains (".Decimal"));
-            Assert.IsNotNull (dcml2);
-            Assert.IsTrue (dcml2 is decimal);
-            Assert.AreEqual (dcml1, (decimal)dcml2);
+            Assert.IsTrue(json.Contains(".Decimal"));
+            Assert.IsNotNull(dcml2);
+            Assert.IsTrue(dcml2 is decimal);
+            Assert.AreEqual(dcml1, (decimal)dcml2);
         }
 
         [Test]
-        public static void TestParseDecimal1g ()
+        public static void TestParseDecimal1g()
         {
             var dcml1 = 12345.67890123456789m;
 
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.None;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
-            var json = JaysonConverter.ToJsonString (dcml1, jaysonSerializationSettings);
-            var dcml2 = JaysonConverter.ToObject (json);
+            var json = JaysonConverter.ToJsonString(dcml1, jaysonSerializationSettings);
+            var dcml2 = JaysonConverter.ToObject(json);
 
-            Assert.IsTrue (json == "12345.67890123456789");
-            Assert.IsNotNull (dcml2);
-            Assert.IsTrue (dcml2 is decimal);
-            Assert.IsTrue (dcml1 == (decimal)dcml2);
+            Assert.IsTrue(json == "12345.67890123456789");
+            Assert.IsNotNull(dcml2);
+            Assert.IsTrue(dcml2 is decimal);
+            Assert.IsTrue(dcml1 == (decimal)dcml2);
         }
 
         [Test]
-        public static void TestParseDecimal1h ()
+        public static void TestParseDecimal1h()
         {
             var dcml1 = 12345.67890123456789m;
-            var dto1 = new VerySimpleJsonValue {
+            var dto1 = new VerySimpleJsonValue
+            {
                 Value = dcml1
             };
 
-            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone ();
+            var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
             jaysonSerializationSettings.Formatting = JaysonFormatting.Tab;
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
-            var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue> (json);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+            var dto2 = JaysonConverter.ToObject<VerySimpleJsonValue>(json);
 
-            Assert.IsTrue (json.Contains (".Decimal"));
-            Assert.IsNotNull (dto2);
-            Assert.IsNotNull (dto2.Value);
-            Assert.IsTrue (dto2.Value is decimal);
-            Assert.AreEqual (dcml1, (Decimal)dto2.Value);
+            Assert.IsTrue(json.Contains(".Decimal"));
+            Assert.IsNotNull(dto2);
+            Assert.IsNotNull(dto2.Value);
+            Assert.IsTrue(dto2.Value is decimal);
+            Assert.AreEqual(dcml1, (Decimal)dto2.Value);
         }
 
         [Test]
-        public static void TestParseInt1a ()
+        public static void TestParseInt1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -5874,108 +5973,139 @@ namespace Sweet.Jayson.Tests
                 { "int2b", int.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseInt1b ()
+        public static void TestParseInt1b()
         {
             var l1 = int.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseInt1c ()
+        public static void TestParseInt1c()
         {
             var l1 = int.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseInt1d ()
+        public static void TestParseInt1d()
         {
             var l1 = int.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseInt1e ()
+        public static void TestParseInt1e()
         {
             var l1 = int.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<int> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseShort1a ()
+        public static void TestParseInt1f()
+        {
+            var json = ".00123E5";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var i1 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(i1, 123);
+        }
+
+        [Test]
+        public static void TestParseInt1g()
+        {
+            var json = ".123E+2";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var i1 = JaysonConverter.ToObject<int>(json, jaysonDeserializationSettings);
+
+            Assert.AreEqual(i1, 12);
+        }
+
+        [Test]
+        public static void TestParseShort1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -5985,108 +6115,113 @@ namespace Sweet.Jayson.Tests
                 { "short2b", short.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseShort1b ()
+        public static void TestParseShort1b()
         {
             var l1 = short.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<short>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseShort1c ()
+        public static void TestParseShort1c()
         {
             var l1 = short.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<short>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseShort1d ()
+        public static void TestParseShort1d()
         {
             var l1 = short.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<short>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseShort1e ()
+        public static void TestParseShort1e()
         {
             var l1 = short.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<short> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<short>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseByte1a ()
+        public static void TestParseByte1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -6096,108 +6231,113 @@ namespace Sweet.Jayson.Tests
                 { "byte2b", byte.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseByte1b ()
+        public static void TestParseByte1b()
         {
             var l1 = byte.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<byte>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseByte1c ()
+        public static void TestParseByte1c()
         {
             var l1 = byte.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<byte>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseByte1d ()
+        public static void TestParseByte1d()
         {
             var l1 = byte.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<byte>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseByte1e ()
+        public static void TestParseByte1e()
         {
             var l1 = byte.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<byte> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<byte>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUShort1a ()
+        public static void TestParseUShort1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -6207,108 +6347,113 @@ namespace Sweet.Jayson.Tests
                 { "ushort2b", ushort.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseUShort1b ()
+        public static void TestParseUShort1b()
         {
             var l1 = ushort.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ushort>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUShort1c ()
+        public static void TestParseUShort1c()
         {
             var l1 = ushort.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ushort>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUShort1d ()
+        public static void TestParseUShort1d()
         {
             var l1 = ushort.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ushort>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUShort1e ()
+        public static void TestParseUShort1e()
         {
             var l1 = ushort.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ushort> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ushort>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUInt1a ()
+        public static void TestParseUInt1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -6318,108 +6463,113 @@ namespace Sweet.Jayson.Tests
                 { "uint2b", uint.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseUInt1b ()
+        public static void TestParseUInt1b()
         {
             var l1 = uint.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<uint>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUInt1c ()
+        public static void TestParseUInt1c()
         {
             var l1 = uint.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<uint>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUInt1d ()
+        public static void TestParseUInt1d()
         {
             var l1 = uint.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<uint>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseUInt1e ()
+        public static void TestParseUInt1e()
         {
             var l1 = uint.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<uint> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<uint>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseULong1a ()
+        public static void TestParseULong1a()
         {
             var dto1 = new Dictionary<string, object>
             {
@@ -6429,104 +6579,109 @@ namespace Sweet.Jayson.Tests
                 { "ulong2b", ulong.MinValue+1 },
             };
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (dto1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>> (json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
-            Assert.IsNotNull (dto2);
+            Assert.IsNotNull(dto2);
         }
 
         [Test]
-        public static void TestParseULong1b ()
+        public static void TestParseULong1b()
         {
             var l1 = ulong.MaxValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ulong>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseULong1c ()
+        public static void TestParseULong1c()
         {
             var l1 = ulong.MaxValue - 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ulong>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseULong1d ()
+        public static void TestParseULong1d()
         {
             var l1 = ulong.MinValue;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ulong>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
-        public static void TestParseULong1e ()
+        public static void TestParseULong1e()
         {
             var l1 = ulong.MinValue + 1;
 
-            var jaysonSerializationSettings = new JaysonSerializationSettings {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
                 Formatting = JaysonFormatting.None,
                 TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
                 TypeNames = JaysonTypeNameSerialization.Auto
             };
 
-            var json = JaysonConverter.ToJsonString (l1, jaysonSerializationSettings);
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
 
-            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone ();
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            var l2 = JaysonConverter.ToObject<ulong> (json, jaysonDeserializationSettings);
+            var l2 = JaysonConverter.ToObject<ulong>(json, jaysonDeserializationSettings);
 
-            Assert.AreEqual (l1, l2);
+            Assert.AreEqual(l1, l2);
         }
 
         [Test]
@@ -7364,4 +7519,3 @@ namespace Sweet.Jayson.Tests
         }
     }
 }
-

@@ -3891,9 +3891,8 @@ namespace Sweet.Jayson
                             return;
                         case JaysonFloatSerStrategy.ToString:
                             builder.Append('"');
-                            builder.Append(d.ToString());
+                            builder.Append(d.ToString(JaysonConstants.InvariantCulture));
                             builder.Append('"');
-
                             return;
                         case JaysonFloatSerStrategy.Error:
                             throw new JaysonException(JaysonError.NaNError);
@@ -3908,9 +3907,8 @@ namespace Sweet.Jayson
                             return;
                         case JaysonFloatSerStrategy.ToString:
                             builder.Append('"');
-                            builder.Append(d.ToString());
+                            builder.Append(d.ToString(JaysonConstants.InvariantCulture));
                             builder.Append('"');
-
                             return;
                         case JaysonFloatSerStrategy.Error:
                             throw new JaysonException(JaysonError.NaNError);
@@ -3929,9 +3927,8 @@ namespace Sweet.Jayson
                             return;
                         case JaysonFloatSerStrategy.ToString:
                             builder.Append('"');
-                            builder.Append(f.ToString());
+                            builder.Append(f.ToString(JaysonConstants.InvariantCulture));
                             builder.Append('"');
-
                             return;
                         case JaysonFloatSerStrategy.Error:
                             throw new JaysonException(JaysonError.NaNError);
@@ -3946,9 +3943,8 @@ namespace Sweet.Jayson
                             return;
                         case JaysonFloatSerStrategy.ToString:
                             builder.Append('"');
-                            builder.Append(f.ToString());
+                            builder.Append(f.ToString(JaysonConstants.InvariantCulture));
                             builder.Append('"');
-
                             return;
                         case JaysonFloatSerStrategy.Error:
                             throw new JaysonException(JaysonError.NaNError);

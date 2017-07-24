@@ -39,6 +39,15 @@ namespace Sweet.Jayson
         public JaysonNumberType Type;
         public readonly JaysonNumberPart [] Parts;
 
+        public JaysonNumberPart WholePart { get { return Parts[0]; } }
+        public byte WholeLength { get { return Parts[0].Length; } }
+
+        public JaysonNumberPart FloatingPart { get { return Parts[1]; } }
+        public byte FloatingLength { get { return Parts[1] != null ? Parts[1].Length : (byte)0; } }
+
+        public JaysonNumberPart ExponentPart { get { return Parts[2]; } }
+        public byte ExponentLength { get { return Parts[2] != null ? Parts[2].Length : (byte)0; } }
+
         public JaysonNumberParts()
         {
             Type = JaysonNumberType.Long;
