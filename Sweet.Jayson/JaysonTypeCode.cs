@@ -31,41 +31,41 @@ namespace Sweet.Jayson
     public enum JaysonTypeCode : long
     {
         String = 0L,
-        Int = 1L,
-        Bool = 2L,
-        Long = 4L,
-        DateTime = 8L,
-        Double = 16L,
-        Short = 32L,
-        Byte = 64L,
-        Float = 128L,
-        Decimal = 256L,
-        UInt = 512L,
-        ULong = 1024L,
-        Char = 2048L,
-        UShort = 4096L,
-        SByte = 8192L,
-        Guid = 16384L,
-        TimeSpan = 32768L,
-        DateTimeOffset = 65536L,
-        IntNullable = 131072L,
-        BoolNullable = 262144L,
-        LongNullable = 524288L,
-        DateTimeNullable = 1048576L,
-        DoubleNullable = 2097152L,
-        ShortNullable = 4194304L,
-        ByteNullable = 8388608L,
-        FloatNullable = 16777216L,
-        DecimalNullable = 33554432L,
-        UIntNullable = 67108864L,
-        ULongNullable = 134217728L,
-        CharNullable = 268435456L,
-        UShortNullable = 536870912L,
-        SByteNullable = 1073741824L,
-        GuidNullable = 2147483648L,
-        TimeSpanNullable = 4294967296L,
-        DateTimeOffsetNullable = 8589934592L,
-        Object = 17179869184L,
+        Int = 1L << 0,
+        Bool = 1L << 1,
+        Long = 1L << 2,
+        DateTime = 1L << 3,
+        Double = 1L << 4,
+        Short = 1L << 5,
+        Byte = 1L << 6,
+        Float = 1L << 7,
+        Decimal = 1L << 8,
+        UInt = 1L << 9,
+        ULong = 1L << 10,
+        Char = 1L << 11,
+        UShort = 1L << 12,
+        SByte = 1L << 13,
+        Guid = 1L << 14,
+        TimeSpan = 1L << 15,
+        DateTimeOffset = 1L << 16,
+        IntNullable = 1L << 17,
+        BoolNullable = 1L << 18,
+        LongNullable = 1L << 19,
+        DateTimeNullable = 1L << 20,
+        DoubleNullable = 1L << 21,
+        ShortNullable = 1L << 22,
+        ByteNullable = 1L << 23,
+        FloatNullable = 1L << 24,
+        DecimalNullable = 1L << 25,
+        UIntNullable = 1L << 26,
+        ULongNullable = 1L << 27,
+        CharNullable = 1L << 28,
+        UShortNullable = 1L << 29,
+        SByteNullable = 1L << 30,
+        GuidNullable = 1L << 31,
+        TimeSpanNullable = 1L << 32,
+        DateTimeOffsetNullable = 1L << 33,
+        Object = 1L << 34,
 
         All =
             String |
@@ -192,12 +192,15 @@ namespace Sweet.Jayson
             DateTimeOffsetNullable,
 
         AutoTyped =
-            ((Number & ~Int) & ~Double) |
+            Object |
+            DateTime |
+            (((Number & ~Int) & ~Long) & ~Double) | // All numbers, except Int, Long and Double
             Nullable,
 
         JsonKnown =
             Bool |
             Int |
+            Long |
             Double |
             String,
 
