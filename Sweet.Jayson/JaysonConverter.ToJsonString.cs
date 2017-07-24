@@ -892,9 +892,9 @@ namespace Sweet.Jayson
                     return false; // isFirst
                 }
 
-                JaysonTypeNameSerialization jtns = settings.TypeNames;
+                var jtns = settings.TypeNames;
 
-                if (jtns != JaysonTypeNameSerialization.None &&
+                if ((jtns != JaysonTypeNameSerialization.None) &&
                     (expectedValueType == null || valueType != expectedValueType) &&
                     ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
                         (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
