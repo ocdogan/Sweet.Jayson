@@ -768,27 +768,27 @@ namespace Sweet.Jayson
                 }
 
                 var valueType = value.GetType();
-                var jtc = JaysonTypeInfo.GetJTypeCode(valueType);
+                var tc = JaysonTypeInfo.GetJTypeCode(valueType);
 
-                if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
+                if (tc == JaysonTypeCode.String || tc == JaysonTypeCode.Bool)
                 {
                     Format(value, valueType, context.Builder, settings, context.Formatter);
                     return false; // isFirst
                 }
 
-                if (jtc == JaysonTypeCode.Object)
+                if (tc == JaysonTypeCode.Object)
                 {
                     WriteJsonObject(value, valueType, expectedValueType, context);
                     return false; // isFirst
                 }
 
-                JaysonTypeNameSerialization jtns = settings.TypeNames;
+                var tns = settings.TypeNames;
 
-                if (jtns != JaysonTypeNameSerialization.None &&
-                    (expectedValueType == null || valueType != expectedValueType) &&
-                    ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
+                if ((tns != JaysonTypeNameSerialization.None) &&
+                    ((expectedValueType == null) || (valueType != expectedValueType)) &&
+                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
                 {
                     var typeWritten = false;
                     context.ObjectDepth++;
@@ -878,27 +878,27 @@ namespace Sweet.Jayson
                 }
 
                 var valueType = value.GetType();
-                var jtc = JaysonTypeInfo.GetJTypeCode(valueType);
+                var tc = JaysonTypeInfo.GetJTypeCode(valueType);
 
-                if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
+                if (tc == JaysonTypeCode.String || tc == JaysonTypeCode.Bool)
                 {
                     Format(value, valueType, context.Builder, settings, context.Formatter);
                     return false; // isFirst
                 }
 
-                if (jtc == JaysonTypeCode.Object)
+                if (tc == JaysonTypeCode.Object)
                 {
                     WriteJsonObject(value, valueType, expectedValueType, context);
                     return false; // isFirst
                 }
 
-                var jtns = settings.TypeNames;
+                var tns = settings.TypeNames;
 
-                if ((jtns != JaysonTypeNameSerialization.None) &&
-                    (expectedValueType == null || valueType != expectedValueType) &&
-                    ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
+                if ((tns != JaysonTypeNameSerialization.None) &&
+                    ((expectedValueType == null) || (valueType != expectedValueType)) &&
+                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
                 {
                     var typeWritten = false;
                     context.ObjectDepth++;
@@ -3970,21 +3970,21 @@ namespace Sweet.Jayson
 
             if (info.JPrimitive)
             {
-                var jtc = info.JTypeCode;
+                var tc = info.JTypeCode;
 
-                if (jtc == JaysonTypeCode.String || jtc == JaysonTypeCode.Bool)
+                if (tc == JaysonTypeCode.String || tc == JaysonTypeCode.Bool)
                 {
                     Format(obj, objType, context.Builder, context.Settings, context.Formatter);
                     return;
                 }
 
-                JaysonTypeNameSerialization jtns = context.Settings.TypeNames;
+                var tns = context.Settings.TypeNames;
 
-                if (jtns != JaysonTypeNameSerialization.None &&
-                    (expectedObjType == null || objType != expectedObjType) &&
-                    ((jtns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & jtc) == jtc) ||
-                        (jtns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & jtc) == jtc)))
+                if ((tns != JaysonTypeNameSerialization.None) &&
+                    ((expectedObjType == null) || (objType != expectedObjType)) &&
+                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
+                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
                 {
                     var builder = context.Builder;
 

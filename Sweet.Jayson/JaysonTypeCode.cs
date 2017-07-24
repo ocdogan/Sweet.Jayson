@@ -191,12 +191,6 @@ namespace Sweet.Jayson
             TimeSpanNullable |
             DateTimeOffsetNullable,
 
-        AutoTyped =
-            Object |
-            DateTime |
-            (((Number & ~Int) & ~Long) & ~Double) | // All numbers, except Int, Long and Double
-            Nullable,
-
         JsonKnown =
             Bool |
             Int |
@@ -205,7 +199,10 @@ namespace Sweet.Jayson
             String,
 
         JsonUnknown =
-            All & ~JsonKnown
+            All & ~JsonKnown,
+
+        AutoTyped =
+            All & ~JsonKnown,
     }
 
     # endregion JaysonTypeCode
