@@ -153,6 +153,13 @@ namespace Sweet.Jayson
             new JaysonTuple<string, object>(float.Epsilon.ToString(JaysonConstants.InvariantCulture), float.Epsilon),
         };
 
+        public static readonly object[] InfinityValues = new object[] {
+            float.NegativeInfinity,
+            float.PositiveInfinity,
+            double.NegativeInfinity,
+            double.PositiveInfinity,
+        };
+
         # endregion Static Members
 
         static JaysonConstants()

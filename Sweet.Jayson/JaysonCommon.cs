@@ -1600,6 +1600,16 @@ namespace Sweet.Jayson
             return result;
         }
 
+        public static bool IsNaN(object obj)
+        {
+            return (obj != null) && (double.NaN.Equals(obj) || float.NaN.Equals(obj));
+        }
+
+        public static bool IsInfinity(object obj)
+        {
+            return (obj != null) && JaysonConstants.InfinityValues.Any(d => Object.Equals(d, obj));
+        }
+
         public static object ConvertToPrimitive(object value, Type toPrimitiveType, out bool converted)
         {
             var info = JaysonTypeInfo.GetTypeInfo(toPrimitiveType);

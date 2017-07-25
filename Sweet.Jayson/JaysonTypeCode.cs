@@ -105,6 +105,9 @@ namespace Sweet.Jayson
             DateTimeOffsetNullable |
             Object,
 
+        AllButNotObject =
+            All & ~Object,
+
         Primitive =
             Short |
             Int |
@@ -203,6 +206,17 @@ namespace Sweet.Jayson
 
         AutoTyped =
             All & ~JsonKnown,
+
+        DoubleTypes = 
+            Float |
+            Double |
+            FloatNullable |
+            DoubleNullable,
+
+        FloatingTypes = 
+            DoubleTypes |
+            Decimal |
+            DecimalNullable,
     }
 
     # endregion JaysonTypeCode

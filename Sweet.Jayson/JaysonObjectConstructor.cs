@@ -59,6 +59,9 @@ namespace Sweet.Jayson
 
         public static object New(Type objType)
         {
+            if ((objType == null) || objType.IsInterface || objType.IsAbstract)
+                return null;
+
             Func<object> function;
             if (!s_DefaultCache.TryGetValue(objType, out function))
             {

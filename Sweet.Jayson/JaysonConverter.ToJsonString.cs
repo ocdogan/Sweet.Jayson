@@ -268,64 +268,54 @@ namespace Sweet.Jayson
         {
             try
             {
-                switch (context.Settings.TypeNames)
+                if (obj == null)
+                {
+                    return false;
+                }
+
+                var settings = context.Settings;
+                var typeNameStrategy = settings.TypeNames;
+
+                if (typeNameStrategy == JaysonTypeNameSerialization.None)
+                    return false;
+
+                var type = obj.GetType();
+                var info = JaysonTypeInfo.GetTypeInfo(type);
+
+                switch (typeNameStrategy)
                 {
                     case JaysonTypeNameSerialization.None:
                         break;
                     case JaysonTypeNameSerialization.Auto:
                         {
-                            if (obj == null)
+                            if ((type != context.CurrentType) && (type != JaysonConstants.DefaultDictionaryType))
                             {
-                                return false;
-                            }
-
-                            var objType = obj.GetType();
-
-                            if (objType != context.CurrentType &&
-                                objType != JaysonConstants.DefaultDictionaryType)
-                            {
-                                WriteObjectTypeName(objType, context);
+                                WriteObjectTypeName(type, context);
                                 return true;
                             }
                         }
                         break;
                     case JaysonTypeNameSerialization.All:
                         {
-                            if (obj == null)
+                            if (context.SkipCurrentType && (context.CurrentType == type))
                             {
                                 return false;
                             }
 
-                            var objType = obj.GetType();
-                            if (context.SkipCurrentType
-                                && context.CurrentType == objType)
-                            {
-                                return false;
-                            }
-
-                            WriteObjectTypeName(objType, context);
+                            WriteObjectTypeName(type, context);
                             return true;
                         }
                     case JaysonTypeNameSerialization.Objects:
                     case JaysonTypeNameSerialization.AllButNoPrimitive:
                         {
-                            if (obj == null)
-                            {
-                                return false;
-                            }
-
-                            var objType = obj.GetType();
-                            JaysonTypeInfo info = JaysonTypeInfo.GetTypeInfo(objType);
-
                             if (!info.JPrimitive)
                             {
-                                if (context.SkipCurrentType
-                                    && context.CurrentType == objType)
+                                if (context.SkipCurrentType && (context.CurrentType == type))
                                 {
                                     return false;
                                 }
 
-                                WriteObjectTypeName(objType, context);
+                                WriteObjectTypeName(type, context);
                                 return true;
                             }
                         }
@@ -350,8 +340,8 @@ namespace Sweet.Jayson
                         break;
                     case JaysonTypeNameSerialization.Auto:
                         {
-                            if (objType != context.CurrentType &&
-                                objType != JaysonConstants.DefaultDictionaryType)
+                            if ((objType != context.CurrentType) &&
+                                (objType != JaysonConstants.DefaultDictionaryType))
                             {
                                 WriteObjectTypeName(objType, context);
                                 return true;
@@ -360,8 +350,7 @@ namespace Sweet.Jayson
                         break;
                     case JaysonTypeNameSerialization.All:
                         {
-                            if (context.SkipCurrentType
-                                && context.CurrentType == objType)
+                            if (context.SkipCurrentType && (context.CurrentType == objType))
                             {
                                 return false;
                             }
@@ -372,11 +361,10 @@ namespace Sweet.Jayson
                     case JaysonTypeNameSerialization.Objects:
                     case JaysonTypeNameSerialization.AllButNoPrimitive:
                         {
-                            JaysonTypeInfo info = JaysonTypeInfo.GetTypeInfo(objType);
+                            var info = JaysonTypeInfo.GetTypeInfo(objType);
                             if (!info.JPrimitive)
                             {
-                                if (context.SkipCurrentType
-                                    && context.CurrentType == objType)
+                                if (context.SkipCurrentType && (context.CurrentType == objType))
                                 {
                                     return false;
                                 }
@@ -731,7 +719,7 @@ namespace Sweet.Jayson
             return false; // isFirst
         }
 
-        private static bool WriteProperty(string propertyName, object value, Type expectedValueType,
+        private static bool WriteProperty(string propertyName, object value, Type expectedType,
             JaysonSerializationContext context, bool isFirst, bool forceNullValues = false)
         {
             if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
@@ -778,17 +766,11 @@ namespace Sweet.Jayson
 
                 if (tc == JaysonTypeCode.Object)
                 {
-                    WriteJsonObject(value, valueType, expectedValueType, context);
+                    WriteJsonObject(value, valueType, expectedType, context);
                     return false; // isFirst
                 }
 
-                var tns = settings.TypeNames;
-
-                if ((tns != JaysonTypeNameSerialization.None) &&
-                    ((expectedValueType == null) || (valueType != expectedValueType)) &&
-                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
+                if (ShouldWriteType(value, expectedType, valueType, tc, settings))
                 {
                     var typeWritten = false;
                     context.ObjectDepth++;
@@ -841,7 +823,29 @@ namespace Sweet.Jayson
             return isFirst;
         }
 
-        private static bool WriteKeyValueEntry(string key, object value, Type expectedValueType, JaysonSerializationContext context,
+        private static bool ShouldWriteType(object obj, Type expectedType, Type valueType, JaysonTypeCode tc, JaysonSerializationSettings settings)
+        {
+            var tns = settings.TypeNames;
+            if (tns == JaysonTypeNameSerialization.All || tns == JaysonTypeNameSerialization.Auto || tns == JaysonTypeNameSerialization.AllButNoPrimitive)
+            {
+                var result = (tns != JaysonTypeNameSerialization.None) &&
+                        ((expectedType == null) || (valueType != expectedType)) &&
+                        ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
+                            (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
+                            (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc));
+
+                if (!result)
+                {
+                    result = ((JaysonTypeCode.DoubleTypes & tc) == tc) && (obj != null) &&
+                                (((settings.FloatNanStrategy == JaysonFloatSerStrategy.ToString) && JaysonCommon.IsNaN(obj)) ||
+                                 ((settings.FloatInfinityStrategy == JaysonFloatSerStrategy.ToString) && JaysonCommon.IsInfinity(obj)));
+                }
+                return result;
+            }
+            return false;
+        }
+
+        private static bool WriteKeyValueEntry(string key, object value, Type expectedType, JaysonSerializationContext context,
             bool isFirst, bool forceNullValues = false, bool ignoreEscape = false)
         {
             if (!JaysonCommon.IsNull(value, context.Settings.FloatNanStrategy, context.Settings.FloatInfinityStrategy))
@@ -888,17 +892,11 @@ namespace Sweet.Jayson
 
                 if (tc == JaysonTypeCode.Object)
                 {
-                    WriteJsonObject(value, valueType, expectedValueType, context);
+                    WriteJsonObject(value, valueType, expectedType, context);
                     return false; // isFirst
                 }
 
-                var tns = settings.TypeNames;
-
-                if ((tns != JaysonTypeNameSerialization.None) &&
-                    ((expectedValueType == null) || (valueType != expectedValueType)) &&
-                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
+                if (ShouldWriteType(value, expectedType, valueType, tc, settings))
                 {
                     var typeWritten = false;
                     context.ObjectDepth++;
@@ -2195,9 +2193,9 @@ namespace Sweet.Jayson
                                     {
                                         builder.Append('{');
 
-                                        WriteKeyValueEntry(key: "$k", value: kvp.Key, expectedValueType: keyType, context: context,
+                                        WriteKeyValueEntry(key: "$k", value: kvp.Key, expectedType: keyType, context: context,
                                             isFirst: true, forceNullValues: true);
-                                        WriteKeyValueEntry(key: "$v", value: kvp.Value, expectedValueType: valueType, context: context,
+                                        WriteKeyValueEntry(key: "$v", value: kvp.Value, expectedType: valueType, context: context,
                                             isFirst: false, forceNullValues: true);
                                     }
                                     finally
@@ -2244,9 +2242,9 @@ namespace Sweet.Jayson
                                     {
                                         builder.Append('{');
 
-                                        WriteKeyValueEntry(key: "$k", value: keyObj, expectedValueType: keyType, context: context,
+                                        WriteKeyValueEntry(key: "$k", value: keyObj, expectedType: keyType, context: context,
                                             isFirst: true, forceNullValues: true);
-                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: valueType, context: context,
+                                        WriteKeyValueEntry(key: "$v", value: value, expectedType: valueType, context: context,
                                             isFirst: false, forceNullValues: true);
                                     }
                                     finally
@@ -2326,7 +2324,7 @@ namespace Sweet.Jayson
                             keyObj = kvp.Key;
                             key = (keyObj as string) ?? keyObj.ToString();
 
-                            isFirst = WriteKeyValueEntry(key: key, value: kvp.Value, expectedValueType: null, context: context,
+                            isFirst = WriteKeyValueEntry(key: key, value: kvp.Value, expectedType: null, context: context,
                                 isFirst: isFirst, forceNullValues: true);
                         }
                     }
@@ -2349,7 +2347,7 @@ namespace Sweet.Jayson
                                 value = filter(key, value);
                             }
 
-                            isFirst = WriteKeyValueEntry(key: key, value: value, expectedValueType: null, context: context,
+                            isFirst = WriteKeyValueEntry(key: key, value: value, expectedType: null, context: context,
                                 isFirst: isFirst, forceNullValues: true);
                         }
                     }
@@ -2969,9 +2967,9 @@ namespace Sweet.Jayson
                                     {
                                         builder.Append('{');
 
-                                        WriteKeyValueEntry(key: "$k", value: key, expectedValueType: typeof(string), context: context,
+                                        WriteKeyValueEntry(key: "$k", value: key, expectedType: typeof(string), context: context,
                                             isFirst: true, forceNullValues: true);
-                                        WriteKeyValueEntry(key: "$v", value: value, expectedValueType: null, context: context,
+                                        WriteKeyValueEntry(key: "$v", value: value, expectedType: null, context: context,
                                             isFirst: false, forceNullValues: true);
                                     }
                                     finally
@@ -3060,7 +3058,7 @@ namespace Sweet.Jayson
                                 value = filter(key, value);
                             }
 
-                            isFirst = WriteKeyValueEntry(key: key, value: value, expectedValueType: null, context: context,
+                            isFirst = WriteKeyValueEntry(key: key, value: value, expectedType: null, context: context,
                                 isFirst: isFirst, forceNullValues: false, ignoreEscape: isExpando);
                         }
 
@@ -3077,7 +3075,7 @@ namespace Sweet.Jayson
                             value = filter(key, value);
                         }
 
-                        isFirst = WriteKeyValueEntry(key: key, value: value, expectedValueType: null, context: context,
+                        isFirst = WriteKeyValueEntry(key: key, value: value, expectedType: null, context: context,
                             isFirst: isFirst, forceNullValues: false, ignoreEscape: isExpando);
                     }
                 }
@@ -3955,7 +3953,7 @@ namespace Sweet.Jayson
             formatter.Format(obj, objType, builder);
         }
 
-        private static void WriteJsonObject(object obj, Type objType, Type expectedObjType, JaysonSerializationContext context)
+        private static void WriteJsonObject(object obj, Type objType, Type expectedType, JaysonSerializationContext context)
         {
             if (obj == null)
             {
@@ -3971,20 +3969,15 @@ namespace Sweet.Jayson
             if (info.JPrimitive)
             {
                 var tc = info.JTypeCode;
+                var settings = context.Settings;
 
                 if (tc == JaysonTypeCode.String || tc == JaysonTypeCode.Bool)
                 {
-                    Format(obj, objType, context.Builder, context.Settings, context.Formatter);
+                    Format(obj, objType, context.Builder, settings, context.Formatter);
                     return;
                 }
 
-                var tns = context.Settings.TypeNames;
-
-                if ((tns != JaysonTypeNameSerialization.None) &&
-                    ((expectedObjType == null) || (objType != expectedObjType)) &&
-                    ((tns == JaysonTypeNameSerialization.All && (JaysonTypeCode.JsonUnknown & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.Auto && (JaysonTypeCode.AutoTyped & tc) == tc) ||
-                        (tns == JaysonTypeNameSerialization.AllButNoPrimitive && (JaysonTypeCode.Nullable & tc) == tc)))
+                if (ShouldWriteType(obj, expectedType, objType, tc, settings))
                 {
                     var builder = context.Builder;
 
@@ -3993,14 +3986,14 @@ namespace Sweet.Jayson
                     try
                     {
                         typeWritten = WritePrimitiveTypeName(objType, context);
-                        Format(obj, objType, builder, context.Settings, context.Formatter);
+                        Format(obj, objType, builder, settings, context.Formatter);
                     }
                     finally
                     {
                         context.ObjectDepth--;
                         if (typeWritten)
                         {
-                            if (context.Settings.Formatting != JaysonFormatting.None)
+                            if (settings.Formatting != JaysonFormatting.None)
                             {
                                 WriteIndent(context);
                             }
@@ -4010,7 +4003,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                Format(obj, objType, context.Builder, context.Settings, context.Formatter);
+                Format(obj, objType, context.Builder, settings, context.Formatter);
                 return;
             }
 
@@ -4356,11 +4349,17 @@ namespace Sweet.Jayson
             );
 
             var objType = obj.GetType();
-            if (JaysonTypeInfo.IsJPrimitive(objType))
+            var info = JaysonTypeInfo.GetTypeInfo(objType);
+
+            if (info.JPrimitive)
             {
                 builder = builder ?? new StringBuilder(100, int.MaxValue);
 
-                if (settings.TypeNames == JaysonTypeNameSerialization.None)
+                if (settings.TypeNames == JaysonTypeNameSerialization.None ||
+                    settings.TypeNames == JaysonTypeNameSerialization.Objects ||
+                    settings.TypeNames == JaysonTypeNameSerialization.Arrays ||
+                    settings.TypeNames == JaysonTypeNameSerialization.AllButNoPrimitive ||
+                    (JaysonTypeCode.JsonKnown & info.JTypeCode) == info.JTypeCode)
                 {
                     Format(obj, objType, builder, settings, formatter);
                     return builder;

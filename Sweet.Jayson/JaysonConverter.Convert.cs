@@ -198,7 +198,7 @@ namespace Sweet.Jayson
                         if (count > 0)
                         {
                             IDictionary<string, object> kvp;
-                            for (int i = 0; i < count; i++)
+                            for (var i = 0; i < count; i++)
                             {
                                 kvp = (IDictionary<string, object>)kvList[i];
 
@@ -510,7 +510,7 @@ namespace Sweet.Jayson
                     var columnCount = ordinalColumnList.Length;
                     var unordColPos = unordinalColumnList.Count - 1;
 
-                    for (int i = columnCount - 1; i > -1; i--)
+                    for (var i = columnCount - 1; i > -1; i--)
                     {
                         if (ordinalColumnList[i] == null)
                         {
@@ -580,7 +580,7 @@ namespace Sweet.Jayson
                         var columnCount = dataTable.Columns.Count;
                         var columnTypes = new Type[columnCount];
 
-                        for (int i = 0; i < columnCount; i++)
+                        for (var i = 0; i < columnCount; i++)
                         {
                             columnTypes[i] = dataTable.Columns[i].DataType;
                         }
@@ -598,7 +598,7 @@ namespace Sweet.Jayson
                             itemCount = rowList.Count;
                             items = new object[itemCount];
 
-                            for (int i = 0; i < itemCount; i++)
+                            for (var i = 0; i < itemCount; i++)
                             {
                                 rowValue = rowList[i];
                                 columnType = columnTypes[i];
@@ -1175,7 +1175,7 @@ namespace Sweet.Jayson
                             {
                                 IDictionary<string, object> kvp;
 
-                                for (int i = 0; i < count; i++)
+                                for (var i = 0; i < count; i++)
                                 {
                                     kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1328,7 +1328,7 @@ namespace Sweet.Jayson
                         object keyObj;
                         IDictionary<string, object> kvp;
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1414,7 +1414,7 @@ namespace Sweet.Jayson
                         object keyObj;
                         IDictionary<string, object> kvp;
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1505,7 +1505,7 @@ namespace Sweet.Jayson
                             object keyObj;
                             IDictionary<string, object> kvp;
 
-                            for (int i = 0; i < count; i++)
+                            for (var i = 0; i < count; i++)
                             {
                                 kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1540,7 +1540,7 @@ namespace Sweet.Jayson
                         object keyObj;
                         IDictionary<string, object> kvp;
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1581,7 +1581,7 @@ namespace Sweet.Jayson
                         object keyObj;
                         IDictionary<string, object> kvp;
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             kvp = (IDictionary<string, object>)kvList[i];
 
@@ -1614,7 +1614,7 @@ namespace Sweet.Jayson
             {
                 if (currRank == rank - 1)
                 {
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         rankIndices[currRank] = i;
                         instance.SetValue(ConvertObject(obj[i], arrayType, context), rankIndices);
@@ -1623,7 +1623,7 @@ namespace Sweet.Jayson
                 else
                 {
                     object child;
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         rankIndices[currRank] = i;
                         child = obj[i];
@@ -1651,7 +1651,7 @@ namespace Sweet.Jayson
             {
                 if (currRank == rank - 1)
                 {
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         rankIndices[currRank] = i;
                         instance.SetValue(ConvertObject(obj[i], arrayType, context), rankIndices);
@@ -1660,7 +1660,7 @@ namespace Sweet.Jayson
                 else
                 {
                     object child;
-                    for (int i = 0; i < length; i++)
+                    for (var i = 0; i < length; i++)
                     {
                         rankIndices[currRank] = i;
                         child = obj[i];
@@ -1697,7 +1697,7 @@ namespace Sweet.Jayson
                 if (rank == 1)
                 {
                     var count = obj.Count;
-                    for (int i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
                         aResult.SetValue(ConvertObject(obj[i], arrayType, context), i);
                     }
@@ -1730,7 +1730,7 @@ namespace Sweet.Jayson
 					}
 #endif
 
-                    for (int i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
 #if !(NET3500 || NET3000 || NET2000)
                         lResult.Add(ConvertObject(obj[i], argType, context));
@@ -1756,7 +1756,7 @@ namespace Sweet.Jayson
                     return;
                 }
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     item = ConvertObject(obj[i], typeof(object), context);
 
@@ -1772,7 +1772,7 @@ namespace Sweet.Jayson
                     if (methodInfo != null)
                     {
                         var count = obj.Count;
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                         }
@@ -1785,7 +1785,7 @@ namespace Sweet.Jayson
                     var stack = (Stack)instance;
 
                     var count = obj.Count;
-                    for (int i = count - 1; i > -1; i--)
+                    for (var i = count - 1; i > -1; i--)
                     {
                         stack.Push(ConvertObject(obj[i], typeof(object), context));
                     }
@@ -1797,7 +1797,7 @@ namespace Sweet.Jayson
                     var queue = (Queue)instance;
 
                     var count = obj.Count;
-                    for (int i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
                         queue.Enqueue(ConvertObject(obj[i], typeof(object), context));
                     }
@@ -1816,7 +1816,7 @@ namespace Sweet.Jayson
                         argType = argTypes[0];
                         var count = obj.Count;
 
-                        for (int i = count - 1; i > -1; i--)
+                        for (var i = count - 1; i > -1; i--)
                         {
                             methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                         }
@@ -1829,7 +1829,7 @@ namespace Sweet.Jayson
                         argType = argTypes[0];
                         var count = obj.Count;
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
                             methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                         }
@@ -1843,7 +1843,7 @@ namespace Sweet.Jayson
                         argType = argTypes[0];
                         var count = obj.Count;
 
-                        for (int i = count - 1; i > -1; i--)
+                        for (var i = count - 1; i > -1; i--)
                         {
                             methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                         }
@@ -1859,7 +1859,7 @@ namespace Sweet.Jayson
                             argType = argTypes[0];
                             var count = obj.Count;
 
-                            for (int i = 0; i < count; i++)
+                            for (var i = 0; i < count; i++)
                             {
                                 methodInfo(instance, new object[] { ConvertObject(obj[i], argType, context) });
                             }
@@ -2179,7 +2179,7 @@ namespace Sweet.Jayson
                 object Svalues;
                 if (obj.TryGetValue("$value", out Svalues))
                 {
-                    object ret = ConvertObject(Svalues, toType, context);
+                    var ret = ConvertObject(Svalues, toType, context);
                     if (id > 0)
                     {
                         context.ReferenceMap[id] = ret;
@@ -2507,7 +2507,7 @@ namespace Sweet.Jayson
                                     var ctorParams = new List<object>();
                                     var matcher = context.Settings.CtorParamMatcher ?? DefaultMatcher;
 
-                                    for (int i = 0; i < ctorInfo.ParamLength; i++)
+                                    for (var i = 0; i < ctorInfo.ParamLength; i++)
                                     {
                                         ctorParam = ctorInfo.CtorParams[i];
 
@@ -2608,7 +2608,7 @@ namespace Sweet.Jayson
 
         private static int[] GetArrayRankIndices(object obj, int rank)
         {
-            int[] result = new int[rank];
+            var result = new int[rank];
             if (obj != null)
             {
                 int count;
@@ -2665,7 +2665,7 @@ namespace Sweet.Jayson
         {
             if (toType == typeof(byte[]) && obj.Count == 1)
             {
-                object item = obj[0];
+                var item = obj[0];
                 if (item is string)
                 {
                     return Convert.FromBase64String((string)item);
@@ -2678,23 +2678,19 @@ namespace Sweet.Jayson
 
             if (toType == typeof(object))
             {
-                if (toType == typeof(object))
+                switch (settings.ArrayType)
                 {
-                    switch (settings.ArrayType)
-                    {
-                        case ArrayDeserializationType.ArrayList:
-                            toType = typeof(ArrayList);
-                            break;
-                        case ArrayDeserializationType.Array:
-                        case ArrayDeserializationType.ArrayDefined:
-                            toType = typeof(object[]);
-                            break;
-                        default:
-                            toType = typeof(List<object>);
-                            break;
-                    }
+                    case ArrayDeserializationType.ArrayList:
+                        toType = typeof(ArrayList);
+                        break;
+                    case ArrayDeserializationType.Array:
+                    case ArrayDeserializationType.ArrayDefined:
+                        toType = typeof(object[]);
+                        break;
+                    default:
+                        toType = typeof(List<object>);
+                        break;
                 }
-                toType = typeof(List<object>);
             }
 
             bool asList, asArray, asReadOnly;
@@ -2839,7 +2835,7 @@ namespace Sweet.Jayson
 
                 if (jtc == JaysonTypeCode.DateTimeNullable)
                 {
-                    DateTime dt = JaysonCommon.TryConvertDateTime(obj, settings.DateTimeFormat, settings.DateTimeZoneType);
+                    var dt = JaysonCommon.TryConvertDateTime(obj, settings.DateTimeFormat, settings.DateTimeZoneType);
 
                     if (dt == default(DateTime))
                     {
@@ -2851,21 +2847,30 @@ namespace Sweet.Jayson
                 var result = JaysonCommon.ConvertToPrimitive(obj, toType, out converted);
                 if (converted)
                 {
+                    if (settings.ConvertDecimalToDouble)
+                    {
+                        result = ConvertDecimalToDouble(result);
+                    }
                     return result;
                 }
 
                 if (JaysonTypeInfo.IsNullable(toType))
                 {
                     var argType = JaysonTypeInfo.GetGenericArguments(toType)[0];
-                    var value = ConvertObject(obj, argType, context);
+                    result = ConvertObject(obj, argType, context);
 
                     var constructor = toType.GetConstructor(new Type[] { argType });
                     if (constructor != null)
                     {
-                        value = constructor.Invoke(new object[] { value });
+                        result = constructor.Invoke(new object[] { result });
                     }
 
-                    return value;
+                    if (settings.ConvertDecimalToDouble)
+                    {
+                        result = ConvertDecimalToDouble(result);
+                    }
+
+                    return result;
                 }
             }
 
@@ -2886,9 +2891,10 @@ namespace Sweet.Jayson
                 string assemblyName;
 
                 settings.Binder.BindToName(toType, out assemblyName, out typeName);
+
                 if (!String.IsNullOrEmpty(typeName))
                 {
-                    Type instanceType = settings.Binder.BindToType(assemblyName, typeName);
+                    var instanceType = settings.Binder.BindToType(assemblyName, typeName);
                     if (instanceType != null)
                     {
                         toType = instanceType;
@@ -2897,21 +2903,42 @@ namespace Sweet.Jayson
             }
 #endif
 
+            object value;
             if (settings.ObjectActivator == null)
             {
-                return JaysonObjectConstructor.New(toType);
+                value = JaysonObjectConstructor.New(toType);
             }
             else
             {
                 bool useDefaultCtor;
-                object result = settings.ObjectActivator(toType, null, out useDefaultCtor);
+                value = settings.ObjectActivator(toType, null, out useDefaultCtor);
 
                 if (useDefaultCtor)
                 {
-                    return JaysonObjectConstructor.New(toType);
+                    value = JaysonObjectConstructor.New(toType);
                 }
-                return result;
+
+                if (settings.ConvertDecimalToDouble)
+                {
+                    value = ConvertDecimalToDouble(value);
+                }
             }
+
+            return value;
+        }
+
+        private static object ConvertDecimalToDouble(object value)
+        {
+            if (value is decimal)
+            {
+                value = (double)((decimal)value);
+            }
+            else if (value is decimal?)
+            {
+                var d = (decimal?)value;
+                value = d.HasValue ? (double)((decimal?)d.Value) : (double?)null;
+            }
+            return value;
         }
 
         # region ConvertJsonObject
@@ -3044,12 +3071,14 @@ namespace Sweet.Jayson
                 }
 
                 var instanceType = result.GetType();
+                var instanceInfo = JaysonTypeInfo.GetTypeInfo(instanceType);
 
                 if (!context.HasTypeInfo)
                 {
-                    if (toType == instanceType ||
-                        toType == typeof(object) ||
-                        toType.IsAssignableFrom(instanceType))
+                    var tc = instanceInfo.JTypeCode;
+                    
+                    if (((JaysonTypeCode.AllButNotObject & tc) == tc) &&
+                        (toType == instanceType || toType == typeof(object) || toType.IsAssignableFrom(instanceType)))
                     {
                         return result;
                     }
@@ -3057,7 +3086,6 @@ namespace Sweet.Jayson
                 }
 
                 var toInfo = JaysonTypeInfo.GetTypeInfo(toType);
-                var instanceInfo = JaysonTypeInfo.GetTypeInfo(instanceType);
 
                 if (toInfo.JPrimitive)
                 {
@@ -3068,7 +3096,7 @@ namespace Sweet.Jayson
 
                     if (context.HasTypeInfo)
                     {
-                        IDictionary<string, object> primeDict = result as IDictionary<string, object>;
+                        var primeDict = result as IDictionary<string, object>;
                         if (primeDict != null)
                         {
                             return ConvertDictionary(primeDict, toType, context, true);

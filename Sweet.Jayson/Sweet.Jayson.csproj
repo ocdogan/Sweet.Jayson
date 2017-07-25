@@ -39,6 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JaysonConverter.Parse.Helpers.cs" />
+    <Compile Include="JaysonConverter.Parse.Number.cs" />
+    <Compile Include="JaysonConverter.Parse.String.cs" />
     <Compile Include="JaysonDefaultValueAttribute.cs" />
     <Compile Include="JaysonDeserializationReferenceMap.cs" />
     <Compile Include="JaysonDefaultCollectionAttribute.cs" />

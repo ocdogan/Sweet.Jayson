@@ -35,7 +35,8 @@ namespace Sweet.Jayson
         Floating = 4,
         ExponentSign = 5,
         ExponentChar = 6,
-        Exponent = 7
+        Exponent = 7,
+        End = 8
     }
 
     # endregion JaysonNumberPartType
