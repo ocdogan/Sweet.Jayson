@@ -136,21 +136,21 @@ namespace Sweet.Jayson
         public static readonly double[] PowerOf10Double;
         public static readonly decimal[] PowerOf10Decimal;
 
-        public static readonly Tuple<string, object>[] UnordinaryNumbers = new Tuple<string, object> [] {
-            new Tuple<string, object>(decimal.MinValue.ToString(JaysonConstants.InvariantCulture), decimal.MinValue),
-            new Tuple<string, object>(decimal.MaxValue.ToString(JaysonConstants.InvariantCulture), decimal.MaxValue),
-            new Tuple<string, object>(double.MinValue.ToString(JaysonConstants.InvariantCulture), double.MinValue),
-            new Tuple<string, object>(double.MaxValue.ToString(JaysonConstants.InvariantCulture), double.MaxValue),
-            new Tuple<string, object>(float.MinValue.ToString(JaysonConstants.InvariantCulture), float.MinValue),
-            new Tuple<string, object>(float.MaxValue.ToString(JaysonConstants.InvariantCulture), float.MaxValue),
-            new Tuple<string, object>(double.NaN.ToString(JaysonConstants.InvariantCulture), double.NaN),
-            new Tuple<string, object>(double.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), double.NegativeInfinity),
-            new Tuple<string, object>(double.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), double.PositiveInfinity),
-            new Tuple<string, object>(double.Epsilon.ToString(JaysonConstants.InvariantCulture), double.Epsilon),
-            new Tuple<string, object>(float.NaN.ToString(JaysonConstants.InvariantCulture), float.NaN),
-            new Tuple<string, object>(float.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), float.NegativeInfinity),
-            new Tuple<string, object>(float.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), float.PositiveInfinity),
-            new Tuple<string, object>(float.Epsilon.ToString(JaysonConstants.InvariantCulture), float.Epsilon),
+        public static readonly JaysonTuple<string, object>[] UnordinaryNumbers = new JaysonTuple<string, object> [] {
+            new JaysonTuple<string, object>(decimal.MinValue.ToString(JaysonConstants.InvariantCulture), decimal.MinValue),
+            new JaysonTuple<string, object>(decimal.MaxValue.ToString(JaysonConstants.InvariantCulture), decimal.MaxValue),
+            new JaysonTuple<string, object>(double.MinValue.ToString(JaysonConstants.InvariantCulture), double.MinValue),
+            new JaysonTuple<string, object>(double.MaxValue.ToString(JaysonConstants.InvariantCulture), double.MaxValue),
+            new JaysonTuple<string, object>(float.MinValue.ToString(JaysonConstants.InvariantCulture), float.MinValue),
+            new JaysonTuple<string, object>(float.MaxValue.ToString(JaysonConstants.InvariantCulture), float.MaxValue),
+            new JaysonTuple<string, object>(double.NaN.ToString(JaysonConstants.InvariantCulture), double.NaN),
+            new JaysonTuple<string, object>(double.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), double.NegativeInfinity),
+            new JaysonTuple<string, object>(double.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), double.PositiveInfinity),
+            new JaysonTuple<string, object>(double.Epsilon.ToString(JaysonConstants.InvariantCulture), double.Epsilon),
+            new JaysonTuple<string, object>(float.NaN.ToString(JaysonConstants.InvariantCulture), float.NaN),
+            new JaysonTuple<string, object>(float.NegativeInfinity.ToString(JaysonConstants.InvariantCulture), float.NegativeInfinity),
+            new JaysonTuple<string, object>(float.PositiveInfinity.ToString(JaysonConstants.InvariantCulture), float.PositiveInfinity),
+            new JaysonTuple<string, object>(float.Epsilon.ToString(JaysonConstants.InvariantCulture), float.Epsilon),
         };
 
         # endregion Static Members
