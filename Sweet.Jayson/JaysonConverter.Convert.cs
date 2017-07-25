@@ -1092,6 +1092,7 @@ namespace Sweet.Jayson
                     object defaultValue;
 
                     var members = cache.AllMembers;
+                    var setPrivateFieldDefaults = info.SerializationType != JaysonTypeSerializationType.ISerializable;
 
                     foreach (var tm in members)
                     {
@@ -1101,7 +1102,8 @@ namespace Sweet.Jayson
                             try
                             {
                                 // Don't check as (settings.IgnoreBackingFields && member.BackingField), some backingfield set to default is causing crash for ISerializable types, such as System.Uri
-                                if ((member != null) && member.CanWrite &&
+                                if ((member != null) && member.CanWrite && 
+                                    (setPrivateFieldDefaults || member.IsPublic) &&
                                     !(member.AnonymousField || member.BackingField ||
                                      (settings.IgnoreFields && (member.Type == JaysonFastMemberType.Field)) ||
                                      (settings.IgnoreNonPublicFields && !member.IsPublic && (member.Type == JaysonFastMemberType.Field)) ||
