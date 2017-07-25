@@ -913,6 +913,11 @@ namespace Sweet.Jayson
             return builder.ToString();
         }
 
+        public override string ToString()
+        {
+            return (Type != null) ? Type.ToString() : String.Empty;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is JaysonTypeInfo)
