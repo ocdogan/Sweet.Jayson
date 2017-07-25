@@ -1180,9 +1180,11 @@ namespace Sweet.Jayson.Tests
         public double D1;
         public double D2;
         public double D3;
+        public double D4;
         public float F1;
         public float F2;
         public float F3;
+        public float F4;
     }
 
     [Serializable]
