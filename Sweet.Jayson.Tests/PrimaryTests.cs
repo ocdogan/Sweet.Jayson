@@ -590,7 +590,7 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
                 .SetDefaultValue("Guid3", defaultGuid));
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             Assert.AreEqual(dto2.Guid3, defaultGuid);
@@ -621,7 +621,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -649,7 +649,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -678,7 +678,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -714,7 +714,7 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
                 .SetDefaultValue("Guid3", defaultGuid));
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             Assert.AreEqual(dto2.Guid3, defaultGuid);
@@ -750,7 +750,7 @@ namespace Sweet.Jayson.Tests
             jaysonDeserializationSettings.AddTypeOverride(new JaysonTypeOverride<TypedContainerDto>()
                 .SetDefaultValue("Guid3", defaultGuid));
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             Assert.AreEqual(dto2.Guid3, defaultGuid);
@@ -780,7 +780,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = false;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -807,7 +807,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.CaseSensitive = true;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -836,7 +836,7 @@ namespace Sweet.Jayson.Tests
                 var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
                 jaysonDeserializationSettings.CaseSensitive = false;
 
-                TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+                var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
                 Assert.IsNotNull(dto2);
             }
@@ -1002,7 +1002,7 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             object jsonObj = JaysonConverter.Parse(json, jaysonDeserializationSettings);
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(jsonObj);
             CompareTypedContainerDtos(dto1, dto2);
@@ -2513,7 +2513,7 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             object jsonObj = JaysonConverter.Parse(json, jaysonDeserializationSettings);
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(jsonObj);
             CompareTypedContainerDtos(dto1, dto2);
@@ -3396,7 +3396,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             JaysonConverter.Parse(json, jaysonDeserializationSettings);
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -3429,7 +3429,7 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
             JaysonConverter.Parse(json, jaysonDeserializationSettings);
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -4855,7 +4855,7 @@ namespace Sweet.Jayson.Tests
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
 
-            TypedContainerDto dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
             CompareTypedContainerDtos(dto1, dto2);
@@ -4863,6 +4863,64 @@ namespace Sweet.Jayson.Tests
 
         [Test]
         public static void TestIncludeTypeInfoAuto1c()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion,
+                TypeNames = JaysonTypeNameSerialization.Auto,
+                UseKVModelForISerializable = false
+            };
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("System.Object[], mscorlib"));
+            Assert.IsTrue(!json.Contains("System.Collections.Generic.List`1[[System.Object[], mscorlib]], mscorlib"));
+            Assert.IsTrue(!json.Contains("System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[System.Object, mscorlib]], mscorlib"));
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
+        public static void TestIncludeTypeInfoAuto1d()
+        {
+            var dto1 = TestClasses.GetTypedContainerDto() as TypedContainerDto;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.Auto,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("Sweet.Jayson.Tests.TypedContainerDto, Sweet.Jayson.Tests"));
+            Assert.IsTrue(json.Contains("System.Object[]"));
+            Assert.IsTrue(json.Contains("System.Object[][]"));
+            Assert.IsTrue(json.Contains("Sweet.Jayson.Tests.ElementContentDto, Sweet.Jayson.Tests"));
+            Assert.IsTrue(json.Contains("System.Collections.ObjectModel.ReadOnlyDictionary`2[System.String,System.Object]"));
+            Assert.IsTrue(json.Contains("Sweet.Jayson.Tests.TextElementDto, Sweet.Jayson.Tests"));
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var dto2 = JaysonConverter.ToObject<TypedContainerDto>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(dto2);
+            CompareTypedContainerDtos(dto1, dto2);
+        }
+
+        [Test]
+        public static void TestIncludeTypeInfoAuto1e()
         {
             var dto1 = new Dictionary<string, object>
             { 
@@ -4893,22 +4951,37 @@ namespace Sweet.Jayson.Tests
             var jaysonSerializationSettings = new JaysonSerializationSettings
             {
                 Formatting = JaysonFormatting.None,
-                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
-                TypeNames = JaysonTypeNameSerialization.Auto
+                TypeNameInfo = JaysonTypeNameInfo.Auto,
+                TypeNames = JaysonTypeNameSerialization.Auto,
+                DateFormatType = JaysonDateFormatType.CustomDate,
+                DateTimeFormat = "dd.MM.yyyyTHH:mm:ss.fffff%K",
             };
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
             var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
             jaysonDeserializationSettings.UseDefaultValues = true;
+            jaysonDeserializationSettings.DateTimeFormat = "dd.MM.yyyyTHH:mm:ss.fffff%K";
 
             var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
 
             Assert.IsNotNull(dto2);
+            Assert.AreEqual(dto1.Count, dto2.Count);
+
+            foreach (var kv in dto1)
+            {
+                Assert.IsTrue(dto2.ContainsKey(kv.Key));
+
+                var val = dto2[kv.Key];
+                var eq = kv.Value == val || (val != null && val.Equals(kv.Value))
+                     || (kv.Value != null && kv.Value.Equals(val));
+
+                Assert.IsTrue(eq);
+            }
         }
 
         [Test]
-        public static void TestIncludeTypeInfoAuto1d()
+        public static void TestIncludeTypeInfoAuto1f()
         {
             var dto1 = new Dictionary<string, object>
             {
