@@ -298,7 +298,7 @@ namespace Sweet.Jayson
         private static object ParseAsUnordinaryNumber(JaysonNumberParts number)
         {
             string tStr;
-            Tuple<string, object> t;
+            JaysonTuple<string, object> t;
 
             var str = number.Text;
             var len = JaysonConstants.UnordinaryNumbers.Length;
