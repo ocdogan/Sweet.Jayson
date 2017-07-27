@@ -33,6 +33,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -52,6 +53,43 @@ namespace Sweet.Jayson.Tests
         private static T CastToAnonymous<T>(object input, T anonymousInstance)
         {
             return (T)input;
+        }
+
+        [TestFixtureSetUp]
+        public static void Setup()
+        {
+            //
+        }
+
+        [Test]
+        public static void TestBigFile1a()
+        {
+            var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                path += Path.DirectorySeparatorChar.ToString();
+
+            if (File.Exists(path + "BigFile.txt"))
+            {
+                var json = File.ReadAllText(path + "BigFile.txt");
+
+                var jaysonSerializationSettings = new JaysonSerializationSettings
+                {
+                    UseEnumNames = true,
+                    IgnoreNullValues = true,
+                    UseObjectReferencing = true,
+                    Formatting = JaysonFormatting.None,
+                    TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                    TypeNames = JaysonTypeNameSerialization.Auto,
+                    FloatNanStrategy = JaysonFloatSerStrategy.ToString,
+                    FloatInfinityStrategy = JaysonFloatSerStrategy.ToString,
+                };
+
+                var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+
+                var dto2 = JaysonConverter.ToObject<Dictionary<string, object>>(json, jaysonDeserializationSettings);
+
+                Assert.IsNotNull(dto2);
+            }
         }
 
         [Test]
@@ -4831,7 +4869,7 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.IsTrue(json.Contains("\"$type\":\"Sweet.Jayson.Tests.SimpleObj\""));
+            Assert.IsTrue(json.Contains("\"$type\":\"Sweet.Jayson.Tests.SimpleObj, Sweet.Jayson.Tests\""));
         }
 
         [Test]
@@ -6877,7 +6915,7 @@ namespace Sweet.Jayson.Tests
         }
 
         [Test]
-        public static void TestIncludeTypeInfo()
+        public static void TestIncludeTypeInfo1a()
         {
             var dto1 = new SimpleObj
             {
@@ -6894,7 +6932,28 @@ namespace Sweet.Jayson.Tests
 
             var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
 
-            Assert.IsTrue(json.Contains("\"$type\":\"Sweet.Jayson.Tests.SimpleObj\""));
+            Assert.IsTrue(json.Contains("\"$type\":\"Sweet.Jayson.Tests.SimpleObj, Sweet.Jayson.Tests\""));
+        }
+
+        [Test]
+        public static void TestIncludeTypeInfo2a()
+        {
+            var dto1 = new Dictionary<string, object>
+            { 
+                { "Value1", "Hello" },
+                { "Value2", "World" }
+            };
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeName,
+                TypeNames = JaysonTypeNameSerialization.All
+            };
+
+            var json = JaysonConverter.ToJsonString(dto1, jaysonSerializationSettings);
+
+            Assert.IsTrue(json.Contains("\"$type\":\"System.Collections.Generic.Dictionary`2[[System.String, mscorlib], [System.Object, mscorlib]], mscorlib\""));
         }
 
         [Test]
@@ -7823,6 +7882,32 @@ namespace Sweet.Jayson.Tests
             Assert.IsNotNull(dto2);
             Assert.IsTrue(dto2.Count == 1);
             Assert.IsTrue(dto2.ContainsKey("$Result$"));
+        }
+
+        [Test]
+        public static void TestTypeName1a()
+        {
+            var type1 = typeof(Dictionary<string, List<JaysonTypeName>>);
+            var jaysonTypeName = JaysonTypeName.GetTypeName(type1);
+
+            Type type2;
+
+            // Fails
+            type2 = Type.GetType(jaysonTypeName.Name, false, true);
+            Assert.IsNull(type2);
+
+            type2 = Type.GetType(jaysonTypeName.ToString(), false, true);
+            Assert.IsNull(type2);
+
+            // Successes
+            type2 = Type.GetType(jaysonTypeName.FullName, false, true);
+            Assert.IsNotNull(type2);
+
+            type2 = Type.GetType(jaysonTypeName.AssemblyQualifiedName, false, true);
+            Assert.IsNotNull(type2);
+
+            type2 = Type.GetType(jaysonTypeName.FormatTypeName(JaysonTypeNameFormatFlags.Simple | JaysonTypeNameFormatFlags.Assembly), false, true);
+            Assert.IsNotNull(type2);
         }
     }
 }

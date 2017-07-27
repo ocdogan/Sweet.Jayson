@@ -68,7 +68,7 @@ namespace Sweet.Jayson
         private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 #endif
 
-        private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity);
+        private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, Assembly> s_AssemblyCache = new Dictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<Assembly, string> s_AssemblyNameCache = new Dictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
 
@@ -80,6 +80,169 @@ namespace Sweet.Jayson
 #endif
 
         # endregion Static Members
+
+        # region Static .Ctor
+
+        static JaysonCommon()
+        {
+            s_TypeCache["bool"] = typeof(bool);
+            s_TypeCache["byte"] = typeof(byte);
+            s_TypeCache["short"] = typeof(short);
+            s_TypeCache["int"] = typeof(int);
+            s_TypeCache["long"] = typeof(long);
+            s_TypeCache["ushort"] = typeof(ushort);
+            s_TypeCache["uint"] = typeof(uint);
+            s_TypeCache["ulong"] = typeof(ulong);
+            s_TypeCache["double"] = typeof(double);
+            s_TypeCache["float"] = typeof(float);
+            s_TypeCache["decimal"] = typeof(decimal);
+            s_TypeCache["string"] = typeof(string);
+
+            s_TypeCache["Boolean"] = typeof(Boolean);
+            s_TypeCache["Int16"] = typeof(Int16);
+            s_TypeCache["Int32"] = typeof(Int32);
+            s_TypeCache["Int64"] = typeof(Int64);
+            s_TypeCache["UInt16"] = typeof(UInt16);
+            s_TypeCache["UInt32"] = typeof(UInt32);
+            s_TypeCache["UInt64"] = typeof(UInt64);
+            s_TypeCache["Single"] = typeof(Single);
+            s_TypeCache["DateTime"] = typeof(DateTime);
+            s_TypeCache["TimeSpan"] = typeof(TimeSpan);
+
+            s_TypeCache["System.Boolean"] = typeof(Boolean);
+            s_TypeCache["System.Byte"] = typeof(Byte);
+            s_TypeCache["System.Int16"] = typeof(Int16);
+            s_TypeCache["System.Int16"] = typeof(Int16);
+            s_TypeCache["System.Int32"] = typeof(Int32);
+            s_TypeCache["System.Int64"] = typeof(Int64);
+            s_TypeCache["System.UInt16"] = typeof(UInt16);
+            s_TypeCache["System.UInt32"] = typeof(UInt32);
+            s_TypeCache["System.UInt64"] = typeof(UInt64);
+            s_TypeCache["System.Double"] = typeof(Double);
+            s_TypeCache["System.Single"] = typeof(Single);
+            s_TypeCache["System.Decimal"] = typeof(Decimal);
+            s_TypeCache["System.String"] = typeof(string);
+            s_TypeCache["System.DateTime"] = typeof(DateTime);
+            s_TypeCache["System.TimeSpan"] = typeof(TimeSpan);
+
+            s_TypeCache["System.Boolean, mscorlib"] = typeof(Boolean);
+            s_TypeCache["System.Byte, mscorlib"] = typeof(Byte);
+            s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
+            s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
+            s_TypeCache["System.Int32, mscorlib"] = typeof(Int32);
+            s_TypeCache["System.Int64, mscorlib"] = typeof(Int64);
+            s_TypeCache["System.UInt16, mscorlib"] = typeof(UInt16);
+            s_TypeCache["System.UInt32, mscorlib"] = typeof(UInt32);
+            s_TypeCache["System.UInt64, mscorlib"] = typeof(UInt64);
+            s_TypeCache["System.Double, mscorlib"] = typeof(Double);
+            s_TypeCache["System.Single, mscorlib"] = typeof(Single);
+            s_TypeCache["System.Decimal, mscorlib"] = typeof(Decimal);
+            s_TypeCache["System.String, mscorlib"] = typeof(string);
+            s_TypeCache["System.DateTime, mscorlib"] = typeof(DateTime);
+            s_TypeCache["System.TimeSpan, mscorlib"] = typeof(TimeSpan);
+
+            s_TypeCache["bool?"] = typeof(bool?);
+            s_TypeCache["byte?"] = typeof(byte?);
+            s_TypeCache["short?"] = typeof(short?);
+            s_TypeCache["int?"] = typeof(int?);
+            s_TypeCache["long?"] = typeof(long?);
+            s_TypeCache["ushort?"] = typeof(ushort?);
+            s_TypeCache["uint?"] = typeof(uint?);
+            s_TypeCache["ulong?"] = typeof(ulong?);
+            s_TypeCache["double?"] = typeof(double?);
+            s_TypeCache["float?"] = typeof(float?);
+            s_TypeCache["decimal?"] = typeof(decimal?);
+            s_TypeCache["bool[]"] = typeof(bool[]);
+            s_TypeCache["byte[]"] = typeof(byte[]);
+            s_TypeCache["short[]"] = typeof(short[]);
+            s_TypeCache["int[]"] = typeof(int[]);
+            s_TypeCache["long[]"] = typeof(long[]);
+            s_TypeCache["ushort[]"] = typeof(ushort[]);
+            s_TypeCache["uint[]"] = typeof(uint[]);
+            s_TypeCache["ulong[]"] = typeof(ulong[]);
+            s_TypeCache["double[]"] = typeof(double[]);
+            s_TypeCache["float[]"] = typeof(float[]);
+            s_TypeCache["decimal[]"] = typeof(decimal[]);
+            s_TypeCache["string[]"] = typeof(string[]);
+
+            s_TypeCache["Boolean[]"] = typeof(bool[]);
+            s_TypeCache["DateTime[]"] = typeof(DateTime[]);
+            s_TypeCache["TimeSpan[]"] = typeof(TimeSpan[]);
+
+            s_TypeCache["System.Boolean[]"] = typeof(bool[]);
+            s_TypeCache["System.Byte[]"] = typeof(Byte[]);
+            s_TypeCache["System.Int16[]"] = typeof(Int16[]);
+            s_TypeCache["System.Int32[]"] = typeof(Int32[]);
+            s_TypeCache["System.Int64[]"] = typeof(Int64[]);
+            s_TypeCache["System.UInt16[]"] = typeof(UInt16[]);
+            s_TypeCache["System.UInt32[]"] = typeof(UInt32[]);
+            s_TypeCache["System.UInt64[]"] = typeof(UInt64[]);
+            s_TypeCache["System.Double[]"] = typeof(Double[]);
+            s_TypeCache["System.Single[]"] = typeof(Single[]);
+            s_TypeCache["System.Decimal[]"] = typeof(Decimal[]);
+            s_TypeCache["System.String[]"] = typeof(string[]);
+            s_TypeCache["System.DateTime[]"] = typeof(DateTime[]);
+            s_TypeCache["System.TimeSpan[]"] = typeof(TimeSpan[]);
+
+            s_TypeCache["System.Boolean[], mscorlib"] = typeof(bool[]);
+            s_TypeCache["System.Byte[], mscorlib"] = typeof(Byte[]);
+            s_TypeCache["System.Int16[], mscorlib"] = typeof(Int16[]);
+            s_TypeCache["System.Int32[], mscorlib"] = typeof(Int32[]);
+            s_TypeCache["System.Int64[], mscorlib"] = typeof(Int64[]);
+            s_TypeCache["System.UInt16[], mscorlib"] = typeof(UInt16[]);
+            s_TypeCache["System.UInt32[], mscorlib"] = typeof(UInt32[]);
+            s_TypeCache["System.UInt64[], mscorlib"] = typeof(UInt64[]);
+            s_TypeCache["System.Double[], mscorlib"] = typeof(Double[]);
+            s_TypeCache["System.Single[], mscorlib"] = typeof(Single[]);
+            s_TypeCache["System.Decimal[], mscorlib"] = typeof(Decimal[]);
+            s_TypeCache["System.String[], mscorlib"] = typeof(string[]);
+            s_TypeCache["System.DateTime[], mscorlib"] = typeof(DateTime[]);
+            s_TypeCache["System.TimeSpan[], mscorlib"] = typeof(TimeSpan[]);
+
+            s_TypeCache["System.Nullable`1[System.Boolean]"] = typeof(bool?);
+            s_TypeCache["System.Nullable`1[System.Byte]"] = typeof(Byte?);
+            s_TypeCache["System.Nullable`1[System.Int16]"] = typeof(Int16?);
+            s_TypeCache["System.Nullable`1[System.Int32]"] = typeof(Int32?);
+            s_TypeCache["System.Nullable`1[System.Int64]"] = typeof(Int64?);
+            s_TypeCache["System.Nullable`1[System.UInt16]"] = typeof(UInt16?);
+            s_TypeCache["System.Nullable`1[System.UInt32]"] = typeof(UInt32?);
+            s_TypeCache["System.Nullable`1[System.UInt64]"] = typeof(UInt64?);
+            s_TypeCache["System.Nullable`1[System.Double]"] = typeof(Double?);
+            s_TypeCache["System.Nullable`1[System.Single]"] = typeof(Single?);
+            s_TypeCache["System.Nullable`1[System.Decimal]"] = typeof(Decimal?);
+            s_TypeCache["System.Nullable`1[System.DateTime]"] = typeof(DateTime?);
+            s_TypeCache["System.Nullable`1[System.TimeSpan]"] = typeof(TimeSpan?);
+
+            s_TypeCache["System.Nullable`1[System.Boolean, mscorlib]"] = typeof(bool?);
+            s_TypeCache["System.Nullable`1[System.Byte, mscorlib]"] = typeof(Byte?);
+            s_TypeCache["System.Nullable`1[System.Int16, mscorlib]"] = typeof(Int16?);
+            s_TypeCache["System.Nullable`1[System.Int32, mscorlib]"] = typeof(Int32?);
+            s_TypeCache["System.Nullable`1[System.Int64, mscorlib]"] = typeof(Int64?);
+            s_TypeCache["System.Nullable`1[System.UInt16, mscorlib]"] = typeof(UInt16?);
+            s_TypeCache["System.Nullable`1[System.UInt32, mscorlib]"] = typeof(UInt32?);
+            s_TypeCache["System.Nullable`1[System.UInt64, mscorlib]"] = typeof(UInt64?);
+            s_TypeCache["System.Nullable`1[System.Double, mscorlib]"] = typeof(Double?);
+            s_TypeCache["System.Nullable`1[System.Single, mscorlib]"] = typeof(Single?);
+            s_TypeCache["System.Nullable`1[System.Decimal, mscorlib]"] = typeof(Decimal?);
+            s_TypeCache["System.Nullable`1[System.DateTime, mscorlib]"] = typeof(DateTime?);
+            s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib]"] = typeof(TimeSpan?);
+
+            s_TypeCache["System.Nullable`1[System.Boolean, mscorlib], mscorlib"] = typeof(bool?);
+            s_TypeCache["System.Nullable`1[System.Byte, mscorlib], mscorlib"] = typeof(Byte?);
+            s_TypeCache["System.Nullable`1[System.Int16, mscorlib], mscorlib"] = typeof(Int16?);
+            s_TypeCache["System.Nullable`1[System.Int32, mscorlib], mscorlib"] = typeof(Int32?);
+            s_TypeCache["System.Nullable`1[System.Int64, mscorlib], mscorlib"] = typeof(Int64?);
+            s_TypeCache["System.Nullable`1[System.UInt16, mscorlib], mscorlib"] = typeof(UInt16?);
+            s_TypeCache["System.Nullable`1[System.UInt32, mscorlib], mscorlib"] = typeof(UInt32?);
+            s_TypeCache["System.Nullable`1[System.UInt64, mscorlib], mscorlib"] = typeof(UInt64?);
+            s_TypeCache["System.Nullable`1[System.Double, mscorlib], mscorlib"] = typeof(Double?);
+            s_TypeCache["System.Nullable`1[System.Single, mscorlib], mscorlib"] = typeof(Single?);
+            s_TypeCache["System.Nullable`1[System.Decimal, mscorlib], mscorlib"] = typeof(Decimal?);
+            s_TypeCache["System.Nullable`1[System.DateTime, mscorlib], mscorlib"] = typeof(DateTime?);
+            s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib], mscorlib"] = typeof(TimeSpan?);
+        }
+
+        # endregion Static .Ctor
 
         # region Helper Methods
 
@@ -1461,20 +1624,20 @@ namespace Sweet.Jayson
                 if (!s_TypeCache.TryGetValue(typeName, out result))
                 {
                     result = Type.GetType(typeName, false, true);
-                    if (result == null)
+                    if ((result == null) && !typeName.Contains('['))
                     {
                         var asmNameSepPos = typeName.IndexOf(',');
                         if (asmNameSepPos == -1)
                         {
-                            int pos = typeName.IndexOf('.');
+                            var pos = typeName.IndexOf('.');
                             if (pos > -1)
                             {
-                                string assemblyNameStart = typeName.Substring(0, pos + 1);
+                                var assemblyNameStart = typeName.Substring(0, pos + 1);
                                 if (!String.IsNullOrEmpty(assemblyNameStart))
                                 {
                                     Type typeRef;
 
-                                    foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                                    foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                                     {
                                         if (GetAssemblyName(asm).StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
                                         {
@@ -1523,7 +1686,7 @@ namespace Sweet.Jayson
                                 {
                                     if (assemblyRef != null)
                                     {
-                                        string assemblyName = assemblyRef.Name;
+                                        var assemblyName = assemblyRef.Name;
                                         if (!String.IsNullOrEmpty(assemblyName))
                                         {
                                             try
@@ -1537,7 +1700,7 @@ namespace Sweet.Jayson
                                                     }
                                                     catch (Exception)
                                                     {
-                                                        string assemblyFile = assemblyName;
+                                                        var assemblyFile = assemblyName;
                                                         if (!assemblyName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                                                         {
                                                             assemblyFile += ".dll";
@@ -1567,15 +1730,15 @@ namespace Sweet.Jayson
                                         return assembly.GetType(name, false, ignoreCase);
                                     }
 
-                                    int pos = name.IndexOf('.');
+                                    var pos = name.IndexOf('.');
                                     if (pos > -1)
                                     {
-                                        string assemblyNameStart = name.Substring(0, pos + 1);
+                                        var assemblyNameStart = name.Substring(0, pos + 1);
                                         if (!String.IsNullOrEmpty(assemblyNameStart))
                                         {
                                             Type typeRef;
 
-                                            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                                            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                                             {
                                                 if (GetAssemblyName(asm).StartsWith(assemblyNameStart, StringComparison.OrdinalIgnoreCase))
                                                 {

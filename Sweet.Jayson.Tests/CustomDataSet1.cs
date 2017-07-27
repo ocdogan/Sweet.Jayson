@@ -34,6 +34,15 @@ namespace Sweet.Jayson.Tests
 namespace Sweet.Jayson.Tests
 {
 }
+namespace Sweet.Jayson.Tests
+{
+}
+namespace Sweet.Jayson.Tests
+{
+}
+namespace Sweet.Jayson.Tests
+{
+}
 
 namespace Sweet.Jayson.Tests
 {

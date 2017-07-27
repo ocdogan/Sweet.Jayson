@@ -10,7 +10,7 @@
     <TargetFrameworkProfile />
     <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
     <!--<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>-->
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,6 +54,8 @@
     <Compile Include="JaysonSerializationReferenceMap.cs" />
     <Compile Include="JaysonTuple.cs" />
     <Compile Include="JaysonTypeMemberCache.cs" />
+    <Compile Include="JaysonTypeName.cs" />
+    <Compile Include="JaysonTypeNameFormatFlags.cs" />
     <Compile Include="JaysonTypeOverrideTK.cs" />
     <Compile Include="JaysonTypeOverride.cs" />
     <Compile Include="JaysonTypeOverrideT.cs" />

@@ -53,9 +53,9 @@ namespace Sweet.Jayson
 
         # endregion InfoItem
 
-        # region JaysonTypeName
+        # region JaysonTypeNameResolver
 
-        public sealed class JaysonTypeName
+        public sealed class JaysonTypeNameResolver
         {
             # region Static Readonly Members
 
@@ -69,20 +69,22 @@ namespace Sweet.Jayson
 
             private Type m_Type;
             private JaysonTypeInfo m_Info;
+            private JaysonTypeName m_TypeName;
             private string[] m_TypeNames;
 
             # endregion Field Members
 
-            static JaysonTypeName()
+            static JaysonTypeNameResolver()
             {
                 s_NameLength = System.Enum.GetValues(typeof(JaysonTypeNameInfo)).Length;
             }
 
-            public JaysonTypeName(JaysonTypeInfo info)
+            public JaysonTypeNameResolver(JaysonTypeInfo info)
             {
                 m_Info = info;
                 m_Type = info.Type;
                 m_TypeNames = new string[s_NameLength];
+                m_TypeName = JaysonTypeName.GetTypeName(m_Type);
             }
 
             public string this[int indexer]
@@ -95,41 +97,24 @@ namespace Sweet.Jayson
                         switch (indexer)
                         {
                             case (int)JaysonTypeNameInfo.Auto:
+                            case (int)JaysonTypeNameInfo.TypeName:
+                                if (!m_Info.Generic)
                                 {
                                     var asm = m_Type.Assembly;
-                                    if ((asm == MSCoreLibAssembly) || (asm == SystemAssembly) ||
-                                        asm.GetName().Name.StartsWith("System.", StringComparison.OrdinalIgnoreCase))
+                                    if (asm == MSCoreLibAssembly || asm == SystemAssembly)
                                     {
-                                        return this[(int)JaysonTypeNameInfo.TypeName];
+                                        m_TypeNames[indexer] = m_TypeName.FormatTypeName(JaysonTypeNameFormatFlags.Simple);
+                                        break;
                                     }
-                                    return this[(int)JaysonTypeNameInfo.TypeNameWithAssembly];
                                 }
-                            case (int)JaysonTypeNameInfo.TypeName:
-                                m_TypeNames[indexer] = m_Type.ToString();
+                                m_TypeNames[indexer] = m_TypeName.FormatTypeName(JaysonTypeNameFormatFlags.Simple | JaysonTypeNameFormatFlags.Assembly);
                                 break;
                             case (int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion:
-                                m_TypeNames[indexer] = m_Type.AssemblyQualifiedName;
+                                m_TypeNames[indexer] = m_TypeName.AssemblyQualifiedName;
                                 break;
                             case (int)JaysonTypeNameInfo.TypeNameWithAssembly:
-                                {
-                                    if (!m_Info.Generic)
-                                    {
-                                        if (m_TypeNames[(int)JaysonTypeNameInfo.TypeName] == null)
-                                        {
-                                            m_TypeNames[(int)JaysonTypeNameInfo.TypeName] = m_Type.ToString();
-                                        }
-                                        m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssembly] = m_TypeNames[(int)JaysonTypeNameInfo.TypeName] + ", " + JaysonCommon.GetAssemblyName(m_Type.Assembly);
-                                    }
-                                    else
-                                    {
-                                        if (m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion] == null)
-                                        {
-                                            m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion] = m_Type.AssemblyQualifiedName;
-                                        }
-                                        m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssembly] = GetTypeNameWithAssembly(m_TypeNames[(int)JaysonTypeNameInfo.TypeNameWithAssemblyAndVersion]);
-                                    }
-                                    break;
-                                }
+                                m_TypeNames[indexer] = m_TypeName.FormatTypeName(JaysonTypeNameFormatFlags.Simple | JaysonTypeNameFormatFlags.Assembly);
+                                break;
                             default:
                                 return null;
                         }
@@ -140,7 +125,7 @@ namespace Sweet.Jayson
             }
         }
 
-        # endregion JaysonTypeName
+        # endregion JaysonTypeNameResolver
 
         # region Static Members
 
@@ -170,7 +155,7 @@ namespace Sweet.Jayson
         private Type[] m_GenericArguments;
         private Type[] m_Interfaces;
         private TypeCode? m_TypeCode;
-        private JaysonTypeName m_TypeName;
+        private JaysonTypeNameResolver m_TypeName;
         private JaysonTypeCode? m_JTypeCode;
         private JaysonTypeSerializationType? m_SerializationType;
         private InfoItem<object> m_Default = new InfoItem<object>();
@@ -605,13 +590,13 @@ namespace Sweet.Jayson
             }
         }
 
-        public JaysonTypeName TypeName
+        public JaysonTypeNameResolver TypeName
         {
             get
             {
                 if (m_TypeName == null)
                 {
-                    m_TypeName = new JaysonTypeName(this);
+                    m_TypeName = new JaysonTypeNameResolver(this);
                 }
                 return m_TypeName;
             }
@@ -857,60 +842,6 @@ namespace Sweet.Jayson
             if (type == typeof(DateTimeOffset)) { return JaysonTypeCode.DateTimeOffset; }
             if (type == typeof(DateTimeOffset?)) { return JaysonTypeCode.DateTimeNullable; }
             return JaysonTypeCode.Object;
-        }
-
-        private static string GetTypeNameWithAssembly(string qualifiedTypeName)
-        {
-            char ch;
-            var startPos = 0;
-            var commaIndex = 0;
-
-            var appendRest = true;
-            var length = qualifiedTypeName.Length;
-            var builder = new StringBuilder(length / 2);
-
-            for (var i = 0; i < length; i++)
-            {
-                ch = qualifiedTypeName[i];
-                switch (ch)
-                {
-                    case ',':
-                        {
-                            commaIndex++;
-                            appendRest = false;
-
-                            if (commaIndex == 2 && startPos < i)
-                            {
-                                builder.Append(qualifiedTypeName, startPos, i - startPos);
-                                startPos = i + 1;
-                            }
-                            break;
-                        }
-                    case '[':
-                    case ']':
-                        {
-                            if (commaIndex < 2 && startPos < i)
-                            {
-                                builder.Append(qualifiedTypeName, startPos, i - startPos + 1);
-                            }
-                            else
-                            {
-                                builder.Append(ch);
-                            }
-
-                            commaIndex = 0;
-                            startPos = i + 1;
-                            appendRest = false;
-                            break;
-                        }
-                }
-            }
-
-            if (appendRest && startPos < length)
-            {
-                builder.Append(qualifiedTypeName, startPos, length - startPos);
-            }
-            return builder.ToString();
         }
 
         public override string ToString()
