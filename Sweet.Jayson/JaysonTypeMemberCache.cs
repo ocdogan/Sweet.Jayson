@@ -287,13 +287,25 @@ namespace Sweet.Jayson
             }
 
             // Fields
+            var fields = new List<FieldInfo>();
+
             var fis = m_Type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (fis != null && fis.Length > 0)
+                fields.AddRange(fis);
+
+            var type = m_Type;
+            while ((type = type.BaseType) != null && type != typeof(object))
+            {
+                fis = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+
+                if (fis != null && fis.Length > 0)
+                    fields.AddRange(fis);
+            }
 
             FieldInfo fi;
-
-            for (int i = fis.Length - 1; i > -1; i--)
+            for (int i = fields.Count - 1; i > -1; i--)
             {
-                fi = fis[i];
+                fi = fields[i];
                 if ((fi.FieldType != typeof(void*)) && !fi.IsDefined(typeof(JaysonIgnoreMemberAttribute), true))
                 {
                     member = new JaysonFastField(fi, true, true);
