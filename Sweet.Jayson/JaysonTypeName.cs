@@ -199,7 +199,7 @@ namespace Sweet.Jayson
                     (IsGenericArgument && flags.HasFlag(JaysonTypeNameFormatFlags.ParameterPublicKeyToken)))
                 {
                     sBuilder.Append(", PublicKeyToken=");
-                    sBuilder.Append(String.IsNullOrEmpty(PublicKeyToken) ? "null" : PublicKeyToken);
+                    sBuilder.Append(String.IsNullOrEmpty(PublicKeyToken) ? JaysonConstants.Null : PublicKeyToken);
                 }
             }
         }

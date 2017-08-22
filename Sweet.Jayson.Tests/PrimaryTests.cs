@@ -7909,5 +7909,87 @@ namespace Sweet.Jayson.Tests
             type2 = Type.GetType(jaysonTypeName.FormatTypeName(JaysonTypeNameFormatFlags.Simple | JaysonTypeNameFormatFlags.Assembly), false, true);
             Assert.IsNotNull(type2);
         }
+
+        [Test]
+        public static void TestUseDefaultValues1a()
+        {
+            long? l1 = null;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings);
+
+            Assert.AreNotEqual(l1, l2);
+            Assert.AreEqual(l2, 0L);
+        }
+
+        [Test]
+        public static void TestUseDefaultValues1b()
+        {
+            long? l1 = null;
+
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = JaysonConverter.ToJsonString(l1, jaysonSerializationSettings);
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = false;
+
+            Assert.Catch(() => { JaysonConverter.ToObject<long>(json, jaysonDeserializationSettings); });
+        }
+
+        [Test]
+        public static void TestUseDefaultValues2a()
+        {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = "{\"Short1\":1,\"Int1\":null}";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = true;
+
+            var l2 = JaysonConverter.ToObject<NumberHolder>(json, jaysonDeserializationSettings);
+
+            Assert.IsNotNull(l2);
+            Assert.AreEqual(l2.Int1, 0);
+        }
+
+        [Test]
+        public static void TestUseDefaultValues2b()
+        {
+            var jaysonSerializationSettings = new JaysonSerializationSettings
+            {
+                Formatting = JaysonFormatting.None,
+                TypeNameInfo = JaysonTypeNameInfo.TypeNameWithAssembly,
+                TypeNames = JaysonTypeNameSerialization.Auto
+            };
+
+            var json = "{\"Short1\":1,\"Int1\":null}";
+
+            var jaysonDeserializationSettings = JaysonDeserializationSettings.DefaultClone();
+            jaysonDeserializationSettings.UseDefaultValues = false;
+
+            Assert.Catch(() => { JaysonConverter.ToObject<NumberHolder>(json, jaysonDeserializationSettings); });
+        }
     }
 }

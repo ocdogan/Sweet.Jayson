@@ -39,6 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JaysonCastException.cs" />
+    <Compile Include="JaysonNaNException.cs" />
     <Compile Include="JaysonConverter.Parse.Helpers.cs" />
     <Compile Include="JaysonConverter.Parse.Number.cs" />
     <Compile Include="JaysonConverter.Parse.String.cs" />

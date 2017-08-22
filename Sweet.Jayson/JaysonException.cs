@@ -27,7 +27,7 @@ using System.Runtime.Serialization;
 
 namespace Sweet.Jayson
 {
-    # region JsonConverterException
+    # region JaysonException
 
     public class JaysonException : Exception
     {
@@ -52,6 +52,6 @@ namespace Sweet.Jayson
         }
     }
 
-    # endregion JsonConverterException
+    # endregion JaysonException
 }
 

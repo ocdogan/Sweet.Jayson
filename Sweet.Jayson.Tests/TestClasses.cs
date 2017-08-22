@@ -467,6 +467,20 @@ namespace Sweet.Jayson.Tests
 
     # region Sample Classes
 
+    public class NumberHolder
+    {
+        public byte Byte1;
+        public short Short1;
+        public int Int1;
+        public long Long1;
+        public ushort UShort1;
+        public uint UInt1;
+        public ulong ULong1;
+        public double Double1;
+        public float Float1;
+        public decimal Dec1;
+    }
+
     public class ClassWithObjectProperty
     {
         public object A { get; set; }

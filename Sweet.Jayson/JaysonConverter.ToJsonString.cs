@@ -3893,7 +3893,7 @@ namespace Sweet.Jayson
                             builder.Append('"');
                             return;
                         case JaysonFloatSerStrategy.Error:
-                            throw new JaysonException(JaysonError.NaNError);
+                            throw new JaysonNaNException();
                     }
                 }
                 else if (double.IsInfinity(d))
@@ -3909,7 +3909,7 @@ namespace Sweet.Jayson
                             builder.Append('"');
                             return;
                         case JaysonFloatSerStrategy.Error:
-                            throw new JaysonException(JaysonError.NaNError);
+                            throw new JaysonNaNException();
                     }
                 }
             }
@@ -3929,7 +3929,7 @@ namespace Sweet.Jayson
                             builder.Append('"');
                             return;
                         case JaysonFloatSerStrategy.Error:
-                            throw new JaysonException(JaysonError.NaNError);
+                            throw new JaysonNaNException();
                     }
                 }
                 else if (float.IsInfinity(f))
@@ -3945,7 +3945,7 @@ namespace Sweet.Jayson
                             builder.Append('"');
                             return;
                         case JaysonFloatSerStrategy.Error:
-                            throw new JaysonException(JaysonError.NaNError);
+                            throw new JaysonNaNException();
                     }
                 }
             }
@@ -4317,8 +4317,11 @@ namespace Sweet.Jayson
         public static string ToJsonString(object obj, JaysonSerializationSettings settings = null,
             Func<string, object, object> filter = null)
         {
-            var builder = ToJsonString(obj, null, settings, filter);
-            return builder.ToString();
+            if (obj == null)
+            {
+                return JaysonConstants.Null;
+            }
+            return ToJsonString(obj, null, settings, filter).ToString();
         }
 
         public static StringBuilder ToJsonString(object obj, StringBuilder builder,
@@ -4326,7 +4329,7 @@ namespace Sweet.Jayson
         {
             if (obj == null)
             {
-                return null;
+                return new StringBuilder(JaysonConstants.Null);
             }
 
             settings = settings ?? JaysonSerializationSettings.Default;

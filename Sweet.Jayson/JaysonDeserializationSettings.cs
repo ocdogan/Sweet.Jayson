@@ -56,7 +56,7 @@ namespace Sweet.Jayson
         public bool IgnoreNonPublicFields = false;
         public bool IgnoreNonPublicProperties = false;
         public bool RaiseErrorOnMissingMember = false;
-        public bool UseDefaultValues = false;
+        public bool UseDefaultValues = true;
 
         public int MaxObjectDepth;
 

@@ -2768,6 +2768,11 @@ namespace Sweet.Jayson
 
             if (obj == null)
             {
+                if (!(context.Settings.UseDefaultValues || toType.IsClass))
+                {
+                    throw new JaysonCastException();
+                }
+
                 var info = JaysonTypeInfo.GetTypeInfo(toType);
                 if (info.Class || info.Nullable)
                 {
@@ -2790,8 +2795,8 @@ namespace Sweet.Jayson
             }
 
             var objType = obj.GetType();
-            if ((toType == objType ||
-                toType.IsAssignableFrom(objType)) &&
+
+            if ((toType == objType || toType.IsAssignableFrom(objType)) && 
                 !(obj is IDictionary<string, object>))
             {
                 return obj;
@@ -3027,7 +3032,11 @@ namespace Sweet.Jayson
         {
             if (String.IsNullOrEmpty(str))
             {
-                return default(T);
+                if (((settings != null) && settings.UseDefaultValues) || typeof(T).IsClass)
+                {
+                    return default(T);
+                }
+                throw new JaysonCastException();
             }
             return (T)ToObject(str, typeof(T), settings);
         }
@@ -3039,9 +3048,18 @@ namespace Sweet.Jayson
 
         public static object ToObject(string str, Type toType, JaysonDeserializationSettings settings = null)
         {
+            if (toType == null)
+            {
+                throw new ArgumentNullException("toType");
+            }
+
             if (String.IsNullOrEmpty(str))
             {
-                return JaysonTypeInfo.GetDefault(toType);
+                if (((settings != null) && settings.UseDefaultValues) || toType.IsClass)
+                {
+                    return JaysonTypeInfo.GetDefault(toType);
+                }
+                throw new JaysonCastException();
             }
 
             using (var context = new JaysonDeserializationContext
@@ -3054,6 +3072,15 @@ namespace Sweet.Jayson
             {
                 var result = Parse(context);
 
+                if (result == null)
+                {
+                    if (context.Settings.UseDefaultValues || toType.IsClass)
+                    {
+                        return JaysonTypeInfo.GetDefault(toType);
+                    }
+                    throw new JaysonCastException();
+                }
+
                 var dResult = result as IDictionary<string, object>;
                 if (dResult != null)
                 {
@@ -3063,11 +3090,6 @@ namespace Sweet.Jayson
                         context.GlobalTypes = new JaysonDeserializationTypeList(typesObj as IDictionary<string, object>);
                         dResult.TryGetValue("$value", out result);
                     }
-                }
-
-                if (result == null)
-                {
-                    return JaysonTypeInfo.GetDefault(toType);
                 }
 
                 var instanceType = result.GetType();
@@ -3173,7 +3195,7 @@ namespace Sweet.Jayson
                 }
 #endif
 
-                throw new JaysonException(JaysonError.UnableToCastResult);
+                throw new JaysonCastException();
             }
         }
 
