@@ -30,3 +30,13 @@ TemporaryGeneratedFile*.cs
 *.manifest
 *.cache
 Sweet.Jayson.Tests/bin/Debug/NET35/nunit.framework.xml
+
+*.xml
+
+*.xml
+
+*.nupkg
+
+*.zip
+
+*.user
