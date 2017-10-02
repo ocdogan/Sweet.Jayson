@@ -138,7 +138,7 @@ namespace Sweet.Jayson.Tests
             dynamic eObj1 = new ExpandoObject();
             eObj1.EName = "xyz";
             eObj1.EAge = 33.5;
-            eObj1.EBirth = new DateTime(1972, 10, 25);
+            eObj1.EBirth = new DateTime(1983, 10, 25);
             eObj1.ExS1 = "s1";
             eObj1.ExI1 = -101;
             eObj1.ExD1 = -202.303;
@@ -303,9 +303,9 @@ namespace Sweet.Jayson.Tests
             tcDto.Address2 = new Uri("https://address2.com:9092");
             tcDto.Double1 = 1.123456789;
             tcDto.Double2 = 0.123456789;
-            tcDto.Date1 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Utc);
-            tcDto.Date2 = new DateTime(1972, 10, 25, 14, 36, 45, DateTimeKind.Local);
-            tcDto.Date3 = new DateTime(1972, 10, 25, 14, 36, 45);
+            tcDto.Date1 = new DateTime(1983, 10, 25, 14, 36, 45, DateTimeKind.Utc);
+            tcDto.Date2 = new DateTime(1983, 10, 25, 14, 36, 45, DateTimeKind.Local);
+            tcDto.Date3 = new DateTime(1983, 10, 25, 14, 36, 45);
             tcDto.Enum1 = TypedContainerEnum.F;
             tcDto.Enum2 = TypedContainerEnum.B | TypedContainerEnum.F;
             tcDto.Enum3 = (TypedContainerEnum)5;
@@ -360,9 +360,9 @@ namespace Sweet.Jayson.Tests
         {
             return new TypedContainerNoDto
             {
-                Date1 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Utc),
-                Date2 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Local),
-                Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
+                Date1 = new DateTime(1983, 10, 25, 14, 35, 45, DateTimeKind.Utc),
+                Date2 = new DateTime(1983, 10, 25, 14, 35, 45, DateTimeKind.Local),
+                Date3 = new DateTime(1983, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
 #if (NET4000 || NET3500 || NET3000 || NET2000)
@@ -404,9 +404,9 @@ namespace Sweet.Jayson.Tests
         {
             return new TypedContainerIgnoreMemberDto
             {
-                Date1 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Utc),
-                Date2 = new DateTime(1972, 10, 25, 14, 35, 45, DateTimeKind.Local),
-                Date3 = new DateTime(1972, 10, 25, 14, 35, 45),
+                Date1 = new DateTime(1983, 10, 25, 14, 35, 45, DateTimeKind.Utc),
+                Date2 = new DateTime(1983, 10, 25, 14, 35, 45, DateTimeKind.Local),
+                Date3 = new DateTime(1983, 10, 25, 14, 35, 45),
                 P1 = new ReadOnlyCollection<object>(new List<object> { "s", 2.3, true }),
                 P2 = new ReadOnlyCollection<int?>(new List<int?> { null, 34 }),
 #if (NET4000 || NET3500 || NET3000 || NET2000)

@@ -271,12 +271,12 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 2"
@@ -327,12 +327,12 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 2"

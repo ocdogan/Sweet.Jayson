@@ -2254,8 +2254,8 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date1()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
-            var date2 = JaysonCommon.ParseIso8601DateTime("1972-10-25", JaysonDateTimeZoneType.ConvertToUtc);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date2 = JaysonCommon.ParseIso8601DateTime("1983-10-25", JaysonDateTimeZoneType.ConvertToUtc);
 
             Assert.AreEqual(date1.Date, date2.Date);
         }
@@ -2263,8 +2263,8 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date2()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
-            var date2 = JaysonCommon.ParseIso8601DateTime("1972-10-25T12:45:32Z");
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date2 = JaysonCommon.ParseIso8601DateTime("1983-10-25T12:45:32Z");
 
             Assert.AreEqual(date1, date2);
         }
@@ -2272,10 +2272,10 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date3()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
             var tz = JaysonCommon.GetUtcOffset(date1);
 
-            string str = String.Format("1972-10-25T12:45:32+{0:00}:{1:00}", tz.Hours, tz.Minutes);
+            string str = String.Format("1983-10-25T12:45:32+{0:00}:{1:00}", tz.Hours, tz.Minutes);
             var date2 = JaysonCommon.ParseIso8601DateTime(str);
 
             Assert.AreEqual(date1, date2);
@@ -2284,10 +2284,10 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date4()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
             var tz = JaysonCommon.GetUtcOffset(date1);
 
-            string str = String.Format("1972-10-25T12:45:32+{0:00}{1:00}", tz.Hours, tz.Minutes);
+            string str = String.Format("1983-10-25T12:45:32+{0:00}{1:00}", tz.Hours, tz.Minutes);
             var date2 = JaysonCommon.ParseIso8601DateTime(str);
 
             Assert.AreEqual(date1, date2);
@@ -2296,10 +2296,10 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date5()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
             var tz = JaysonCommon.GetUtcOffset(date1);
 
-            string str = String.Format("19721025T124532+{0:00}{1:00}", tz.Hours, tz.Minutes);
+            string str = String.Format("19831025T124532+{0:00}{1:00}", tz.Hours, tz.Minutes);
             var date2 = JaysonCommon.ParseIso8601DateTime(str);
 
             Assert.AreEqual(date1, date2);
@@ -2308,10 +2308,10 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date6()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
             var tz = JaysonCommon.GetUtcOffset(date1);
 
-            string str = String.Format("19721025T124532+{0:00}:{1:00}", tz.Hours, tz.Minutes);
+            string str = String.Format("19831025T124532+{0:00}:{1:00}", tz.Hours, tz.Minutes);
             var date2 = JaysonCommon.ParseIso8601DateTime(str);
 
             Assert.AreEqual(date1, date2);
@@ -2320,8 +2320,8 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date7()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
-            var date2 = JaysonCommon.ParseIso8601DateTime("19721025T124532Z");
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date2 = JaysonCommon.ParseIso8601DateTime("19831025T124532Z");
 
             Assert.AreEqual(date1, date2);
         }
@@ -2329,8 +2329,8 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestParseIso8601Date8()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
-            var date2 = JaysonCommon.ParseIso8601DateTime("19721025T124532Z");
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date2 = JaysonCommon.ParseIso8601DateTime("19831025T124532Z");
 
             Assert.AreEqual(date1, date2);
         }
@@ -3628,7 +3628,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDeserializeDateWithCustomDateTimeFormat()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3643,7 +3643,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime?>(json, jaysonDeserializationSettings);
 
-            Assert.IsTrue(json.Contains("25\\/10\\/1972 12:45:32.000Z"));
+            Assert.IsTrue(json.Contains("25\\/10\\/1983 12:45:32.000Z"));
             Assert.IsNotNull(date2);
             Assert.IsTrue(date2 is DateTime);
             Assert.AreEqual(date1, (DateTime)date2);
@@ -3652,7 +3652,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeUtc()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3663,7 +3663,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32Z"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32Z"));
             Assert.IsNotNull(date2);
             Assert.IsTrue(date2 is DateTime);
             Assert.AreEqual(date1, (DateTime)date2);
@@ -3672,7 +3672,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeLocal()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3683,7 +3683,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32+") || json.Contains("1983-10-25T12:45:32-"));
             Assert.IsNotNull(date2);
             Assert.IsTrue(date2 is DateTime);
             Assert.AreEqual(date1, (DateTime)date2);
@@ -3692,7 +3692,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeUnspecified()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3703,7 +3703,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime?>(json);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32+") || json.Contains("1972-10-25T12:45:32-"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32+") || json.Contains("1983-10-25T12:45:32-"));
             Assert.IsNotNull(date2);
             Assert.IsTrue(date2 is DateTime);
             Assert.AreEqual(date1, (DateTime)date2);
@@ -3712,7 +3712,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeUtcMicrosoft()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
             var dto1 = new VerySimpleJsonValue
             {
                 Value = date1
@@ -3737,7 +3737,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeLocalMicrosoft()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
             var dto1 = new VerySimpleJsonValue
             {
                 Value = date1
@@ -3762,7 +3762,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestSerializeDateTimeUnspecifiedMicrosoft()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Unspecified);
             var dto1 = new VerySimpleJsonValue
             {
                 Value = date1
@@ -3787,7 +3787,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestDeserializeDateTimeConvertToUtc()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3801,7 +3801,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32"));
             Assert.IsNotNull(date2);
             Assert.AreEqual(date2.Kind, DateTimeKind.Utc);
         }
@@ -3809,7 +3809,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestDeserializeDateTimeConvertToLocal()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3823,7 +3823,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32"));
             Assert.IsNotNull(date2);
             Assert.AreEqual(date2.Kind, DateTimeKind.Local);
         }
@@ -3831,7 +3831,7 @@ namespace Sweet.Jayson.Tests
         [Test]
         public static void TestDeserializeDateTimeKeepAsIs()
         {
-            var date1 = new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local);
+            var date1 = new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local);
 
             var jaysonSerializationSettings = JaysonSerializationSettings.DefaultClone();
             jaysonSerializationSettings.TypeNames = JaysonTypeNameSerialization.All;
@@ -3845,7 +3845,7 @@ namespace Sweet.Jayson.Tests
             var json = JaysonConverter.ToJsonString(date1, jaysonSerializationSettings);
             var date2 = JaysonConverter.ToObject<DateTime>(json, jaysonDeserializationSettings);
 
-            Assert.IsTrue(json.Contains("1972-10-25T12:45:32"));
+            Assert.IsTrue(json.Contains("1983-10-25T12:45:32"));
             Assert.IsNotNull(date2);
             Assert.AreEqual(date1, date2);
             Assert.AreEqual(date2.Kind, DateTimeKind.Local);
@@ -6987,14 +6987,14 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
             dt1.Columns.Add(new DataColumn("col5", typeof(byte[])));
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				},
 				Encoding.UTF8.GetBytes ("Hello World 1")
 			});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 2"
@@ -7023,12 +7023,12 @@ namespace Sweet.Jayson.Tests
             dt1.Columns.Add(new DataColumn("col3", typeof(DateTime)));
             dt1.Columns.Add(new DataColumn("col4", typeof(SimpleObj)));
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 2"
@@ -7062,14 +7062,14 @@ namespace Sweet.Jayson.Tests
             dt1.Columns[0].ExtendedProperties.Add(1, 2m);
             dt1.Columns[0].ExtendedProperties.Add(3, 4m);
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				},
 				null
 			});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
@@ -7108,14 +7108,14 @@ namespace Sweet.Jayson.Tests
 
             Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
             Assert.AreEqual((bool)dt2.Rows[0][1], true);
-            Assert.AreEqual(dt2.Rows[0][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+            Assert.AreEqual(dt2.Rows[0][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc));
             Assert.IsTrue(dt2.Rows[0][3] is SimpleObj);
             Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
             Assert.AreEqual(((byte[])dt2.Rows[0][4])[0], Encoding.UTF8.GetBytes("Hello World 1")[0]);
             Assert.AreEqual(dt2.Rows[1][0], "row2");
             Assert.AreEqual((bool)dt2.Rows[1][1], false);
-            Assert.AreEqual(dt2.Rows[1][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+            Assert.AreEqual(dt2.Rows[1][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local));
             Assert.IsTrue(dt2.Rows[1][3] is SimpleObjDerivative);
             Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value2, "My");
@@ -7135,13 +7135,13 @@ namespace Sweet.Jayson.Tests
             dt1.Columns[0].ExtendedProperties.Add(1, 2m);
             dt1.Columns[0].ExtendedProperties.Add(3, 4m);
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}
 			});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
@@ -7181,14 +7181,14 @@ namespace Sweet.Jayson.Tests
 
             Assert.AreEqual(dt2.Rows[0][0], DBNull.Value);
             Assert.AreEqual((bool)dt2.Rows[0][1], true);
-            Assert.AreEqual(dt2.Rows[0][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+            Assert.AreEqual(dt2.Rows[0][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc));
             Assert.IsTrue(dt2.Rows[0][3] is SimpleObj);
             Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObj)dt2.Rows[0][3]).Value2, "World 1");
             Assert.AreEqual(((byte[])dt2.Rows[0][4])[0], Encoding.UTF8.GetBytes("Hello World 1")[0]);
             Assert.AreEqual(dt2.Rows[1][0], "row2");
             Assert.AreEqual((bool)dt2.Rows[1][1], false);
-            Assert.AreEqual(dt2.Rows[1][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+            Assert.AreEqual(dt2.Rows[1][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local));
             Assert.IsTrue(dt2.Rows[1][3] is SimpleObjDerivative);
             Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObjDerivative)dt2.Rows[1][3]).Value2, "My");
@@ -7209,12 +7209,12 @@ namespace Sweet.Jayson.Tests
             dt1.Columns[0].ExtendedProperties.Add(1, 2m);
             dt1.Columns[0].ExtendedProperties.Add(3, 4m);
 
-            dt1.Rows.Add(new object[] { null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
-            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
@@ -7257,13 +7257,13 @@ namespace Sweet.Jayson.Tests
             Assert.AreEqual(ds1.Tables[0].Rows.Count, ds2.Tables[0].Rows.Count);
             Assert.AreEqual(ds2.Tables[0].Rows[0][0], DBNull.Value);
             Assert.AreEqual(ds2.Tables[0].Rows[0][1], true);
-            Assert.AreEqual(ds2.Tables[0].Rows[0][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+            Assert.AreEqual(ds2.Tables[0].Rows[0][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc));
             Assert.IsTrue(ds2.Tables[0].Rows[0][3] is SimpleObj);
             Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][3]).Value2, "World 1");
             Assert.AreEqual(ds2.Tables[0].Rows[1][0], "row2");
             Assert.AreEqual(ds2.Tables[0].Rows[1][1], false);
-            Assert.AreEqual(ds2.Tables[0].Rows[1][2], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+            Assert.AreEqual(ds2.Tables[0].Rows[1][2], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local));
             Assert.IsTrue(ds2.Tables[0].Rows[1][3] is SimpleObjDerivative);
             Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value1, "Hello");
             Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][3]).Value2, "My");
@@ -7285,12 +7285,12 @@ namespace Sweet.Jayson.Tests
             dt1.Columns[0].Unique = true;
             dt1.Columns[0].ExtendedProperties.Add("x1", "X1");
 
-            dt1.Rows.Add(new object[] { 0, null, true, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Utc),
+            dt1.Rows.Add(new object[] { 0, null, true, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Utc),
 				new SimpleObj {
 					Value1 = "Hello",
 					Value2 = "World 1"
 				}});
-            dt1.Rows.Add(new object[] { 1, "row2", false, new DateTime (1972, 10, 25, 12, 45, 32, DateTimeKind.Local),
+            dt1.Rows.Add(new object[] { 1, "row2", false, new DateTime (1983, 10, 25, 12, 45, 32, DateTimeKind.Local),
 				new SimpleObjDerivative {
 					Value1 = "Hello",
 					Value2 = "My",
@@ -7358,14 +7358,14 @@ namespace Sweet.Jayson.Tests
             Assert.AreEqual(ds2.Tables[0].Rows[0][0], 0);
             Assert.AreEqual(ds2.Tables[0].Rows[0][1], DBNull.Value);
             Assert.AreEqual(ds2.Tables[0].Rows[0][2], true);
-            Assert.AreEqual(ds2.Tables[0].Rows[0][3], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Utc));
+            Assert.AreEqual(ds2.Tables[0].Rows[0][3], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Utc));
             Assert.IsTrue(ds2.Tables[0].Rows[0][4] is SimpleObj);
             Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][4]).Value1, "Hello");
             Assert.AreEqual(((SimpleObj)ds2.Tables[0].Rows[0][4]).Value2, "World 1");
             Assert.AreEqual(ds2.Tables[0].Rows[1][0], 1);
             Assert.AreEqual(ds2.Tables[0].Rows[1][1], "row2");
             Assert.AreEqual(ds2.Tables[0].Rows[1][2], false);
-            Assert.AreEqual(ds2.Tables[0].Rows[1][3], new DateTime(1972, 10, 25, 12, 45, 32, DateTimeKind.Local));
+            Assert.AreEqual(ds2.Tables[0].Rows[1][3], new DateTime(1983, 10, 25, 12, 45, 32, DateTimeKind.Local));
             Assert.IsTrue(ds2.Tables[0].Rows[1][4] is SimpleObjDerivative);
             Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][4]).Value1, "Hello");
             Assert.AreEqual(((SimpleObjDerivative)ds2.Tables[0].Rows[1][4]).Value2, "My");
