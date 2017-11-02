@@ -39,7 +39,6 @@ namespace Sweet.Jayson
         # region Static Members
 
         private static readonly ReaderWriterLock s_GlobalTypeOverrideLock = new ReaderWriterLock();
-
         private static readonly Dictionary<Type, JaysonTypeOverride> s_GlobalTypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
 
         # endregion Static Members

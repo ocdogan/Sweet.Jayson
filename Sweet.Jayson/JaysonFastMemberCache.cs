@@ -51,8 +51,14 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
+                var contains = false;
                 JaysonTypeMemberCache cache;
-                if (!s_TypeMembers.TryGetValue(objType, out cache))
+                lock (s_TypeMembersLock)
+                {
+                    contains = s_TypeMembers.TryGetValue(objType, out cache);
+                }
+
+                if (!contains)
                 {
                     lock (s_TypeMembersLock)
                     {
@@ -72,8 +78,14 @@ namespace Sweet.Jayson
         {
             if ((objType != null) && !String.IsNullOrEmpty(memberName))
             {
+                var contains = false;
                 JaysonTypeMemberCache cache;
-                if (!s_TypeMembers.TryGetValue(objType, out cache))
+                lock (s_TypeMembersLock)
+                {
+                    contains = s_TypeMembers.TryGetValue(objType, out cache);
+                }
+
+                if (!contains)
                 {
                     lock (s_TypeMembersLock)
                     {
@@ -97,8 +109,14 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
+                var contains = false;
                 JaysonTypeMemberCache cache;
-                if (!s_TypeMembers.TryGetValue(objType, out cache))
+                lock (s_TypeMembersLock)
+                {
+                    contains = s_TypeMembers.TryGetValue(objType, out cache);
+                }
+
+                if (!contains)
                 {
                     lock (s_TypeMembersLock)
                     {
@@ -122,8 +140,14 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
+                var contains = false;
                 JaysonTypeMemberCache cache;
-                if (!s_TypeMembers.TryGetValue(objType, out cache))
+                lock (s_TypeMembersLock)
+                {
+                    contains = s_TypeMembers.TryGetValue(objType, out cache);
+                }
+
+                if (!contains)
                 {
                     lock (s_TypeMembersLock)
                     {
@@ -147,8 +171,14 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
+                var contains = false;
                 JaysonTypeMemberCache cache;
-                if (!s_TypeMembers.TryGetValue(objType, out cache))
+                lock (s_TypeMembersLock)
+                {
+                    contains = s_TypeMembers.TryGetValue(objType, out cache);
+                }
+
+                if (!contains)
                 {
                     lock (s_TypeMembersLock)
                     {

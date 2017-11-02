@@ -289,8 +289,14 @@ namespace Sweet.Jayson
 
             var cache = GetTypeNameCache();
 
+            var contains = false;
             JaysonTypeName typeName;
-            if (!cache.TryGetValue(type, out typeName))
+            lock (s_TypeNameCacheLock)
+            {
+                contains = cache.TryGetValue(type, out typeName);
+            }
+
+            if (!contains)
             {
                 lock (s_TypeNameCacheLock)
                 {

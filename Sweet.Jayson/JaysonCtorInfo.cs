@@ -34,10 +34,10 @@ namespace Sweet.Jayson
 
     internal sealed class JaysonCtorInfo
     {
-        private static readonly object s_CtorSyncLock = new object();
-        private static readonly object s_ISerCtorSyncLock = new object();
-
+        private static readonly object s_CtorInfosLock = new object();
         private static readonly Dictionary<Type, JaysonCtorInfo> s_CtorInfos = new Dictionary<Type, JaysonCtorInfo>();
+
+        private static readonly object s_ISerializableCtorInfosLock = new object();
         private static readonly Dictionary<Type, JaysonCtorInfo> s_ISerializableCtorInfos = new Dictionary<Type, JaysonCtorInfo>();
 
         private Func<object[], object> m_LambdaCtor;
@@ -69,10 +69,16 @@ namespace Sweet.Jayson
 
         public static JaysonCtorInfo GetISerializableCtorInfo(Type objType)
         {
+            var contains = false;
             JaysonCtorInfo result;
-            if (!s_ISerializableCtorInfos.TryGetValue(objType, out result))
+            lock (s_ISerializableCtorInfosLock)
             {
-                lock (s_ISerCtorSyncLock)
+                contains = s_ISerializableCtorInfos.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
+            {
+                lock (s_ISerializableCtorInfos)
                 {
                     if (!s_ISerializableCtorInfos.TryGetValue(objType, out result))
                     {
@@ -102,10 +108,16 @@ namespace Sweet.Jayson
 
         public static JaysonCtorInfo GetDefaultCtorInfo(Type objType)
         {
+            var contains = false;
             JaysonCtorInfo result;
-            if (!s_CtorInfos.TryGetValue(objType, out result))
+            lock (s_CtorInfosLock)
             {
-                lock (s_CtorSyncLock)
+                contains = s_CtorInfos.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
+            {
+                lock (s_CtorInfosLock)
                 {
                     if (!s_CtorInfos.TryGetValue(objType, out result))
                     {

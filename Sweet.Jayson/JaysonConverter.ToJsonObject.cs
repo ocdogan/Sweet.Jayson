@@ -108,7 +108,6 @@ namespace Sweet.Jayson
                     }
                 }
 
-
                 kvList.Add(new Dictionary<string, object> { 
                     { "$k", ToJsonObject(keyObj, context) },
                     { "$v", ToJsonObject(value, context) } 

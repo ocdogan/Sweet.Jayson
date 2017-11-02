@@ -33,17 +33,23 @@ namespace Sweet.Jayson
 
     internal static class JaysonAnonymousTypeHelper
     {
-        private static object s_SyncObj = new object();
+        private static object s_AnonymousTypeCacheLock = new object();
         private static Dictionary<Type, bool> s_AnonymousTypeCache = new Dictionary<Type, bool>(10);
 
         public static bool IsAnonymousType(Type objType)
         {
             if (objType != null)
             {
+                var contains = false;
                 bool result;
-                if (!s_AnonymousTypeCache.TryGetValue(objType, out result))
+                lock (s_AnonymousTypeCache)
                 {
-                    lock (s_SyncObj)
+                    contains = s_AnonymousTypeCache.TryGetValue(objType, out result);
+                }
+
+                if (!contains)
+                {
+                    lock (s_AnonymousTypeCacheLock)
                     {
                         if (!s_AnonymousTypeCache.TryGetValue(objType, out result))
                         {

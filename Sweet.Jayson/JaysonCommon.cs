@@ -51,31 +51,55 @@ namespace Sweet.Jayson
         private static TimeSpan s_UtcOffsetUpdate;
         private static long s_LastUtcOffsetUpdate = -1;
 
+        private static readonly object s_IsGenericCollectionLock = new object();
         private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+
+        private static readonly object s_IsGenericDictionaryLock = new object();
         private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+
+        private static readonly object s_IsGenericListLock = new object();
         private static readonly Dictionary<Type, bool> s_IsGenericList = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
+        private static readonly object s_IsProducerConsumerCollectionLock = new object();
         private static readonly Dictionary<Type, bool> s_IsProducerConsumerCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 #endif
-
+        private static readonly object s_ICollectionAddLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        
+        private static readonly object s_IDictionaryAddLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 
+        private static readonly object s_StackPushLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_StackPush = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        
+        private static readonly object s_QueueEnqueueLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_QueueEnqueue = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
+        private static readonly object s_ConcurrentBagAddLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_ConcurrentBagAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+
+        private static readonly object s_IProducerConsumerCollectionAddLock = new object();
         private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 #endif
-
+        private static readonly object s_TypeCacheLock = new object();
         private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
+        
+        private static readonly object s_AssemblyCacheLock = new object();
         private static readonly Dictionary<string, Assembly> s_AssemblyCache = new Dictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
+        
+        private static readonly object s_AssemblyNameCacheLock = new object();
         private static readonly Dictionary<Assembly, string> s_AssemblyNameCache = new Dictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
 
+        private static readonly object s_GenericListArgsLock = new object();
         private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+        
+        private static readonly object s_GenericCollectionArgsLock = new object();
         private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+        
+        private static readonly object s_GenericDictionaryArgsLock = new object();
         private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
+        private static readonly object s_ProducerConsumerCollectionArgsLock = new object();
         private static readonly Dictionary<Type, Type> s_ProducerConsumerCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 #endif
 
@@ -85,161 +109,164 @@ namespace Sweet.Jayson
 
         static JaysonCommon()
         {
-            s_TypeCache["bool"] = typeof(bool);
-            s_TypeCache["byte"] = typeof(byte);
-            s_TypeCache["short"] = typeof(short);
-            s_TypeCache["int"] = typeof(int);
-            s_TypeCache["long"] = typeof(long);
-            s_TypeCache["ushort"] = typeof(ushort);
-            s_TypeCache["uint"] = typeof(uint);
-            s_TypeCache["ulong"] = typeof(ulong);
-            s_TypeCache["double"] = typeof(double);
-            s_TypeCache["float"] = typeof(float);
-            s_TypeCache["decimal"] = typeof(decimal);
-            s_TypeCache["string"] = typeof(string);
+            lock (s_TypeCacheLock)
+            {
+                s_TypeCache["bool"] = typeof(bool);
+                s_TypeCache["byte"] = typeof(byte);
+                s_TypeCache["short"] = typeof(short);
+                s_TypeCache["int"] = typeof(int);
+                s_TypeCache["long"] = typeof(long);
+                s_TypeCache["ushort"] = typeof(ushort);
+                s_TypeCache["uint"] = typeof(uint);
+                s_TypeCache["ulong"] = typeof(ulong);
+                s_TypeCache["double"] = typeof(double);
+                s_TypeCache["float"] = typeof(float);
+                s_TypeCache["decimal"] = typeof(decimal);
+                s_TypeCache["string"] = typeof(string);
 
-            s_TypeCache["Boolean"] = typeof(Boolean);
-            s_TypeCache["Int16"] = typeof(Int16);
-            s_TypeCache["Int32"] = typeof(Int32);
-            s_TypeCache["Int64"] = typeof(Int64);
-            s_TypeCache["UInt16"] = typeof(UInt16);
-            s_TypeCache["UInt32"] = typeof(UInt32);
-            s_TypeCache["UInt64"] = typeof(UInt64);
-            s_TypeCache["Single"] = typeof(Single);
-            s_TypeCache["DateTime"] = typeof(DateTime);
-            s_TypeCache["TimeSpan"] = typeof(TimeSpan);
+                s_TypeCache["Boolean"] = typeof(Boolean);
+                s_TypeCache["Int16"] = typeof(Int16);
+                s_TypeCache["Int32"] = typeof(Int32);
+                s_TypeCache["Int64"] = typeof(Int64);
+                s_TypeCache["UInt16"] = typeof(UInt16);
+                s_TypeCache["UInt32"] = typeof(UInt32);
+                s_TypeCache["UInt64"] = typeof(UInt64);
+                s_TypeCache["Single"] = typeof(Single);
+                s_TypeCache["DateTime"] = typeof(DateTime);
+                s_TypeCache["TimeSpan"] = typeof(TimeSpan);
 
-            s_TypeCache["System.Boolean"] = typeof(Boolean);
-            s_TypeCache["System.Byte"] = typeof(Byte);
-            s_TypeCache["System.Int16"] = typeof(Int16);
-            s_TypeCache["System.Int16"] = typeof(Int16);
-            s_TypeCache["System.Int32"] = typeof(Int32);
-            s_TypeCache["System.Int64"] = typeof(Int64);
-            s_TypeCache["System.UInt16"] = typeof(UInt16);
-            s_TypeCache["System.UInt32"] = typeof(UInt32);
-            s_TypeCache["System.UInt64"] = typeof(UInt64);
-            s_TypeCache["System.Double"] = typeof(Double);
-            s_TypeCache["System.Single"] = typeof(Single);
-            s_TypeCache["System.Decimal"] = typeof(Decimal);
-            s_TypeCache["System.String"] = typeof(string);
-            s_TypeCache["System.DateTime"] = typeof(DateTime);
-            s_TypeCache["System.TimeSpan"] = typeof(TimeSpan);
+                s_TypeCache["System.Boolean"] = typeof(Boolean);
+                s_TypeCache["System.Byte"] = typeof(Byte);
+                s_TypeCache["System.Int16"] = typeof(Int16);
+                s_TypeCache["System.Int16"] = typeof(Int16);
+                s_TypeCache["System.Int32"] = typeof(Int32);
+                s_TypeCache["System.Int64"] = typeof(Int64);
+                s_TypeCache["System.UInt16"] = typeof(UInt16);
+                s_TypeCache["System.UInt32"] = typeof(UInt32);
+                s_TypeCache["System.UInt64"] = typeof(UInt64);
+                s_TypeCache["System.Double"] = typeof(Double);
+                s_TypeCache["System.Single"] = typeof(Single);
+                s_TypeCache["System.Decimal"] = typeof(Decimal);
+                s_TypeCache["System.String"] = typeof(string);
+                s_TypeCache["System.DateTime"] = typeof(DateTime);
+                s_TypeCache["System.TimeSpan"] = typeof(TimeSpan);
 
-            s_TypeCache["System.Boolean, mscorlib"] = typeof(Boolean);
-            s_TypeCache["System.Byte, mscorlib"] = typeof(Byte);
-            s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
-            s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
-            s_TypeCache["System.Int32, mscorlib"] = typeof(Int32);
-            s_TypeCache["System.Int64, mscorlib"] = typeof(Int64);
-            s_TypeCache["System.UInt16, mscorlib"] = typeof(UInt16);
-            s_TypeCache["System.UInt32, mscorlib"] = typeof(UInt32);
-            s_TypeCache["System.UInt64, mscorlib"] = typeof(UInt64);
-            s_TypeCache["System.Double, mscorlib"] = typeof(Double);
-            s_TypeCache["System.Single, mscorlib"] = typeof(Single);
-            s_TypeCache["System.Decimal, mscorlib"] = typeof(Decimal);
-            s_TypeCache["System.String, mscorlib"] = typeof(string);
-            s_TypeCache["System.DateTime, mscorlib"] = typeof(DateTime);
-            s_TypeCache["System.TimeSpan, mscorlib"] = typeof(TimeSpan);
+                s_TypeCache["System.Boolean, mscorlib"] = typeof(Boolean);
+                s_TypeCache["System.Byte, mscorlib"] = typeof(Byte);
+                s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
+                s_TypeCache["System.Int16, mscorlib"] = typeof(Int16);
+                s_TypeCache["System.Int32, mscorlib"] = typeof(Int32);
+                s_TypeCache["System.Int64, mscorlib"] = typeof(Int64);
+                s_TypeCache["System.UInt16, mscorlib"] = typeof(UInt16);
+                s_TypeCache["System.UInt32, mscorlib"] = typeof(UInt32);
+                s_TypeCache["System.UInt64, mscorlib"] = typeof(UInt64);
+                s_TypeCache["System.Double, mscorlib"] = typeof(Double);
+                s_TypeCache["System.Single, mscorlib"] = typeof(Single);
+                s_TypeCache["System.Decimal, mscorlib"] = typeof(Decimal);
+                s_TypeCache["System.String, mscorlib"] = typeof(string);
+                s_TypeCache["System.DateTime, mscorlib"] = typeof(DateTime);
+                s_TypeCache["System.TimeSpan, mscorlib"] = typeof(TimeSpan);
 
-            s_TypeCache["bool?"] = typeof(bool?);
-            s_TypeCache["byte?"] = typeof(byte?);
-            s_TypeCache["short?"] = typeof(short?);
-            s_TypeCache["int?"] = typeof(int?);
-            s_TypeCache["long?"] = typeof(long?);
-            s_TypeCache["ushort?"] = typeof(ushort?);
-            s_TypeCache["uint?"] = typeof(uint?);
-            s_TypeCache["ulong?"] = typeof(ulong?);
-            s_TypeCache["double?"] = typeof(double?);
-            s_TypeCache["float?"] = typeof(float?);
-            s_TypeCache["decimal?"] = typeof(decimal?);
-            s_TypeCache["bool[]"] = typeof(bool[]);
-            s_TypeCache["byte[]"] = typeof(byte[]);
-            s_TypeCache["short[]"] = typeof(short[]);
-            s_TypeCache["int[]"] = typeof(int[]);
-            s_TypeCache["long[]"] = typeof(long[]);
-            s_TypeCache["ushort[]"] = typeof(ushort[]);
-            s_TypeCache["uint[]"] = typeof(uint[]);
-            s_TypeCache["ulong[]"] = typeof(ulong[]);
-            s_TypeCache["double[]"] = typeof(double[]);
-            s_TypeCache["float[]"] = typeof(float[]);
-            s_TypeCache["decimal[]"] = typeof(decimal[]);
-            s_TypeCache["string[]"] = typeof(string[]);
+                s_TypeCache["bool?"] = typeof(bool?);
+                s_TypeCache["byte?"] = typeof(byte?);
+                s_TypeCache["short?"] = typeof(short?);
+                s_TypeCache["int?"] = typeof(int?);
+                s_TypeCache["long?"] = typeof(long?);
+                s_TypeCache["ushort?"] = typeof(ushort?);
+                s_TypeCache["uint?"] = typeof(uint?);
+                s_TypeCache["ulong?"] = typeof(ulong?);
+                s_TypeCache["double?"] = typeof(double?);
+                s_TypeCache["float?"] = typeof(float?);
+                s_TypeCache["decimal?"] = typeof(decimal?);
+                s_TypeCache["bool[]"] = typeof(bool[]);
+                s_TypeCache["byte[]"] = typeof(byte[]);
+                s_TypeCache["short[]"] = typeof(short[]);
+                s_TypeCache["int[]"] = typeof(int[]);
+                s_TypeCache["long[]"] = typeof(long[]);
+                s_TypeCache["ushort[]"] = typeof(ushort[]);
+                s_TypeCache["uint[]"] = typeof(uint[]);
+                s_TypeCache["ulong[]"] = typeof(ulong[]);
+                s_TypeCache["double[]"] = typeof(double[]);
+                s_TypeCache["float[]"] = typeof(float[]);
+                s_TypeCache["decimal[]"] = typeof(decimal[]);
+                s_TypeCache["string[]"] = typeof(string[]);
 
-            s_TypeCache["Boolean[]"] = typeof(bool[]);
-            s_TypeCache["DateTime[]"] = typeof(DateTime[]);
-            s_TypeCache["TimeSpan[]"] = typeof(TimeSpan[]);
+                s_TypeCache["Boolean[]"] = typeof(bool[]);
+                s_TypeCache["DateTime[]"] = typeof(DateTime[]);
+                s_TypeCache["TimeSpan[]"] = typeof(TimeSpan[]);
 
-            s_TypeCache["System.Boolean[]"] = typeof(bool[]);
-            s_TypeCache["System.Byte[]"] = typeof(Byte[]);
-            s_TypeCache["System.Int16[]"] = typeof(Int16[]);
-            s_TypeCache["System.Int32[]"] = typeof(Int32[]);
-            s_TypeCache["System.Int64[]"] = typeof(Int64[]);
-            s_TypeCache["System.UInt16[]"] = typeof(UInt16[]);
-            s_TypeCache["System.UInt32[]"] = typeof(UInt32[]);
-            s_TypeCache["System.UInt64[]"] = typeof(UInt64[]);
-            s_TypeCache["System.Double[]"] = typeof(Double[]);
-            s_TypeCache["System.Single[]"] = typeof(Single[]);
-            s_TypeCache["System.Decimal[]"] = typeof(Decimal[]);
-            s_TypeCache["System.String[]"] = typeof(string[]);
-            s_TypeCache["System.DateTime[]"] = typeof(DateTime[]);
-            s_TypeCache["System.TimeSpan[]"] = typeof(TimeSpan[]);
+                s_TypeCache["System.Boolean[]"] = typeof(bool[]);
+                s_TypeCache["System.Byte[]"] = typeof(Byte[]);
+                s_TypeCache["System.Int16[]"] = typeof(Int16[]);
+                s_TypeCache["System.Int32[]"] = typeof(Int32[]);
+                s_TypeCache["System.Int64[]"] = typeof(Int64[]);
+                s_TypeCache["System.UInt16[]"] = typeof(UInt16[]);
+                s_TypeCache["System.UInt32[]"] = typeof(UInt32[]);
+                s_TypeCache["System.UInt64[]"] = typeof(UInt64[]);
+                s_TypeCache["System.Double[]"] = typeof(Double[]);
+                s_TypeCache["System.Single[]"] = typeof(Single[]);
+                s_TypeCache["System.Decimal[]"] = typeof(Decimal[]);
+                s_TypeCache["System.String[]"] = typeof(string[]);
+                s_TypeCache["System.DateTime[]"] = typeof(DateTime[]);
+                s_TypeCache["System.TimeSpan[]"] = typeof(TimeSpan[]);
 
-            s_TypeCache["System.Boolean[], mscorlib"] = typeof(bool[]);
-            s_TypeCache["System.Byte[], mscorlib"] = typeof(Byte[]);
-            s_TypeCache["System.Int16[], mscorlib"] = typeof(Int16[]);
-            s_TypeCache["System.Int32[], mscorlib"] = typeof(Int32[]);
-            s_TypeCache["System.Int64[], mscorlib"] = typeof(Int64[]);
-            s_TypeCache["System.UInt16[], mscorlib"] = typeof(UInt16[]);
-            s_TypeCache["System.UInt32[], mscorlib"] = typeof(UInt32[]);
-            s_TypeCache["System.UInt64[], mscorlib"] = typeof(UInt64[]);
-            s_TypeCache["System.Double[], mscorlib"] = typeof(Double[]);
-            s_TypeCache["System.Single[], mscorlib"] = typeof(Single[]);
-            s_TypeCache["System.Decimal[], mscorlib"] = typeof(Decimal[]);
-            s_TypeCache["System.String[], mscorlib"] = typeof(string[]);
-            s_TypeCache["System.DateTime[], mscorlib"] = typeof(DateTime[]);
-            s_TypeCache["System.TimeSpan[], mscorlib"] = typeof(TimeSpan[]);
+                s_TypeCache["System.Boolean[], mscorlib"] = typeof(bool[]);
+                s_TypeCache["System.Byte[], mscorlib"] = typeof(Byte[]);
+                s_TypeCache["System.Int16[], mscorlib"] = typeof(Int16[]);
+                s_TypeCache["System.Int32[], mscorlib"] = typeof(Int32[]);
+                s_TypeCache["System.Int64[], mscorlib"] = typeof(Int64[]);
+                s_TypeCache["System.UInt16[], mscorlib"] = typeof(UInt16[]);
+                s_TypeCache["System.UInt32[], mscorlib"] = typeof(UInt32[]);
+                s_TypeCache["System.UInt64[], mscorlib"] = typeof(UInt64[]);
+                s_TypeCache["System.Double[], mscorlib"] = typeof(Double[]);
+                s_TypeCache["System.Single[], mscorlib"] = typeof(Single[]);
+                s_TypeCache["System.Decimal[], mscorlib"] = typeof(Decimal[]);
+                s_TypeCache["System.String[], mscorlib"] = typeof(string[]);
+                s_TypeCache["System.DateTime[], mscorlib"] = typeof(DateTime[]);
+                s_TypeCache["System.TimeSpan[], mscorlib"] = typeof(TimeSpan[]);
 
-            s_TypeCache["System.Nullable`1[System.Boolean]"] = typeof(bool?);
-            s_TypeCache["System.Nullable`1[System.Byte]"] = typeof(Byte?);
-            s_TypeCache["System.Nullable`1[System.Int16]"] = typeof(Int16?);
-            s_TypeCache["System.Nullable`1[System.Int32]"] = typeof(Int32?);
-            s_TypeCache["System.Nullable`1[System.Int64]"] = typeof(Int64?);
-            s_TypeCache["System.Nullable`1[System.UInt16]"] = typeof(UInt16?);
-            s_TypeCache["System.Nullable`1[System.UInt32]"] = typeof(UInt32?);
-            s_TypeCache["System.Nullable`1[System.UInt64]"] = typeof(UInt64?);
-            s_TypeCache["System.Nullable`1[System.Double]"] = typeof(Double?);
-            s_TypeCache["System.Nullable`1[System.Single]"] = typeof(Single?);
-            s_TypeCache["System.Nullable`1[System.Decimal]"] = typeof(Decimal?);
-            s_TypeCache["System.Nullable`1[System.DateTime]"] = typeof(DateTime?);
-            s_TypeCache["System.Nullable`1[System.TimeSpan]"] = typeof(TimeSpan?);
+                s_TypeCache["System.Nullable`1[System.Boolean]"] = typeof(bool?);
+                s_TypeCache["System.Nullable`1[System.Byte]"] = typeof(Byte?);
+                s_TypeCache["System.Nullable`1[System.Int16]"] = typeof(Int16?);
+                s_TypeCache["System.Nullable`1[System.Int32]"] = typeof(Int32?);
+                s_TypeCache["System.Nullable`1[System.Int64]"] = typeof(Int64?);
+                s_TypeCache["System.Nullable`1[System.UInt16]"] = typeof(UInt16?);
+                s_TypeCache["System.Nullable`1[System.UInt32]"] = typeof(UInt32?);
+                s_TypeCache["System.Nullable`1[System.UInt64]"] = typeof(UInt64?);
+                s_TypeCache["System.Nullable`1[System.Double]"] = typeof(Double?);
+                s_TypeCache["System.Nullable`1[System.Single]"] = typeof(Single?);
+                s_TypeCache["System.Nullable`1[System.Decimal]"] = typeof(Decimal?);
+                s_TypeCache["System.Nullable`1[System.DateTime]"] = typeof(DateTime?);
+                s_TypeCache["System.Nullable`1[System.TimeSpan]"] = typeof(TimeSpan?);
 
-            s_TypeCache["System.Nullable`1[System.Boolean, mscorlib]"] = typeof(bool?);
-            s_TypeCache["System.Nullable`1[System.Byte, mscorlib]"] = typeof(Byte?);
-            s_TypeCache["System.Nullable`1[System.Int16, mscorlib]"] = typeof(Int16?);
-            s_TypeCache["System.Nullable`1[System.Int32, mscorlib]"] = typeof(Int32?);
-            s_TypeCache["System.Nullable`1[System.Int64, mscorlib]"] = typeof(Int64?);
-            s_TypeCache["System.Nullable`1[System.UInt16, mscorlib]"] = typeof(UInt16?);
-            s_TypeCache["System.Nullable`1[System.UInt32, mscorlib]"] = typeof(UInt32?);
-            s_TypeCache["System.Nullable`1[System.UInt64, mscorlib]"] = typeof(UInt64?);
-            s_TypeCache["System.Nullable`1[System.Double, mscorlib]"] = typeof(Double?);
-            s_TypeCache["System.Nullable`1[System.Single, mscorlib]"] = typeof(Single?);
-            s_TypeCache["System.Nullable`1[System.Decimal, mscorlib]"] = typeof(Decimal?);
-            s_TypeCache["System.Nullable`1[System.DateTime, mscorlib]"] = typeof(DateTime?);
-            s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib]"] = typeof(TimeSpan?);
+                s_TypeCache["System.Nullable`1[System.Boolean, mscorlib]"] = typeof(bool?);
+                s_TypeCache["System.Nullable`1[System.Byte, mscorlib]"] = typeof(Byte?);
+                s_TypeCache["System.Nullable`1[System.Int16, mscorlib]"] = typeof(Int16?);
+                s_TypeCache["System.Nullable`1[System.Int32, mscorlib]"] = typeof(Int32?);
+                s_TypeCache["System.Nullable`1[System.Int64, mscorlib]"] = typeof(Int64?);
+                s_TypeCache["System.Nullable`1[System.UInt16, mscorlib]"] = typeof(UInt16?);
+                s_TypeCache["System.Nullable`1[System.UInt32, mscorlib]"] = typeof(UInt32?);
+                s_TypeCache["System.Nullable`1[System.UInt64, mscorlib]"] = typeof(UInt64?);
+                s_TypeCache["System.Nullable`1[System.Double, mscorlib]"] = typeof(Double?);
+                s_TypeCache["System.Nullable`1[System.Single, mscorlib]"] = typeof(Single?);
+                s_TypeCache["System.Nullable`1[System.Decimal, mscorlib]"] = typeof(Decimal?);
+                s_TypeCache["System.Nullable`1[System.DateTime, mscorlib]"] = typeof(DateTime?);
+                s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib]"] = typeof(TimeSpan?);
 
-            s_TypeCache["System.Nullable`1[System.Boolean, mscorlib], mscorlib"] = typeof(bool?);
-            s_TypeCache["System.Nullable`1[System.Byte, mscorlib], mscorlib"] = typeof(Byte?);
-            s_TypeCache["System.Nullable`1[System.Int16, mscorlib], mscorlib"] = typeof(Int16?);
-            s_TypeCache["System.Nullable`1[System.Int32, mscorlib], mscorlib"] = typeof(Int32?);
-            s_TypeCache["System.Nullable`1[System.Int64, mscorlib], mscorlib"] = typeof(Int64?);
-            s_TypeCache["System.Nullable`1[System.UInt16, mscorlib], mscorlib"] = typeof(UInt16?);
-            s_TypeCache["System.Nullable`1[System.UInt32, mscorlib], mscorlib"] = typeof(UInt32?);
-            s_TypeCache["System.Nullable`1[System.UInt64, mscorlib], mscorlib"] = typeof(UInt64?);
-            s_TypeCache["System.Nullable`1[System.Double, mscorlib], mscorlib"] = typeof(Double?);
-            s_TypeCache["System.Nullable`1[System.Single, mscorlib], mscorlib"] = typeof(Single?);
-            s_TypeCache["System.Nullable`1[System.Decimal, mscorlib], mscorlib"] = typeof(Decimal?);
-            s_TypeCache["System.Nullable`1[System.DateTime, mscorlib], mscorlib"] = typeof(DateTime?);
-            s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib], mscorlib"] = typeof(TimeSpan?);
+                s_TypeCache["System.Nullable`1[System.Boolean, mscorlib], mscorlib"] = typeof(bool?);
+                s_TypeCache["System.Nullable`1[System.Byte, mscorlib], mscorlib"] = typeof(Byte?);
+                s_TypeCache["System.Nullable`1[System.Int16, mscorlib], mscorlib"] = typeof(Int16?);
+                s_TypeCache["System.Nullable`1[System.Int32, mscorlib], mscorlib"] = typeof(Int32?);
+                s_TypeCache["System.Nullable`1[System.Int64, mscorlib], mscorlib"] = typeof(Int64?);
+                s_TypeCache["System.Nullable`1[System.UInt16, mscorlib], mscorlib"] = typeof(UInt16?);
+                s_TypeCache["System.Nullable`1[System.UInt32, mscorlib], mscorlib"] = typeof(UInt32?);
+                s_TypeCache["System.Nullable`1[System.UInt64, mscorlib], mscorlib"] = typeof(UInt64?);
+                s_TypeCache["System.Nullable`1[System.Double, mscorlib], mscorlib"] = typeof(Double?);
+                s_TypeCache["System.Nullable`1[System.Single, mscorlib], mscorlib"] = typeof(Single?);
+                s_TypeCache["System.Nullable`1[System.Decimal, mscorlib], mscorlib"] = typeof(Decimal?);
+                s_TypeCache["System.Nullable`1[System.DateTime, mscorlib], mscorlib"] = typeof(DateTime?);
+                s_TypeCache["System.Nullable`1[System.TimeSpan, mscorlib], mscorlib"] = typeof(TimeSpan?);
+            }
         }
 
         # endregion Static .Ctor
@@ -1571,12 +1598,25 @@ namespace Sweet.Jayson
         {
             if (asm != null)
             {
+                var contains = false;
                 string name;
-                if (!s_AssemblyNameCache.TryGetValue(asm, out name)) {
+                lock (s_AssemblyNameCacheLock)
+                {
+                    contains = s_AssemblyNameCache.TryGetValue(asm, out name);
+                }
+
+                if (!contains)
+                {
                     name = asm.GetName().Name;
 
-                    s_AssemblyCache[name] = asm;
-                    s_AssemblyNameCache[asm] = name;
+                    lock (s_AssemblyCacheLock)
+                    {
+                        s_AssemblyCache[name] = asm;
+                    }
+                    lock (s_AssemblyNameCacheLock)
+                    {
+                        s_AssemblyNameCache[asm] = name;
+                    }
                 }
                 return name;
             }
@@ -1587,8 +1627,14 @@ namespace Sweet.Jayson
         {
             if (!String.IsNullOrEmpty(assemblyName))
             {
+                var contains = false;
                 Assembly result;
-                if (!s_AssemblyCache.TryGetValue(assemblyName, out result))
+                lock (s_AssemblyCacheLock)
+                {
+                    contains = s_AssemblyCache.TryGetValue(assemblyName, out result);
+                }
+
+                if (!contains)
                 {
                     foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                     {
@@ -1621,7 +1667,13 @@ namespace Sweet.Jayson
                     }
                 }
 
-                if (!s_TypeCache.TryGetValue(typeName, out result))
+                var contains = false;
+                lock (s_TypeCacheLock)
+                {
+                    contains = s_TypeCache.TryGetValue(typeName, out result);
+                }
+
+                if (!contains)
                 {
                     result = Type.GetType(typeName, false, true);
                     if ((result == null) && !typeName.Contains('['))
@@ -1651,7 +1703,11 @@ namespace Sweet.Jayson
                                     }
                                 }
                             }
-                            s_TypeCache[typeName] = null;
+
+                            lock (s_TypeCacheLock)
+                            {
+                                s_TypeCache[typeName] = null;
+                            }
                             return (Type)null;
                         }
 
@@ -1711,8 +1767,14 @@ namespace Sweet.Jayson
 
                                                     if (assembly != null)
                                                     {
-                                                        s_AssemblyCache[assemblyName] = assembly;
-                                                        s_AssemblyNameCache[assembly] = assemblyName;
+                                                        lock (s_AssemblyCacheLock)
+                                                        {
+                                                            s_AssemblyCache[assemblyName] = assembly;
+                                                        }
+                                                        lock (s_AssemblyNameCacheLock)
+                                                        {
+                                                            s_AssemblyNameCache[assembly] = assemblyName;
+                                                        }
                                                     }
                                                 }
                                                 return assembly;
@@ -1756,7 +1818,10 @@ namespace Sweet.Jayson
 #endif
                     }
 
-                    s_TypeCache[typeName] = result;
+                    lock (s_TypeCacheLock)
+                    {
+                        s_TypeCache[typeName] = result;
+                    }
                 }
             }
 
@@ -2755,9 +2820,14 @@ namespace Sweet.Jayson
         {
             Type[] arguments;
             bool found = FindInterface(objType, typeof(ICollection<>), out arguments);
-
-            s_IsGenericCollection[objType] = found;
-            s_GenericCollectionArgs[objType] = found ? arguments[0] : null;
+            lock (s_IsGenericCollectionLock)
+            {
+                s_IsGenericCollection[objType] = found;
+            }
+            lock (s_GenericCollectionArgsLock)
+            {
+                s_GenericCollectionArgs[objType] = found ? arguments[0] : null;
+            }
         }
 
 #if !(NET3500 || NET3000 || NET2000)
@@ -2766,8 +2836,14 @@ namespace Sweet.Jayson
             Type[] arguments;
             bool found = FindInterface(objType, typeof(IProducerConsumerCollection<>), out arguments);
 
-            s_IsProducerConsumerCollection[objType] = found;
-            s_ProducerConsumerCollectionArgs[objType] = found ? arguments[0] : null;
+            lock (s_IsProducerConsumerCollectionLock)
+            {
+                s_IsProducerConsumerCollection[objType] = found;
+            }
+            lock (s_ProducerConsumerCollectionArgsLock)
+            {
+                s_ProducerConsumerCollectionArgs[objType] = found ? arguments[0] : null;
+            }
         }
 #endif
 
@@ -2776,8 +2852,14 @@ namespace Sweet.Jayson
             Type[] arguments;
             bool found = FindInterface(objType, typeof(IDictionary<,>), out arguments);
 
-            s_IsGenericDictionary[objType] = found;
-            s_GenericDictionaryArgs[objType] = arguments;
+            lock (s_IsGenericDictionaryLock)
+            {
+                s_IsGenericDictionary[objType] = found;
+            }
+            lock (s_GenericDictionaryArgsLock)
+            {
+                s_GenericDictionaryArgs[objType] = arguments;
+            }
         }
 
         private static void UpdateGenericListInfo(Type objType)
@@ -2785,17 +2867,32 @@ namespace Sweet.Jayson
             Type[] arguments;
             bool found = FindInterface(objType, typeof(IList<>), out arguments);
 
-            s_IsGenericList[objType] = found;
-            s_GenericListArgs[objType] = found ? arguments[0] : null;
+            lock (s_IsGenericListLock)
+            {
+                s_IsGenericList[objType] = found;
+            }
+            lock (s_GenericListArgsLock)
+            {
+                s_GenericListArgs[objType] = found ? arguments[0] : null;
+            }
         }
 
         internal static bool IsGenericCollection(Type objType)
         {
+            var contains = false;
             bool result;
-            if (!s_IsGenericCollection.TryGetValue(objType, out result))
+            lock (s_IsGenericCollectionLock)
+            {
+                contains = s_IsGenericCollection.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericCollectionInfo(objType);
-                s_IsGenericCollection.TryGetValue(objType, out result);
+                lock (s_IsGenericCollectionLock)
+                {
+                    s_IsGenericCollection.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
@@ -2803,11 +2900,20 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         internal static bool IsProducerConsumerCollection(Type objType)
         {
+            var contains = false;
             bool result;
-            if (!s_IsProducerConsumerCollection.TryGetValue(objType, out result))
+            lock (s_IsProducerConsumerCollectionLock)
+            {
+                contains = s_IsProducerConsumerCollection.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateProducerConsumerCollectionInfo(objType);
-                s_IsProducerConsumerCollection.TryGetValue(objType, out result);
+                lock (s_IsProducerConsumerCollectionLock)
+                {
+                    s_IsProducerConsumerCollection.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
@@ -2815,33 +2921,60 @@ namespace Sweet.Jayson
 
         internal static bool IsGenericDictionary(Type objType)
         {
+            var contains = false;
             bool result;
-            if (!s_IsGenericDictionary.TryGetValue(objType, out result))
+            lock (s_IsGenericDictionaryLock)
+            {
+                contains = s_IsGenericDictionary.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericDictionaryInfo(objType);
-                s_IsGenericDictionary.TryGetValue(objType, out result);
+                lock (s_IsGenericDictionaryLock)
+                {
+                    s_IsGenericDictionary.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
 
         internal static bool IsGenericList(Type objType)
         {
+            var contains = false;
             bool result;
-            if (!s_IsGenericList.TryGetValue(objType, out result))
+            lock (s_IsGenericListLock)
+            {
+                contains = s_IsGenericList.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericListInfo(objType);
-                s_IsGenericList.TryGetValue(objType, out result);
+                lock (s_IsGenericListLock)
+                {
+                    s_IsGenericList.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
 
         internal static Type GetGenericCollectionArgs(Type objType)
         {
+            var contains = false;
             Type result;
-            if (!s_GenericCollectionArgs.TryGetValue(objType, out result))
+            lock (s_GenericCollectionArgsLock)
+            {
+                contains = s_GenericCollectionArgs.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericCollectionInfo(objType);
-                s_GenericCollectionArgs.TryGetValue(objType, out result);
+                lock (s_GenericCollectionArgsLock)
+                {
+                    s_GenericCollectionArgs.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
@@ -2849,11 +2982,20 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         internal static Type GetProducerConsumerCollectionArgs(Type objType)
         {
+            var contains = false;
             Type result;
-            if (!s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result))
+            lock (s_ProducerConsumerCollectionArgsLock)
+            {
+                contains = s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateProducerConsumerCollectionInfo(objType);
-                s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
+                lock (s_ProducerConsumerCollectionArgsLock)
+                {
+                    s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
@@ -2861,22 +3003,40 @@ namespace Sweet.Jayson
 
         internal static Type[] GetGenericDictionaryArgs(Type objType)
         {
+            var contains = false;
             Type[] result;
-            if (!s_GenericDictionaryArgs.TryGetValue(objType, out result))
+            lock (s_GenericDictionaryArgsLock)
+            {
+                contains = s_GenericDictionaryArgs.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericDictionaryInfo(objType);
-                s_GenericDictionaryArgs.TryGetValue(objType, out result);
+                lock (s_GenericDictionaryArgsLock)
+                {
+                    s_GenericDictionaryArgs.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
 
         internal static Type GetGenericListArgs(Type objType)
         {
+            var contains = false;
             Type result;
-            if (!s_GenericListArgs.TryGetValue(objType, out result))
+            lock (s_GenericListArgsLock)
+            {
+                contains = s_GenericListArgs.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 UpdateGenericListInfo(objType);
-                s_GenericListArgs.TryGetValue(objType, out result);
+                lock (s_GenericListArgsLock)
+                {
+                    s_GenericListArgs.TryGetValue(objType, out result);
+                }
             }
             return result;
         }
@@ -3038,8 +3198,14 @@ namespace Sweet.Jayson
 
         internal static Action<object, object[]> GetICollectionAddMethod(Type objType)
         {
+            var contains = false;
             Action<object, object[]> result;
-            if (!s_ICollectionAdd.TryGetValue(objType, out result))
+            lock (s_ICollectionAddLock)
+            {
+                contains = s_ICollectionAdd.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 MethodInfo method;
                 var methods = objType.GetMethods();
@@ -3054,15 +3220,24 @@ namespace Sweet.Jayson
                     }
                 }
 
-                s_ICollectionAdd[objType] = result;
+                lock (s_ICollectionAddLock)
+                {
+                    s_ICollectionAdd[objType] = result;
+                }
             }
             return result;
         }
 
         internal static Action<object, object[]> GetStackPushMethod(Type objType)
         {
+            var contains = false;
             Action<object, object[]> result;
-            if (!s_StackPush.TryGetValue(objType, out result))
+            lock (s_StackPushLock)
+            {
+                contains = s_StackPush.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 MethodInfo method;
                 var methods = objType.GetMethods();
@@ -3077,15 +3252,24 @@ namespace Sweet.Jayson
                     }
                 }
 
-                s_StackPush[objType] = result;
+                lock (s_StackPushLock)
+                {
+                    s_StackPush[objType] = result;
+                }
             }
             return result;
         }
 
         internal static Action<object, object[]> GetQueueEnqueueMethod(Type objType)
         {
+            var contains = false;
             Action<object, object[]> result;
-            if (!s_QueueEnqueue.TryGetValue(objType, out result))
+            lock (s_QueueEnqueueLock)
+            {
+                contains = s_QueueEnqueue.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 MethodInfo method;
                 var methods = objType.GetMethods();
@@ -3100,7 +3284,10 @@ namespace Sweet.Jayson
                     }
                 }
 
-                s_QueueEnqueue[objType] = result;
+                lock (s_QueueEnqueueLock)
+                {
+                    s_QueueEnqueue[objType] = result;
+                }
             }
             return result;
         }
@@ -3108,8 +3295,14 @@ namespace Sweet.Jayson
 #if !(NET3500 || NET3000 || NET2000)
         internal static Action<object, object[]> GetConcurrentBagMethod(Type objType)
         {
+            var contains = false;
             Action<object, object[]> result;
-            if (!s_ConcurrentBagAdd.TryGetValue(objType, out result))
+            lock (s_ConcurrentBagAddLock)
+            {
+                contains = s_ConcurrentBagAdd.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 MethodInfo method;
                 var methods = objType.GetMethods();
@@ -3124,15 +3317,24 @@ namespace Sweet.Jayson
                     }
                 }
 
-                s_ConcurrentBagAdd[objType] = result;
+                lock (s_ConcurrentBagAddLock)
+                {
+                    s_ConcurrentBagAdd[objType] = result;
+                }
             }
             return result;
         }
 
         internal static Action<object, object[]> GetIProducerConsumerCollectionAddMethod(Type objType)
         {
+            var contains = false;
             Action<object, object[]> result;
-            if (!s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result))
+            lock (s_IProducerConsumerCollectionAddLock)
+            {
+                contains = s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
             {
                 if (IsProducerConsumerCollection(objType))
                 {
@@ -3156,7 +3358,10 @@ namespace Sweet.Jayson
                     }
                 }
 
-                s_IProducerConsumerCollectionAdd[objType] = result;
+                lock (s_IProducerConsumerCollectionAddLock)
+                {
+                    s_IProducerConsumerCollectionAdd[objType] = result;
+                }
             }
             return result;
         }

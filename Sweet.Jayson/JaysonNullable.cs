@@ -7,6 +7,7 @@ namespace Sweet.Jayson
 
     internal sealed class JaysonNullable
     {
+        private static readonly object s_NullablesLock = new object();
         private static readonly Dictionary<Type, JaysonNullable> s_Nullables = new Dictionary<Type, JaysonNullable> ();
 
         private Func<object[], object> m_LambdaCtor;
@@ -23,11 +24,20 @@ namespace Sweet.Jayson
         {
             if (type != null) 
             {
+                var contains = false;
                 JaysonNullable ctor;
-                if (!s_Nullables.TryGetValue(type, out ctor)) 
+                lock (s_NullablesLock)
+                {
+                    contains = s_Nullables.TryGetValue(type, out ctor);
+                }
+
+                if (!contains)
                 {
                     ctor = new JaysonNullable(type);
-                    s_Nullables[type] = ctor;
+                    lock (s_NullablesLock)
+                    {
+                        s_Nullables[type] = ctor;
+                    }
                 }
                 return ctor.m_LambdaCtor(new object[] { value });
             }

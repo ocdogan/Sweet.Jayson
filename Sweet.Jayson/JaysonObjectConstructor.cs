@@ -35,17 +35,24 @@ namespace Sweet.Jayson
 
     internal static class JaysonObjectConstructor
     {
-        private static readonly object s_SyncRoot = new object();
-
+        private static readonly object s_LockCacheLock = new object();
         private static readonly Dictionary<Type, object> s_LockCache = new Dictionary<Type, object>();
+
+        private static readonly object s_DefaultCacheLock = new object();
         private static readonly Dictionary<Type, Func<object>> s_DefaultCache = new Dictionary<Type, Func<object>>();
 
         private static object GetLock(Type objType)
         {
+            var contains = false;
             object result;
-            if (!s_LockCache.TryGetValue(objType, out result))
+            lock (s_LockCacheLock)
             {
-                lock (s_SyncRoot)
+                contains = s_LockCache.TryGetValue(objType, out result);
+            }
+
+            if (!contains)
+            {
+                lock (s_LockCacheLock)
                 {
                     if (!s_LockCache.TryGetValue(objType, out result))
                     {
@@ -62,32 +69,31 @@ namespace Sweet.Jayson
             if ((objType == null) || objType.IsInterface || objType.IsAbstract)
                 return null;
 
+            var contains = false;
             Func<object> function;
-            if (!s_DefaultCache.TryGetValue(objType, out function))
+            lock (s_DefaultCacheLock)
+            {
+                contains = s_DefaultCache.TryGetValue(objType, out function);
+            }
+
+            if (!contains)
             {
                 var info = JaysonTypeInfo.GetTypeInfo(objType);
                 lock (info.SyncRoot)
                 {
-                    if (!s_DefaultCache.TryGetValue(objType, out function))
+                    lock (s_DefaultCacheLock)
                     {
-                        if (info.JTypeCode == JaysonTypeCode.String)
+                        if (!s_DefaultCache.TryGetValue(objType, out function))
                         {
-                            function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
-                        }
-                        else if (info.Enum)
-                        {
-                            function = () => Enum.ToObject(objType, 0L);
-                        }
-                        else if (info.DefaultJConstructor)
-                        {
-                            var newExp = (Expression)Expression.New(objType);
-                            newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
-                            function = Expression.Lambda<Func<object>>(newExp).Compile();
-                        }
-                        else
-                        {
-                            var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
-                            if (ctorInfo.HasCtor && !ctorInfo.HasParam)
+                            if (info.JTypeCode == JaysonTypeCode.String)
+                            {
+                                function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
+                            }
+                            else if (info.Enum)
+                            {
+                                function = () => Enum.ToObject(objType, 0L);
+                            }
+                            else if (info.DefaultJConstructor)
                             {
                                 var newExp = (Expression)Expression.New(objType);
                                 newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
@@ -95,10 +101,21 @@ namespace Sweet.Jayson
                             }
                             else
                             {
-                                function = () => FormatterServices.GetUninitializedObject(objType);
+                                var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
+                                if (ctorInfo.HasCtor && !ctorInfo.HasParam)
+                                {
+                                    var newExp = (Expression)Expression.New(objType);
+                                    newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
+                                    function = Expression.Lambda<Func<object>>(newExp).Compile();
+                                }
+                                else
+                                {
+                                    function = () => FormatterServices.GetUninitializedObject(objType);
+                                }
                             }
+
+                            s_DefaultCache[objType] = function;
                         }
-                        s_DefaultCache[objType] = function;
                     }
                 }
             }

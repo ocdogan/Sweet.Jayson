@@ -684,8 +684,14 @@ namespace Sweet.Jayson
 
         public static JaysonTypeInfo GetTypeInfo(Type type)
         {
+            var contains = false;
             JaysonTypeInfo info;
-            if (!s_InfoCache.TryGetValue(type, out info))
+            lock (s_InfoCacheLock)
+            {
+                contains = s_InfoCache.TryGetValue(type, out info);
+            }
+
+            if (!contains)
             {
                 lock (s_InfoCacheLock)
                 {

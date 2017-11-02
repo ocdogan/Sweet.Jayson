@@ -72,12 +72,19 @@ namespace Sweet.Jayson
 
         # region Static Members
 
+        private static readonly object s_CtorCacheLock = new object();
         private static readonly Dictionary<Type, ConstructorInfo> s_CtorCache = new Dictionary<Type, ConstructorInfo>();
+
+        private static readonly object s_ActivatorCacheLock = new object();
         private static readonly Dictionary<Type, Func<object[], object>> s_ActivatorCache = new Dictionary<Type, Func<object[], object>>();
 
+        private static readonly object s_EvaluatedListTypeCacheLock = new object();
         private static readonly Dictionary<Type, EvaluatedListType> s_EvaluatedListTypeCache = new Dictionary<Type, EvaluatedListType>();
+
+        private static readonly object s_EvaluatedDictionaryTypeCacheLock = new object();
         private static readonly Dictionary<Type, EvaluatedDictionaryType> s_EvaluatedDictionaryTypeCache = new Dictionary<Type, EvaluatedDictionaryType>();
 
+        private static readonly object s_GenericUnderlyingCacheLock = new object();
         private static readonly Dictionary<Type, Type> s_GenericUnderlyingCache = new Dictionary<Type, Type>();
 
         private static readonly JaysonCtorParamMatcher DefaultMatcher = CtorParamMatcher;
@@ -88,8 +95,15 @@ namespace Sweet.Jayson
 
         private static Type GetGenericUnderlyingList(JaysonTypeInfo info)
         {
+            var contains = false;
             Type result;
-            if (!s_GenericUnderlyingCache.TryGetValue(info.Type, out result))
+
+            lock (s_GenericUnderlyingCacheLock)
+            {
+                contains = s_GenericUnderlyingCache.TryGetValue(info.Type, out result);
+            }
+
+            if (!contains)
             {
                 var argTypes = info.GenericArguments;
                 if (argTypes[0] == typeof(object))
@@ -101,15 +115,24 @@ namespace Sweet.Jayson
                     result = typeof(List<>).MakeGenericType(argTypes);
                 }
 
-                s_GenericUnderlyingCache[info.Type] = result;
+                lock (s_GenericUnderlyingCacheLock)
+                {
+                    s_GenericUnderlyingCache[info.Type] = result;
+                }
             }
             return result;
         }
 
         private static Type GetGenericUnderlyingDictionary(JaysonTypeInfo info)
         {
+            var contains = false;
             Type result;
-            if (!s_GenericUnderlyingCache.TryGetValue(info.Type, out result))
+            lock (s_GenericUnderlyingCacheLock)
+            {
+                contains = s_GenericUnderlyingCache.TryGetValue(info.Type, out result);
+            }
+
+            if (!contains)
             {
                 var argTypes = info.GenericArguments;
                 if (argTypes[0] == typeof(string) && argTypes[1] == typeof(object))
@@ -121,33 +144,54 @@ namespace Sweet.Jayson
                     result = typeof(Dictionary<,>).MakeGenericType(argTypes);
                 }
 
-                s_GenericUnderlyingCache[info.Type] = result;
+                lock (s_GenericUnderlyingCacheLock)
+                {
+                    s_GenericUnderlyingCache[info.Type] = result;
+                }
             }
             return result;
         }
 
         private static ConstructorInfo GetReadOnlyCollectionCtor(Type rocType)
         {
+            var contains = false;
             ConstructorInfo ctor;
-            if (!s_CtorCache.TryGetValue(rocType, out ctor))
+            lock (s_CtorCacheLock)
+            {
+                contains = s_CtorCache.TryGetValue(rocType, out ctor);
+            }
+
+            if (!contains)
             {
                 var argTypes = JaysonTypeInfo.GetTypeInfo(rocType).GenericArguments;
 
                 rocType = typeof(ReadOnlyCollection<>).MakeGenericType(argTypes);
                 ctor = rocType.GetConstructor(new Type[] { typeof(IList<>).MakeGenericType(argTypes) });
 
-                s_CtorCache[rocType] = ctor;
+                lock (s_CtorCacheLock)
+                {
+                    s_CtorCache[rocType] = ctor;
+                }
             }
             return ctor;
         }
 
         private static Func<object[], object> GetReadOnlyCollectionActivator(Type rocType)
         {
+            var contains = false;
             Func<object[], object> result;
-            if (!s_ActivatorCache.TryGetValue(rocType, out result))
+            lock (s_ActivatorCacheLock)
+            {
+                contains = s_ActivatorCache.TryGetValue(rocType, out result);
+            }
+
+            if (!contains)
             {
                 result = JaysonCommon.CreateActivator(GetReadOnlyCollectionCtor(rocType));
-                s_ActivatorCache[rocType] = result;
+                lock (s_ActivatorCacheLock)
+                {
+                    s_ActivatorCache[rocType] = result;
+                }
             }
             return result;
         }
@@ -155,26 +199,44 @@ namespace Sweet.Jayson
 #if !(NET4000 || NET3500 || NET3000 || NET2000)
         private static ConstructorInfo GetReadOnlyDictionaryCtor(Type rodType)
         {
+            var contains = false;
             ConstructorInfo ctor;
-            if (!s_CtorCache.TryGetValue(rodType, out ctor))
+            lock (s_CtorCacheLock)
+            {
+                contains = s_CtorCache.TryGetValue(rodType, out ctor);
+            }
+            
+            if (!contains)
             {
                 var argTypes = JaysonTypeInfo.GetTypeInfo(rodType).GenericArguments;
 
                 rodType = typeof(ReadOnlyDictionary<,>).MakeGenericType(argTypes);
                 ctor = rodType.GetConstructor(new Type[] { typeof(IDictionary<,>).MakeGenericType(argTypes) });
 
-                s_CtorCache[rodType] = ctor;
+                lock (s_CtorCacheLock)
+                {
+                    s_CtorCache[rodType] = ctor;
+                }
             }
             return ctor;
         }
 
         private static Func<object[], object> GetReadOnlyDictionaryActivator(Type rodType)
         {
+            var contains = false;
             Func<object[], object> result;
-            if (!s_ActivatorCache.TryGetValue(rodType, out result))
+            lock (s_ActivatorCacheLock)
+            {
+                contains = s_ActivatorCache.TryGetValue(rodType, out result);
+            }
+            
+            if (!contains)
             {
                 result = JaysonCommon.CreateActivator(GetReadOnlyDictionaryCtor(rodType));
-                s_ActivatorCache[rodType] = result;
+                lock (s_ActivatorCacheLock)
+                {
+                    s_ActivatorCache[rodType] = result;
+                }
             }
             return result;
         }
@@ -2050,17 +2112,25 @@ namespace Sweet.Jayson
 
         private static Type GetEvaluatedDictionaryType(Type type, out bool asDictionary, out bool asReadOnly)
         {
+            var contains = false;
             EvaluatedDictionaryType edt;
-            if (!s_EvaluatedDictionaryTypeCache.TryGetValue(type, out edt))
+            lock (s_EvaluatedDictionaryTypeCacheLock)
+            {
+                contains = s_EvaluatedDictionaryTypeCache.TryGetValue(type, out edt);
+            }
+
+            if (!contains)
             {
                 var eType = EvaluateDictionaryType(type, out asDictionary, out asReadOnly);
-                s_EvaluatedDictionaryTypeCache[type] = new EvaluatedDictionaryType
+                lock (s_EvaluatedDictionaryTypeCacheLock)
                 {
-                    EvaluatedType = eType,
-                    AsDictionary = asDictionary,
-                    AsReadOnly = asReadOnly
-                };
-
+                    s_EvaluatedDictionaryTypeCache[type] = new EvaluatedDictionaryType
+                    {
+                        EvaluatedType = eType,
+                        AsDictionary = asDictionary,
+                        AsReadOnly = asReadOnly
+                    };
+                }
                 return eType;
             }
 
