@@ -23,6 +23,7 @@
 # endregion License
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -38,8 +39,7 @@ namespace Sweet.Jayson
     {
         # region Static Members
 
-        private static readonly ReaderWriterLock s_GlobalTypeOverrideLock = new ReaderWriterLock();
-        private static readonly Dictionary<Type, JaysonTypeOverride> s_GlobalTypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+        private static readonly JaysonSynchronizedDictionary<Type, JaysonTypeOverride> s_GlobalTypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>();
 
         # endregion Static Members
 
@@ -49,28 +49,18 @@ namespace Sweet.Jayson
         {
             if (type != null)
             {
-                s_GlobalTypeOverrideLock.AcquireReaderLock(Timeout.Infinite);
-                try
-                {
-                    if (s_GlobalTypeOverrides.Count > 0)
+                return s_GlobalTypeOverrides.GetValueOrUpdate(type, (t) =>
                     {
                         JaysonTypeOverride overrider;
-                        while (type != null)
+                        while (t != null)
                         {
-                            if (s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                            {
+                            if (s_GlobalTypeOverrides.TryGetValue(t, out overrider))
                                 return overrider;
-                            }
-                            type = type.BaseType;
+                            t = t.BaseType;
                         }
 
                         return null;
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseReaderLock();
-                }
+                    });
             }
             return null;
         }
@@ -79,22 +69,14 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName) && !String.IsNullOrEmpty(alias))
             {
-                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
-                try
-                {
-                    JaysonTypeOverride overrider;
-                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
+                var overrider = s_GlobalTypeOverrides.GetValueOrUpdate(type, (t) =>
                     {
-                        overrider = JaysonTypeOverride.NewGlobal(type, null);
-                        s_GlobalTypeOverrides[type] = overrider;
-                    }
+                        var result = JaysonTypeOverride.NewGlobal(t, null);
+                        result.SetMemberAlias(memberName, alias);
+                        return result;
+                    });
 
-                    overrider.SetMemberAlias(memberName, alias);
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
-                }
+                overrider.SetMemberAlias(memberName, alias);
             }
         }
 
@@ -128,22 +110,14 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
-                try
+                var overrider = s_GlobalTypeOverrides.GetValueOrUpdate(type, (t) =>
                 {
-                    JaysonTypeOverride overrider;
-                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        overrider = JaysonTypeOverride.NewGlobal(type, null);
-                        s_GlobalTypeOverrides[type] = overrider;
-                    }
+                    var result = JaysonTypeOverride.NewGlobal(t, null);
+                    result.IgnoreMember(memberName);
+                    return result;
+                });
 
-                    overrider.IgnoreMember(memberName);
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
-                }
+                overrider.IgnoreMember(memberName);
             }
         }
 
@@ -151,19 +125,9 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
-                try
-                {
-                    JaysonTypeOverride overrider;
-                    if (s_GlobalTypeOverrides.TryGetValue(type, out overrider) && (overrider != null))
-                    {
-                        overrider.IncludeMember(memberName);
-                    }
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
-                }
+                JaysonTypeOverride overrider;
+                if (s_GlobalTypeOverrides.TryGetValue(type, out overrider) && (overrider != null))
+                    overrider.IncludeMember(memberName);
             }
         }
 
@@ -184,22 +148,14 @@ namespace Sweet.Jayson
         {
             if ((type != null) && !String.IsNullOrEmpty(memberName))
             {
-                s_GlobalTypeOverrideLock.AcquireWriterLock(Timeout.Infinite);
-                try
+                var overrider = s_GlobalTypeOverrides.GetValueOrUpdate(type, (t) =>
                 {
-                    JaysonTypeOverride overrider;
-                    if (!s_GlobalTypeOverrides.TryGetValue(type, out overrider))
-                    {
-                        overrider = JaysonTypeOverride.NewGlobal(type, null);
-                        s_GlobalTypeOverrides[type] = overrider;
-                    }
+                    var result = JaysonTypeOverride.NewGlobal(t, null);
+                    result.SetDefaultValue(memberName, defaultValue);
+                    return result;
+                });
 
-                    overrider.SetDefaultValue(memberName, defaultValue);
-                }
-                finally
-                {
-                    s_GlobalTypeOverrideLock.ReleaseWriterLock();
-                }
+                overrider.SetDefaultValue(memberName, defaultValue);
             }
         }
 
@@ -241,10 +197,10 @@ namespace Sweet.Jayson
         private Type m_BindToType;
         private object m_SyncRoot = new object();
 
-        private Dictionary<string, bool> m_IgnoredMembers = new Dictionary<string, bool>();
-        private Dictionary<string, string> m_AliasToMemberName = new Dictionary<string, string>();
-        private Dictionary<string, string> m_MemberNameToAlias = new Dictionary<string, string>();
-        private Dictionary<string, object> m_MemberDefaultValues = new Dictionary<string, object>();
+        private JaysonSynchronizedDictionary<string, bool> m_IgnoredMembers = new JaysonSynchronizedDictionary<string, bool>();
+        private JaysonSynchronizedDictionary<string, string> m_AliasToMemberName = new JaysonSynchronizedDictionary<string, string>();
+        private JaysonSynchronizedDictionary<string, string> m_MemberNameToAlias = new JaysonSynchronizedDictionary<string, string>();
+        private JaysonSynchronizedDictionary<string, object> m_MemberDefaultValues = new JaysonSynchronizedDictionary<string, object>();
 
         # endregion Field Members
 
@@ -302,8 +258,11 @@ namespace Sweet.Jayson
         {
             if (!String.IsNullOrEmpty(alias))
             {
-                m_MemberNameToAlias[memberName] = alias;
-                m_AliasToMemberName[alias] = memberName;
+                lock (m_SyncRoot)
+                {
+                    m_MemberNameToAlias[memberName] = alias;
+                    m_AliasToMemberName[alias] = memberName;
+                }
                 return this;
             }
             return RemoveMemberAlias(memberName);
@@ -358,7 +317,7 @@ namespace Sweet.Jayson
 
         public virtual JaysonTypeOverride RemoveDefaultValue(string memberName)
         {
-            lock (m_SyncRoot)
+            lock (((ICollection)m_MemberDefaultValues).SyncRoot)
             {
                 object defaultValue;
                 if (m_MemberDefaultValues.TryGetValue(memberName, out defaultValue))

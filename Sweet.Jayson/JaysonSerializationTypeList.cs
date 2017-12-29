@@ -33,7 +33,7 @@ namespace Sweet.Jayson
         # region Field Members
 
         private int m_Ref = 1;
-        private Dictionary<Type, string> m_Types = new Dictionary<Type, string>();
+        private JaysonSynchronizedDictionary<Type, string> m_Types = new JaysonSynchronizedDictionary<Type, string>();
         private List<JaysonKeyValue<string, Type>> m_OrderedList = new List<JaysonKeyValue<string, Type>>();
 
         # endregion Field Members

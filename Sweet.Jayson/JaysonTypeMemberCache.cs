@@ -45,12 +45,12 @@ namespace Sweet.Jayson
             private IJaysonFastMember[] m_FieldMembers;
             private IJaysonFastMember[] m_PropertyMembers;
 
-            private Dictionary<string, IJaysonFastMember> m_AllIndex =
-                new Dictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
-            private Dictionary<string, IJaysonFastMember> m_FieldIndex =
-                new Dictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
-            private Dictionary<string, IJaysonFastMember> m_PropertyIndex =
-                new Dictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
+            private JaysonSynchronizedDictionary<string, IJaysonFastMember> m_AllIndex =
+                new JaysonSynchronizedDictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
+            private JaysonSynchronizedDictionary<string, IJaysonFastMember> m_FieldIndex =
+                new JaysonSynchronizedDictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
+            private JaysonSynchronizedDictionary<string, IJaysonFastMember> m_PropertyIndex =
+                new JaysonSynchronizedDictionary<string, IJaysonFastMember>(JaysonConstants.CacheInitialCapacity);
 
             # endregion Field Members
 
@@ -134,7 +134,7 @@ namespace Sweet.Jayson
 
             # region Methods
 
-            private IJaysonFastMember[] GetItemsOf(Dictionary<string, IJaysonFastMember> map)
+            private IJaysonFastMember[] GetItemsOf(IDictionary<string, IJaysonFastMember> map)
             {
                 IJaysonFastMember[] items = null;
                 if ((map != null) && (map.Count > 0))

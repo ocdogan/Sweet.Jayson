@@ -51,56 +51,28 @@ namespace Sweet.Jayson
         private static TimeSpan s_UtcOffsetUpdate;
         private static long s_LastUtcOffsetUpdate = -1;
 
-        private static readonly object s_IsGenericCollectionLock = new object();
-        private static readonly Dictionary<Type, bool> s_IsGenericCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
-
-        private static readonly object s_IsGenericDictionaryLock = new object();
-        private static readonly Dictionary<Type, bool> s_IsGenericDictionary = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
-
-        private static readonly object s_IsGenericListLock = new object();
-        private static readonly Dictionary<Type, bool> s_IsGenericList = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, bool> s_IsGenericCollection = new JaysonSynchronizedDictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, bool> s_IsGenericDictionary = new JaysonSynchronizedDictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, bool> s_IsGenericList = new JaysonSynchronizedDictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
-        private static readonly object s_IsProducerConsumerCollectionLock = new object();
-        private static readonly Dictionary<Type, bool> s_IsProducerConsumerCollection = new Dictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, bool> s_IsProducerConsumerCollection = new JaysonSynchronizedDictionary<Type, bool>(JaysonConstants.CacheInitialCapacity);
 #endif
-        private static readonly object s_ICollectionAddLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_ICollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-        
-        private static readonly object s_IDictionaryAddLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-
-        private static readonly object s_StackPushLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_StackPush = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-        
-        private static readonly object s_QueueEnqueueLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_QueueEnqueue = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_ICollectionAdd = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_IDictionaryAdd = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_StackPush = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_QueueEnqueue = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
-        private static readonly object s_ConcurrentBagAddLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_ConcurrentBagAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
-
-        private static readonly object s_IProducerConsumerCollectionAddLock = new object();
-        private static readonly Dictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new Dictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_ConcurrentBagAdd = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Action<object, object[]>> s_IProducerConsumerCollectionAdd = new JaysonSynchronizedDictionary<Type, Action<object, object[]>>(JaysonConstants.CacheInitialCapacity);
 #endif
-        private static readonly object s_TypeCacheLock = new object();
-        private static readonly Dictionary<string, Type> s_TypeCache = new Dictionary<string, Type>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
-        
-        private static readonly object s_AssemblyCacheLock = new object();
-        private static readonly Dictionary<string, Assembly> s_AssemblyCache = new Dictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
-        
-        private static readonly object s_AssemblyNameCacheLock = new object();
-        private static readonly Dictionary<Assembly, string> s_AssemblyNameCache = new Dictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
-
-        private static readonly object s_GenericListArgsLock = new object();
-        private static readonly Dictionary<Type, Type> s_GenericListArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
-        
-        private static readonly object s_GenericCollectionArgsLock = new object();
-        private static readonly Dictionary<Type, Type> s_GenericCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
-        
-        private static readonly object s_GenericDictionaryArgsLock = new object();
-        private static readonly Dictionary<Type, Type[]> s_GenericDictionaryArgs = new Dictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<string, Type> s_TypeCache = new JaysonSynchronizedDictionary<string, Type>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
+        private static readonly JaysonSynchronizedDictionary<string, Assembly> s_AssemblyCache = new JaysonSynchronizedDictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
+        private static readonly JaysonSynchronizedDictionary<Assembly, string> s_AssemblyNameCache = new JaysonSynchronizedDictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericListArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);        
+        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericCollectionArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);       
+        private static readonly JaysonSynchronizedDictionary<Type, Type[]> s_GenericDictionaryArgs = new JaysonSynchronizedDictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
-        private static readonly object s_ProducerConsumerCollectionArgsLock = new object();
-        private static readonly Dictionary<Type, Type> s_ProducerConsumerCollectionArgs = new Dictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Type> s_ProducerConsumerCollectionArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
 #endif
 
         # endregion Static Members
@@ -109,7 +81,7 @@ namespace Sweet.Jayson
 
         static JaysonCommon()
         {
-            lock (s_TypeCacheLock)
+            lock (((ICollection)s_TypeCache).SyncRoot)
             {
                 s_TypeCache["bool"] = typeof(bool);
                 s_TypeCache["byte"] = typeof(byte);
@@ -1597,29 +1569,7 @@ namespace Sweet.Jayson
         public static string GetAssemblyName(Assembly asm)
         {
             if (asm != null)
-            {
-                var contains = false;
-                string name;
-                lock (s_AssemblyNameCacheLock)
-                {
-                    contains = s_AssemblyNameCache.TryGetValue(asm, out name);
-                }
-
-                if (!contains)
-                {
-                    name = asm.GetName().Name;
-
-                    lock (s_AssemblyCacheLock)
-                    {
-                        s_AssemblyCache[name] = asm;
-                    }
-                    lock (s_AssemblyNameCacheLock)
-                    {
-                        s_AssemblyNameCache[asm] = name;
-                    }
-                }
-                return name;
-            }
+                return s_AssemblyNameCache.GetValueOrUpdate(asm, (a) => a.GetName().Name);
             return null;
         }
 
@@ -1627,24 +1577,15 @@ namespace Sweet.Jayson
         {
             if (!String.IsNullOrEmpty(assemblyName))
             {
-                var contains = false;
-                Assembly result;
-                lock (s_AssemblyCacheLock)
-                {
-                    contains = s_AssemblyCache.TryGetValue(assemblyName, out result);
-                }
-
-                if (!contains)
-                {
-                    foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                return s_AssemblyCache.GetValueOrUpdate(assemblyName, (an) =>
                     {
-                        if (GetAssemblyName(asm).Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                        foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                         {
-                            return asm;
+                            if (GetAssemblyName(asm).Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                                return asm;
                         }
-                    }
-                }
-                return result;
+                        return null;
+                    });
             }
             return null;
         }
@@ -1667,13 +1608,7 @@ namespace Sweet.Jayson
                     }
                 }
 
-                var contains = false;
-                lock (s_TypeCacheLock)
-                {
-                    contains = s_TypeCache.TryGetValue(typeName, out result);
-                }
-
-                if (!contains)
+                if (!s_TypeCache.TryGetValue(typeName, out result))
                 {
                     result = Type.GetType(typeName, false, true);
                     if ((result == null) && !typeName.Contains('['))
@@ -1704,10 +1639,7 @@ namespace Sweet.Jayson
                                 }
                             }
 
-                            lock (s_TypeCacheLock)
-                            {
-                                s_TypeCache[typeName] = null;
-                            }
+                            s_TypeCache[typeName] = null;
                             return (Type)null;
                         }
 
@@ -1767,14 +1699,8 @@ namespace Sweet.Jayson
 
                                                     if (assembly != null)
                                                     {
-                                                        lock (s_AssemblyCacheLock)
-                                                        {
-                                                            s_AssemblyCache[assemblyName] = assembly;
-                                                        }
-                                                        lock (s_AssemblyNameCacheLock)
-                                                        {
-                                                            s_AssemblyNameCache[assembly] = assemblyName;
-                                                        }
+                                                        s_AssemblyCache[assemblyName] = assembly;
+                                                        s_AssemblyNameCache[assembly] = assemblyName;
                                                     }
                                                 }
                                                 return assembly;
@@ -1818,10 +1744,7 @@ namespace Sweet.Jayson
 #endif
                     }
 
-                    lock (s_TypeCacheLock)
-                    {
-                        s_TypeCache[typeName] = result;
-                    }
+                    s_TypeCache[typeName] = result;
                 }
             }
 
@@ -2816,229 +2739,111 @@ namespace Sweet.Jayson
             return false;
         }
 
-        private static void UpdateGenericCollectionInfo(Type objType)
-        {
-            Type[] arguments;
-            bool found = FindInterface(objType, typeof(ICollection<>), out arguments);
-            lock (s_IsGenericCollectionLock)
-            {
-                s_IsGenericCollection[objType] = found;
-            }
-            lock (s_GenericCollectionArgsLock)
-            {
-                s_GenericCollectionArgs[objType] = found ? arguments[0] : null;
-            }
-        }
-
-#if !(NET3500 || NET3000 || NET2000)
-        private static void UpdateProducerConsumerCollectionInfo(Type objType)
-        {
-            Type[] arguments;
-            bool found = FindInterface(objType, typeof(IProducerConsumerCollection<>), out arguments);
-
-            lock (s_IsProducerConsumerCollectionLock)
-            {
-                s_IsProducerConsumerCollection[objType] = found;
-            }
-            lock (s_ProducerConsumerCollectionArgsLock)
-            {
-                s_ProducerConsumerCollectionArgs[objType] = found ? arguments[0] : null;
-            }
-        }
-#endif
-
-        private static void UpdateGenericDictionaryInfo(Type objType)
-        {
-            Type[] arguments;
-            bool found = FindInterface(objType, typeof(IDictionary<,>), out arguments);
-
-            lock (s_IsGenericDictionaryLock)
-            {
-                s_IsGenericDictionary[objType] = found;
-            }
-            lock (s_GenericDictionaryArgsLock)
-            {
-                s_GenericDictionaryArgs[objType] = arguments;
-            }
-        }
-
-        private static void UpdateGenericListInfo(Type objType)
-        {
-            Type[] arguments;
-            bool found = FindInterface(objType, typeof(IList<>), out arguments);
-
-            lock (s_IsGenericListLock)
-            {
-                s_IsGenericList[objType] = found;
-            }
-            lock (s_GenericListArgsLock)
-            {
-                s_GenericListArgs[objType] = found ? arguments[0] : null;
-            }
-        }
-
         internal static bool IsGenericCollection(Type objType)
         {
-            var contains = false;
-            bool result;
-            lock (s_IsGenericCollectionLock)
-            {
-                contains = s_IsGenericCollection.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericCollectionInfo(objType);
-                lock (s_IsGenericCollectionLock)
+            return s_IsGenericCollection.GetValueOrUpdate(objType, (t) => 
                 {
-                    s_IsGenericCollection.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(ICollection<>), out arguments);
+
+                    s_GenericCollectionArgs[t] = found ? arguments[0] : null;
+
+                    return found;
+                });
         }
 
 #if !(NET3500 || NET3000 || NET2000)
         internal static bool IsProducerConsumerCollection(Type objType)
         {
-            var contains = false;
-            bool result;
-            lock (s_IsProducerConsumerCollectionLock)
-            {
-                contains = s_IsProducerConsumerCollection.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateProducerConsumerCollectionInfo(objType);
-                lock (s_IsProducerConsumerCollectionLock)
+            return s_IsProducerConsumerCollection.GetValueOrUpdate(objType, (t) =>
                 {
-                    s_IsProducerConsumerCollection.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(IProducerConsumerCollection<>), out arguments);
+
+                    s_ProducerConsumerCollectionArgs[t] = found ? arguments[0] : null;
+
+                    return found;
+                });
         }
 #endif
 
         internal static bool IsGenericDictionary(Type objType)
         {
-            var contains = false;
-            bool result;
-            lock (s_IsGenericDictionaryLock)
-            {
-                contains = s_IsGenericDictionary.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericDictionaryInfo(objType);
-                lock (s_IsGenericDictionaryLock)
+            return s_IsGenericDictionary.GetValueOrUpdate(objType, (t) =>
                 {
-                    s_IsGenericDictionary.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(IDictionary<,>), out arguments);
+
+                    s_GenericDictionaryArgs[t] = arguments;
+
+                    return found;
+                });
         }
 
         internal static bool IsGenericList(Type objType)
         {
-            var contains = false;
-            bool result;
-            lock (s_IsGenericListLock)
-            {
-                contains = s_IsGenericList.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericListInfo(objType);
-                lock (s_IsGenericListLock)
+            return s_IsGenericList.GetValueOrUpdate(objType, (t) =>
                 {
-                    s_IsGenericList.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(IList<>), out arguments);
+
+                    s_GenericListArgs[t] = found ? arguments[0] : null;
+
+                    return found;
+                });
         }
 
         internal static Type GetGenericCollectionArgs(Type objType)
         {
-            var contains = false;
-            Type result;
-            lock (s_GenericCollectionArgsLock)
-            {
-                contains = s_GenericCollectionArgs.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericCollectionInfo(objType);
-                lock (s_GenericCollectionArgsLock)
+            return s_GenericCollectionArgs.GetValueOrUpdate(objType, (t) => 
                 {
-                    s_GenericCollectionArgs.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(ICollection<>), out arguments);
+
+                    s_IsGenericCollection[t] = found;
+                
+                    return found ? arguments[0] : null;
+                });
         }
 
 #if !(NET3500 || NET3000 || NET2000)
         internal static Type GetProducerConsumerCollectionArgs(Type objType)
         {
-            var contains = false;
-            Type result;
-            lock (s_ProducerConsumerCollectionArgsLock)
-            {
-                contains = s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateProducerConsumerCollectionInfo(objType);
-                lock (s_ProducerConsumerCollectionArgsLock)
+            return s_ProducerConsumerCollectionArgs.GetValueOrUpdate(objType, (t) =>
                 {
-                    s_ProducerConsumerCollectionArgs.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(IProducerConsumerCollection<>), out arguments);
+
+                    s_IsProducerConsumerCollection[t] = found;
+
+                    return found ? arguments[0] : null;
+
+                });
         }
 #endif
 
         internal static Type[] GetGenericDictionaryArgs(Type objType)
         {
-            var contains = false;
-            Type[] result;
-            lock (s_GenericDictionaryArgsLock)
-            {
-                contains = s_GenericDictionaryArgs.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericDictionaryInfo(objType);
-                lock (s_GenericDictionaryArgsLock)
+            return s_GenericDictionaryArgs.GetValueOrUpdate(objType, (t) => 
                 {
-                    s_GenericDictionaryArgs.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    s_IsGenericDictionary[t] = FindInterface(t, typeof(IDictionary<,>), out arguments);
+
+                    return arguments;
+                });
         }
 
         internal static Type GetGenericListArgs(Type objType)
         {
-            var contains = false;
-            Type result;
-            lock (s_GenericListArgsLock)
-            {
-                contains = s_GenericListArgs.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                UpdateGenericListInfo(objType);
-                lock (s_GenericListArgsLock)
+            return s_GenericListArgs.GetValueOrUpdate(objType, (t) =>
                 {
-                    s_GenericListArgs.TryGetValue(objType, out result);
-                }
-            }
-            return result;
+                    Type[] arguments;
+                    var found = FindInterface(t, typeof(IList<>), out arguments);
+
+                    s_IsGenericList[t] = found;
+
+                    return found ? arguments[0] : null;
+                });
         }
 
         internal static bool StackContains(ArrayList stack, object obj)
@@ -3198,195 +3003,116 @@ namespace Sweet.Jayson
 
         internal static Action<object, object[]> GetICollectionAddMethod(Type objType)
         {
-            var contains = false;
-            Action<object, object[]> result;
-            lock (s_ICollectionAddLock)
-            {
-                contains = s_ICollectionAdd.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                MethodInfo method;
-                var methods = objType.GetMethods();
-
-                for (int i = methods.Length - 1; i > -1; i--)
+            return s_ICollectionAdd.GetValueOrUpdate(objType, (t) =>
                 {
-                    method = methods[i];
-                    if (method.Name == "Add" && method.GetParameters().Length == 1)
+                    MethodInfo method;
+                    var methods = t.GetMethods();
+
+                    for (int i = methods.Length - 1; i > -1; i--)
                     {
-                        result = PrepareMethodCall(method);
-                        break;
+                        method = methods[i];
+                        if (method.Name == "Add" && method.GetParameters().Length == 1)
+                            return PrepareMethodCall(method);
                     }
-                }
 
-                lock (s_ICollectionAddLock)
-                {
-                    s_ICollectionAdd[objType] = result;
-                }
-            }
-            return result;
+                    return null;
+                });
         }
 
         internal static Action<object, object[]> GetStackPushMethod(Type objType)
         {
-            var contains = false;
-            Action<object, object[]> result;
-            lock (s_StackPushLock)
-            {
-                contains = s_StackPush.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                MethodInfo method;
-                var methods = objType.GetMethods();
-
-                for (int i = methods.Length - 1; i > -1; i--)
+            return s_StackPush.GetValueOrUpdate(objType, (t) =>
                 {
-                    method = methods[i];
-                    if (method.Name == "Push" && method.GetParameters().Length == 1)
+                    MethodInfo method;
+                    var methods = t.GetMethods();
+
+                    for (int i = methods.Length - 1; i > -1; i--)
                     {
-                        result = PrepareMethodCall(method);
-                        break;
+                        method = methods[i];
+                        if (method.Name == "Push" && method.GetParameters().Length == 1)
+                            return PrepareMethodCall(method);
                     }
-                }
-
-                lock (s_StackPushLock)
-                {
-                    s_StackPush[objType] = result;
-                }
-            }
-            return result;
+                    return null;
+                });            
         }
 
         internal static Action<object, object[]> GetQueueEnqueueMethod(Type objType)
         {
-            var contains = false;
-            Action<object, object[]> result;
-            lock (s_QueueEnqueueLock)
-            {
-                contains = s_QueueEnqueue.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                MethodInfo method;
-                var methods = objType.GetMethods();
-
-                for (int i = methods.Length - 1; i > -1; i--)
+            return s_QueueEnqueue.GetValueOrUpdate(objType, (t) =>
                 {
-                    method = methods[i];
-                    if (method.Name == "Enqueue" && method.GetParameters().Length == 1)
+                    MethodInfo method;
+                    var methods = t.GetMethods();
+
+                    for (int i = methods.Length - 1; i > -1; i--)
                     {
-                        result = PrepareMethodCall(method);
-                        break;
+                        method = methods[i];
+                        if (method.Name == "Enqueue" && method.GetParameters().Length == 1)
+                            return PrepareMethodCall(method);
                     }
-                }
-
-                lock (s_QueueEnqueueLock)
-                {
-                    s_QueueEnqueue[objType] = result;
-                }
-            }
-            return result;
+                    return null;
+                });
         }
 
 #if !(NET3500 || NET3000 || NET2000)
         internal static Action<object, object[]> GetConcurrentBagMethod(Type objType)
         {
-            var contains = false;
-            Action<object, object[]> result;
-            lock (s_ConcurrentBagAddLock)
-            {
-                contains = s_ConcurrentBagAdd.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                MethodInfo method;
-                var methods = objType.GetMethods();
-
-                for (int i = methods.Length - 1; i > -1; i--)
+            return s_ConcurrentBagAdd.GetValueOrUpdate(objType, (t) =>
                 {
-                    method = methods[i];
-                    if (method.Name == "Add" && method.GetParameters().Length == 1)
+                    MethodInfo method;
+                    var methods = t.GetMethods();
+
+                    for (int i = methods.Length - 1; i > -1; i--)
                     {
-                        result = PrepareMethodCall(method);
-                        break;
+                        method = methods[i];
+                        if (method.Name == "Add" && method.GetParameters().Length == 1)
+                            return PrepareMethodCall(method);
                     }
-                }
-
-                lock (s_ConcurrentBagAddLock)
-                {
-                    s_ConcurrentBagAdd[objType] = result;
-                }
-            }
-            return result;
+                    return null;
+                });
         }
 
         internal static Action<object, object[]> GetIProducerConsumerCollectionAddMethod(Type objType)
         {
-            var contains = false;
-            Action<object, object[]> result;
-            lock (s_IProducerConsumerCollectionAddLock)
-            {
-                contains = s_IProducerConsumerCollectionAdd.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                if (IsProducerConsumerCollection(objType))
+            return s_IProducerConsumerCollectionAdd.GetValueOrUpdate(objType, (t) =>
                 {
-                    var argTypes = objType.GetGenericArguments();
-                    if (argTypes != null && argTypes.Length == 1)
+                    if (IsProducerConsumerCollection(t))
                     {
-                        var ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType(new Type[] { argTypes[0] });
-
-                        MethodInfo method;
-                        var methods = ipcType.GetMethods();
-
-                        for (int i = methods.Length - 1; i > -1; i--)
+                        var argTypes = t.GetGenericArguments();
+                        if (argTypes != null && argTypes.Length == 1)
                         {
-                            method = methods[i];
-                            if (method.Name == "TryAdd" && method.GetParameters().Length == 1)
+                            var ipcType = typeof(IProducerConsumerCollection<>).MakeGenericType(new Type[] { argTypes[0] });
+
+                            MethodInfo method;
+                            var methods = ipcType.GetMethods();
+
+                            for (int i = methods.Length - 1; i > -1; i--)
                             {
-                                result = PrepareMethodCall(method);
-                                break;
+                                method = methods[i];
+                                if (method.Name == "TryAdd" && method.GetParameters().Length == 1)
+                                    return PrepareMethodCall(method);
                             }
                         }
                     }
-                }
-
-                lock (s_IProducerConsumerCollectionAddLock)
-                {
-                    s_IProducerConsumerCollectionAdd[objType] = result;
-                }
-            }
-            return result;
+                    return null;
+                });            
         }
 #endif
 
         internal static Action<object, object[]> GetIDictionaryAddMethod(Type objType)
         {
-            Action<object, object[]> result;
-            if (!s_IDictionaryAdd.TryGetValue(objType, out result))
-            {
-                MethodInfo method;
-                var methods = objType.GetMethods();
-
-                for (int i = methods.Length - 1; i > -1; i--)
+            return s_IDictionaryAdd.GetValueOrUpdate(objType, (t) =>
                 {
-                    method = methods[i];
-                    if (method.Name == "Add" && method.GetParameters().Length == 2)
+                    MethodInfo method;
+                    var methods = objType.GetMethods();
+
+                    for (int i = methods.Length - 1; i > -1; i--)
                     {
-                        result = PrepareMethodCall(method);
-                        break;
+                        method = methods[i];
+                        if (method.Name == "Add" && method.GetParameters().Length == 2)
+                            return PrepareMethodCall(method);
                     }
-                }
-                s_IDictionaryAdd[objType] = result;
-            }
-            return result;
+                    return null;
+                });
         }
 
         internal static JaysonDictionaryType GetDictionaryType(IEnumerable obj, out Type entryType)

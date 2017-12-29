@@ -41,36 +41,15 @@ namespace Sweet.Jayson
 
         # region Static Members
 
-        private static readonly object s_TypeMembersLock = new object();
-        private static Dictionary<Type, JaysonTypeMemberCache> s_TypeMembers =
-            new Dictionary<Type, JaysonTypeMemberCache>(JaysonConstants.CacheInitialCapacity);
+        private static JaysonSynchronizedDictionary<Type, JaysonTypeMemberCache> s_TypeMembers =
+            new JaysonSynchronizedDictionary<Type, JaysonTypeMemberCache>(JaysonConstants.CacheInitialCapacity);
 
         # endregion Static Members
 
         public static JaysonTypeMemberCache GetCache(Type objType)
         {
             if (objType != null)
-            {
-                var contains = false;
-                JaysonTypeMemberCache cache;
-                lock (s_TypeMembersLock)
-                {
-                    contains = s_TypeMembers.TryGetValue(objType, out cache);
-                }
-
-                if (!contains)
-                {
-                    lock (s_TypeMembersLock)
-                    {
-                        if (!s_TypeMembers.TryGetValue(objType, out cache))
-                        {
-                            cache = new JaysonTypeMemberCache(objType);
-                            s_TypeMembers[objType] = cache;
-                        }
-                    }
-                }
-                return cache;
-            }
+                return s_TypeMembers.GetValueOrUpdate(objType, (t) => new JaysonTypeMemberCache(t));
             return null;
         }
 
@@ -78,29 +57,9 @@ namespace Sweet.Jayson
         {
             if ((objType != null) && !String.IsNullOrEmpty(memberName))
             {
-                var contains = false;
-                JaysonTypeMemberCache cache;
-                lock (s_TypeMembersLock)
-                {
-                    contains = s_TypeMembers.TryGetValue(objType, out cache);
-                }
-
-                if (!contains)
-                {
-                    lock (s_TypeMembersLock)
-                    {
-                        if (!s_TypeMembers.TryGetValue(objType, out cache))
-                        {
-                            cache = new JaysonTypeMemberCache(objType);
-                            s_TypeMembers[objType] = cache;
-                        }
-                    }
-                }
-
+                var cache = s_TypeMembers.GetValueOrUpdate(objType, (t) => new JaysonTypeMemberCache(t));
                 if (cache != null)
-                {
                     return cache.GetAnyMember(memberName);
-                }
             }
             return null;
         }
@@ -109,29 +68,9 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
-                var contains = false;
-                JaysonTypeMemberCache cache;
-                lock (s_TypeMembersLock)
-                {
-                    contains = s_TypeMembers.TryGetValue(objType, out cache);
-                }
-
-                if (!contains)
-                {
-                    lock (s_TypeMembersLock)
-                    {
-                        if (!s_TypeMembers.TryGetValue(objType, out cache))
-                        {
-                            cache = new JaysonTypeMemberCache(objType);
-                            s_TypeMembers[objType] = cache;
-                        }
-                    }
-                }
-
+                var cache = s_TypeMembers.GetValueOrUpdate(objType, (t) => new JaysonTypeMemberCache(t));
                 if (cache != null)
-                {
                     return cache.AllMembers;
-                }
             }
             return null;
         }
@@ -140,29 +79,9 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
-                var contains = false;
-                JaysonTypeMemberCache cache;
-                lock (s_TypeMembersLock)
-                {
-                    contains = s_TypeMembers.TryGetValue(objType, out cache);
-                }
-
-                if (!contains)
-                {
-                    lock (s_TypeMembersLock)
-                    {
-                        if (!s_TypeMembers.TryGetValue(objType, out cache))
-                        {
-                            cache = new JaysonTypeMemberCache(objType);
-                            s_TypeMembers[objType] = cache;
-                        }
-                    }
-                }
-
+                var cache = s_TypeMembers.GetValueOrUpdate(objType, (t) => new JaysonTypeMemberCache(t));
                 if (cache != null)
-                {
                     return cache.Fields;
-                }
             }
             return null;
         }
@@ -171,29 +90,9 @@ namespace Sweet.Jayson
         {
             if (objType != null)
             {
-                var contains = false;
-                JaysonTypeMemberCache cache;
-                lock (s_TypeMembersLock)
-                {
-                    contains = s_TypeMembers.TryGetValue(objType, out cache);
-                }
-
-                if (!contains)
-                {
-                    lock (s_TypeMembersLock)
-                    {
-                        if (!s_TypeMembers.TryGetValue(objType, out cache))
-                        {
-                            cache = new JaysonTypeMemberCache(objType);
-                            s_TypeMembers[objType] = cache;
-                        }
-                    }
-                }
-
+                var cache = s_TypeMembers.GetValueOrUpdate(objType, (t) => new JaysonTypeMemberCache(t));
                 if (cache != null)
-                {
                     return cache.Properties;
-                }
             }
             return null;
         }

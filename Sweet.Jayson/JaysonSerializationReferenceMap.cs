@@ -32,7 +32,7 @@ namespace Sweet.Jayson
     internal class JaysonSerializationReferenceMap : IDisposable
     {
         private int m_Ids = 0;
-        private Dictionary<object, int> m_ObjectMap = new Dictionary<object, int>();
+        private JaysonSynchronizedDictionary<object, int> m_ObjectMap = new JaysonSynchronizedDictionary<object, int>();
 
         public int GetObjectId(object obj)
         {

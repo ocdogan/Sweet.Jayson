@@ -52,59 +52,36 @@ namespace Sweet.Jayson
 
         private static class CallSiteCache
         {
-            private static readonly object s_GetterLock = new object();
-            private static readonly Dictionary<string, CallSite<Func<CallSite, object, object>>> s_Getters =
-                new Dictionary<string, CallSite<Func<CallSite, object, object>>>(JaysonConstants.CacheInitialCapacity);
+            private static readonly JaysonSynchronizedDictionary<string, CallSite<Func<CallSite, object, object>>> s_Getters =
+                new JaysonSynchronizedDictionary<string, CallSite<Func<CallSite, object, object>>>(JaysonConstants.CacheInitialCapacity);
 
-            private static readonly object s_SetterLock = new object();
-            private static readonly Dictionary<string, CallSite<Func<CallSite, object, object, object>>> s_Setters =
-                new Dictionary<string, CallSite<Func<CallSite, object, object, object>>>(JaysonConstants.CacheInitialCapacity);
+            private static readonly JaysonSynchronizedDictionary<string, CallSite<Func<CallSite, object, object, object>>> s_Setters =
+                new JaysonSynchronizedDictionary<string, CallSite<Func<CallSite, object, object, object>>>(JaysonConstants.CacheInitialCapacity);
 
             internal static object GetValue(string name, object target)
             {
-                CallSite<Func<CallSite, object, object>> callSite;
-                if (!s_Getters.TryGetValue(name, out callSite))
-                {
-                    lock (s_GetterLock)
-                    {
-                        if (!s_Getters.TryGetValue(name, out callSite))
-                        {
-                            callSite =
-                                CallSite<Func<CallSite, object, object>>.Create(
-                                    Microsoft.CSharp.RuntimeBinder.Binder.GetMember(CSharpBinderFlags.None, name,
+                var callSite = s_Getters.GetValueOrUpdate(name, (n) => {
+                    return CallSite<Func<CallSite, object, object>>.Create(
+                                    Microsoft.CSharp.RuntimeBinder.Binder.GetMember(CSharpBinderFlags.None, n,
                                         typeof(CallSiteCache), new CSharpArgumentInfo[] { 
 											CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) 
 										}));
-
-                            s_Getters[name] = callSite;
-                        }
-                    }
-                }
+                });
 
                 return callSite.Target(callSite, target);
             }
 
             internal static void SetValue(string name, object target, object value)
             {
-                CallSite<Func<CallSite, object, object, object>> callSite;
-                if (!s_Setters.TryGetValue(name, out callSite))
-                {
-                    lock (s_SetterLock)
-                    {
-                        if (!s_Setters.TryGetValue(name, out callSite))
-                        {
-                            callSite =
-                                CallSite<Func<CallSite, object, object, object>>.Create(
-                                    Microsoft.CSharp.RuntimeBinder.Binder.SetMember(CSharpBinderFlags.None, name,
+                var callSite = s_Setters.GetValueOrUpdate(name, (n) => {
+                    return CallSite<Func<CallSite, object, object, object>>.Create(
+                                    Microsoft.CSharp.RuntimeBinder.Binder.SetMember(CSharpBinderFlags.None, n,
                                         typeof(CallSiteCache), new CSharpArgumentInfo[] { 
 											CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), 
 											CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.UseCompileTimeType, null) 
 										}));
+                });
 
-                            s_Setters[name] = callSite;
-                        }
-                    }
-                }
                 callSite.Target(callSite, target, value);
             }
         }

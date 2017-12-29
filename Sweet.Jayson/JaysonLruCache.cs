@@ -60,7 +60,7 @@ namespace Sweet.Jayson
 
         private int m_Capacity;
         private bool m_CheckCapacity;
-        private Dictionary<TKey, LruEntry> m_Entries;
+        private IDictionary<TKey, LruEntry> m_Entries;
 
         private readonly object syncRoot = new object();
 
@@ -74,7 +74,7 @@ namespace Sweet.Jayson
             m_CheckCapacity = m_Capacity > 0;
 
             var initialCap = m_CheckCapacity ? Math.Min(1000, m_Capacity) : 1000;
-            m_Entries = new Dictionary<TKey, LruEntry>(initialCap);
+            m_Entries = new JaysonSynchronizedDictionary<TKey, LruEntry>(initialCap);
         }
 
         public int Capacity
@@ -368,7 +368,7 @@ namespace Sweet.Jayson
             try
             {
                 m_Entries.Clear();
-                m_Entries = new Dictionary<TKey, LruEntry>();
+                m_Entries = new JaysonSynchronizedDictionary<TKey, LruEntry>();
 
                 if (m_CheckCapacity)
                 {

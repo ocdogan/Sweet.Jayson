@@ -31,7 +31,7 @@ namespace Sweet.Jayson
 {
     internal class JaysonDeserializationReferenceMap : IDisposable
     {
-        private Dictionary<int, object> m_IdMap = new Dictionary<int, object>();
+        private readonly JaysonSynchronizedDictionary<int, object> m_IdMap = new JaysonSynchronizedDictionary<int, object>();
 
         public object this[int id]
         {

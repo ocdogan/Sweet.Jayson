@@ -35,7 +35,7 @@ namespace Sweet.Jayson
         # region Private Field Members
 
         protected object m_TypeOverrideLock = new object();
-        protected Dictionary<Type, JaysonTypeOverride> m_TypeOverrides;
+        protected JaysonSynchronizedDictionary<Type, JaysonTypeOverride> m_TypeOverrides;
 
         protected readonly List<Func<Type, string, MemberInfo, bool>> m_IgnoreMembers = new List<Func<Type, string, MemberInfo, bool>>();
         protected readonly List<Func<Type, string, MemberInfo, object, bool>> m_IgnoreMemberValues = new List<Func<Type, string, MemberInfo, object, bool>>();
@@ -187,7 +187,7 @@ namespace Sweet.Jayson
         {
             if (typeOverrides != null && typeOverrides.Length > 0)
             {
-                m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(typeOverrides.Length);
+                m_TypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>(typeOverrides.Length);
                 foreach (var typeOverride in typeOverrides)
                 {
                     if (typeOverride != null)
@@ -212,7 +212,7 @@ namespace Sweet.Jayson
                     {
                         if (destination.m_TypeOverrides == null)
                         {
-                            destination.m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>(m_TypeOverrides.Count);
+                            destination.m_TypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>(m_TypeOverrides.Count);
                         }
                         else
                         {
@@ -263,7 +263,7 @@ namespace Sweet.Jayson
                 JaysonTypeOverride typeOverride = null;
                 if (m_TypeOverrides == null)
                 {
-                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+                    m_TypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>();
                 }
                 else
                 {
@@ -307,7 +307,7 @@ namespace Sweet.Jayson
             {
                 if (m_TypeOverrides == null)
                 {
-                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+                    m_TypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>();
                 }
                 m_TypeOverrides[typeOverride.Type] = typeOverride;
             }
@@ -320,7 +320,7 @@ namespace Sweet.Jayson
             {
                 if (m_TypeOverrides == null)
                 {
-                    m_TypeOverrides = new Dictionary<Type, JaysonTypeOverride>();
+                    m_TypeOverrides = new JaysonSynchronizedDictionary<Type, JaysonTypeOverride>();
                 }
 
                 foreach (var typeOverride in typeOverrides)

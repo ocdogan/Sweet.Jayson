@@ -29,6 +29,7 @@ using System.Linq;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace Sweet.Jayson
 {
@@ -40,8 +41,7 @@ namespace Sweet.Jayson
 
         # region Static Readonly Members
 
-        private static readonly object s_TypeNameCacheLock = new object();
-        private static Dictionary<Type, JaysonTypeName> s_TypeNameCache;
+        private static JaysonSynchronizedDictionary<Type, JaysonTypeName> s_TypeNameCache;
 
         # endregion Static Readonly Members
 
@@ -52,7 +52,7 @@ namespace Sweet.Jayson
         # region Field Readonly Members
 
         private readonly object m_NameCacheLock = new object();
-        private Dictionary<JaysonTypeNameFormatFlags, string> m_NameCache;
+        private JaysonSynchronizedDictionary<JaysonTypeNameFormatFlags, string> m_NameCache;
 
         # endregion Field Readonly Members
 
@@ -204,41 +204,21 @@ namespace Sweet.Jayson
             }
         }
 
-        private Dictionary<JaysonTypeNameFormatFlags, string> GetNameCache()
+        private JaysonSynchronizedDictionary<JaysonTypeNameFormatFlags, string> GetNameCache()
         {
             if (m_NameCache == null)
-            {
-                lock (m_NameCacheLock)
-                {
-                    if (m_NameCache == null)
-                    {
-                        m_NameCache = new Dictionary<JaysonTypeNameFormatFlags, string>();
-                    }
-                }
-            }
+                Interlocked.Exchange(ref m_NameCache, new JaysonSynchronizedDictionary<JaysonTypeNameFormatFlags, string>());
             return m_NameCache;
         }
 
         public string FormatTypeName(JaysonTypeNameFormatFlags flags)
         {
-            var cache = GetNameCache();
-
-            string name;
-            if (!cache.TryGetValue(flags, out name))
-            {
-                lock (m_NameCacheLock)
+            return GetNameCache().GetValueOrUpdate(flags, (f) =>
                 {
-                    if (!cache.TryGetValue(flags, out name))
-                    {
-                        var sBuilder = new StringBuilder(IsGeneric ? 200 : 60);
-                        WriteTo(sBuilder, flags);
-                        name = sBuilder.ToString();
-
-                        cache[flags] = name;
-                    }
-                }
-            }
-            return name;
+                    var sBuilder = new StringBuilder(IsGeneric ? 200 : 60);
+                    WriteTo(sBuilder, f);
+                    return sBuilder.ToString();
+                });
         }
 
         private static char IntToHexDigit(int num)
@@ -267,47 +247,18 @@ namespace Sweet.Jayson
             return null;
         }
 
-        private static Dictionary<Type, JaysonTypeName> GetTypeNameCache()
+        private static JaysonSynchronizedDictionary<Type, JaysonTypeName> GetTypeNameCache()
         {
             if (s_TypeNameCache == null)
-            {
-                lock (s_TypeNameCacheLock)
-                {
-                    if (s_TypeNameCache == null)
-                    {
-                        s_TypeNameCache = new Dictionary<Type, JaysonTypeName>();
-                    }
-                }
-            }
+                Interlocked.Exchange(ref s_TypeNameCache, new JaysonSynchronizedDictionary<Type, JaysonTypeName>());
             return s_TypeNameCache;
         }
 
         public static JaysonTypeName GetTypeName(Type type)
         {
-            if (type == null)
-                return null;
-
-            var cache = GetTypeNameCache();
-
-            var contains = false;
-            JaysonTypeName typeName;
-            lock (s_TypeNameCacheLock)
-            {
-                contains = cache.TryGetValue(type, out typeName);
-            }
-
-            if (!contains)
-            {
-                lock (s_TypeNameCacheLock)
-                {
-                    if (!cache.TryGetValue(type, out typeName))
-                    {
-                        typeName = new JaysonTypeName(type);
-                        cache[type] = typeName;
-                    }
-                }
-            }
-            return typeName;
+            if (type != null)
+                return GetTypeNameCache().GetValueOrUpdate(type, (t) => new JaysonTypeName(t));
+            return null;
         }
 
         # endregion Write Methods

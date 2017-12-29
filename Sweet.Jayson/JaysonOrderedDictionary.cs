@@ -33,18 +33,19 @@ namespace Sweet.Jayson
     internal class JaysonOrderedDictionary<T, K> : IDictionary<T, K>
     {
         private readonly object m_SyncRoot = new object();
-        private readonly Dictionary<T, K> m_Items;
+
         private readonly List<KeyValuePair<T, K>> m_OrderedItems;
+        private readonly JaysonSynchronizedDictionary<T, K> m_Items;
 
         public JaysonOrderedDictionary()
         {
-            m_Items = new Dictionary<T, K>();
+            m_Items = new JaysonSynchronizedDictionary<T, K>();
             m_OrderedItems = new List<KeyValuePair<T, K>>();
         }
 
         public JaysonOrderedDictionary(int capacity)
         {
-            m_Items = new Dictionary<T, K>(capacity);
+            m_Items = new JaysonSynchronizedDictionary<T, K>(capacity);
             m_OrderedItems = new List<KeyValuePair<T, K>>(capacity);
         }
 

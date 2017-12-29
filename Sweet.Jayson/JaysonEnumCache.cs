@@ -31,96 +31,28 @@ namespace Sweet.Jayson
 
     internal static class JaysonEnumCache
     {
-        private static object s_EnumNameCacheLock = new object();
-        private static Dictionary<Enum, string> s_EnumNameCache = new Dictionary<Enum, string>();
-
-        private static object s_EnumValueCacheLock = new object();
-        private static Dictionary<Enum, string> s_EnumValueCache = new Dictionary<Enum, string>();
-
-        private static object s_EnumTypeCacheLock = new object();
-        private static Dictionary<Type, Dictionary<string, object>> s_EnumTypeCache = new Dictionary<Type, Dictionary<string, object>>();
+        private static JaysonSynchronizedDictionary<Enum, string> s_EnumNameCache = new JaysonSynchronizedDictionary<Enum, string>();
+        private static JaysonSynchronizedDictionary<Enum, string> s_EnumValueCache = new JaysonSynchronizedDictionary<Enum, string>();
+        private static JaysonSynchronizedDictionary<Type, JaysonSynchronizedDictionary<string, object>> s_EnumTypeCache = new JaysonSynchronizedDictionary<Type, JaysonSynchronizedDictionary<string, object>>();
 
         public static string AsIntString(Enum enumValue)
         {
-            var contains = false;
-            string result;
-            lock (s_EnumValueCacheLock)
-            {
-                contains = s_EnumValueCache.TryGetValue(enumValue, out result);
-            }
-
-            if (!contains)
-            {
-                lock (s_EnumValueCacheLock) 
-                {
-                    if (!s_EnumValueCache.TryGetValue(enumValue, out result)) 
-                    {
-                        result = enumValue.ToString("D");
-                        s_EnumValueCache[enumValue] = result;
-                    }
-                }
-            }
-            return result;
+            return s_EnumValueCache.GetValueOrUpdate(enumValue, (ev) => ev.ToString("D"));
         }
 
         public static string GetName(Enum enumValue)
         {
-            var contains = false;
-            string result;
-            lock (s_EnumNameCacheLock)
-            {
-                contains = s_EnumNameCache.TryGetValue(enumValue, out result);
-            }
-
-            if (!contains)
-            {
-                lock (s_EnumNameCacheLock) 
-                {
-                    if (!s_EnumNameCache.TryGetValue(enumValue, out result)) 
-                    {
-                        result = enumValue.ToString("F");
-                        s_EnumNameCache[enumValue] = result;
-                    }
-                }
-            }
-            return result;
+            return s_EnumNameCache.GetValueOrUpdate(enumValue, (ev) => ev.ToString("F"));
         }
 
         public static object Parse(string str, Type enumType)
         {
-            var contains = false;
-            Dictionary<string, object> typeDict;
-            lock (s_EnumTypeCacheLock)
+            if (!String.IsNullOrEmpty(str))
             {
-                contains = s_EnumTypeCache.TryGetValue(enumType, out typeDict);
+                var typeDict = s_EnumTypeCache.GetValueOrUpdate(enumType, (et) => new JaysonSynchronizedDictionary<string, object>());
+                return typeDict.GetValueOrUpdate(str, (s) => Enum.Parse(enumType, s));
             }
-
-            if (!contains)
-            {
-                lock (s_EnumTypeCacheLock) 
-                {
-                    if (!s_EnumTypeCache.TryGetValue(enumType, out typeDict)) 
-                    {
-                        typeDict = new Dictionary<string, object>();
-                        s_EnumTypeCache[enumType] = typeDict;
-                    }
-                }
-            }
-
-            object result;
-            if (!typeDict.TryGetValue(str, out result)) 
-            {
-                lock (typeDict) 
-                {
-                    if (!typeDict.TryGetValue(str, out result)) 
-                    {
-                        result = Enum.Parse(enumType, str);
-                        typeDict[str] = result;
-                    }
-                }
-            }
-
-            return result;
+            return null;
         }
     }
 

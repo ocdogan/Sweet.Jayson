@@ -40,3 +40,6 @@ Sweet.Jayson.Tests/bin/Debug/NET35/nunit.framework.xml
 *.zip
 
 *.user
+*.suo
+Sweet.Jayson.Tests/bin/Debug/NET40/nunit.framework.xml
+*.xml

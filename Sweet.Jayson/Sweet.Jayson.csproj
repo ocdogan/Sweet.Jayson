@@ -54,6 +54,7 @@
     <Compile Include="JaysonOrderedDictionary.cs" />
     <Compile Include="JaysonSerDeserSettings.cs" />
     <Compile Include="JaysonSerializationReferenceMap.cs" />
+    <Compile Include="JaysonSynchronizedDictionary.cs" />
     <Compile Include="JaysonTuple.cs" />
     <Compile Include="JaysonTypeMemberCache.cs" />
     <Compile Include="JaysonTypeName.cs" />

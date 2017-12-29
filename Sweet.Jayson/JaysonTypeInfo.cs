@@ -129,8 +129,7 @@ namespace Sweet.Jayson
 
         # region Static Members
 
-        private static readonly object s_InfoCacheLock = new object();
-        private static Dictionary<Type, JaysonTypeInfo> s_InfoCache = new Dictionary<Type, JaysonTypeInfo>();
+        private static JaysonSynchronizedDictionary<Type, JaysonTypeInfo> s_InfoCache = new JaysonSynchronizedDictionary<Type, JaysonTypeInfo>();
 
         # endregion Static Members
 
@@ -684,25 +683,7 @@ namespace Sweet.Jayson
 
         public static JaysonTypeInfo GetTypeInfo(Type type)
         {
-            var contains = false;
-            JaysonTypeInfo info;
-            lock (s_InfoCacheLock)
-            {
-                contains = s_InfoCache.TryGetValue(type, out info);
-            }
-
-            if (!contains)
-            {
-                lock (s_InfoCacheLock)
-                {
-                    if (!s_InfoCache.TryGetValue(type, out info))
-                    {
-                        info = new JaysonTypeInfo(type);
-                        s_InfoCache[type] = info;
-                    }
-                }
-            }
-            return info;
+            return s_InfoCache.GetValueOrUpdate(type, (t) => new JaysonTypeInfo(t));
         }
 
         public static string GetTypeName(Type type, JaysonTypeNameInfo nameInfo)

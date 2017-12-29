@@ -23,7 +23,6 @@
 # endregion License
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -33,36 +32,19 @@ namespace Sweet.Jayson
 
     internal static class JaysonAnonymousTypeHelper
     {
-        private static object s_AnonymousTypeCacheLock = new object();
-        private static Dictionary<Type, bool> s_AnonymousTypeCache = new Dictionary<Type, bool>(10);
+        private static JaysonSynchronizedDictionary<Type, bool> s_AnonymousTypeCache = new JaysonSynchronizedDictionary<Type, bool>(10);
 
         public static bool IsAnonymousType(Type objType)
         {
             if (objType != null)
             {
-                var contains = false;
-                bool result;
-                lock (s_AnonymousTypeCache)
-                {
-                    contains = s_AnonymousTypeCache.TryGetValue(objType, out result);
-                }
-
-                if (!contains)
-                {
-                    lock (s_AnonymousTypeCacheLock)
+                return s_AnonymousTypeCache.GetValueOrUpdate(objType, (t) =>
                     {
-                        if (!s_AnonymousTypeCache.TryGetValue(objType, out result))
-                        {
-                            result = objType.IsGenericType &&
-                                (objType.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic &&
-                                IsAnonymousType(objType.Name) &&
-                                Attribute.IsDefined(objType, typeof(CompilerGeneratedAttribute), false);
-
-                            s_AnonymousTypeCache[objType] = result;
-                            return result;
-                        }
-                    }
-                }
+                        return t.IsGenericType &&
+                                (t.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic &&
+                                IsAnonymousType(t.Name) &&
+                                Attribute.IsDefined(t, typeof(CompilerGeneratedAttribute), false);
+                    });
             }
             return false;
         }

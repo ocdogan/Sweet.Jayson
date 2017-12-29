@@ -31,7 +31,7 @@ namespace Sweet.Jayson
     {
         # region Field Members
 
-        private Dictionary<int, Type> m_Ids = new Dictionary<int, Type>();
+        private readonly JaysonSynchronizedDictionary<int, Type> m_Ids = new JaysonSynchronizedDictionary<int, Type>();
 
         # endregion Field Members
 

@@ -35,33 +35,12 @@ namespace Sweet.Jayson
 
     internal static class JaysonObjectConstructor
     {
-        private static readonly object s_LockCacheLock = new object();
-        private static readonly Dictionary<Type, object> s_LockCache = new Dictionary<Type, object>();
-
-        private static readonly object s_DefaultCacheLock = new object();
-        private static readonly Dictionary<Type, Func<object>> s_DefaultCache = new Dictionary<Type, Func<object>>();
+        private static readonly JaysonSynchronizedDictionary<Type, object> s_LockCache = new JaysonSynchronizedDictionary<Type, object>();
+        private static readonly JaysonSynchronizedDictionary<Type, Func<object>> s_DefaultCache = new JaysonSynchronizedDictionary<Type, Func<object>>();
 
         private static object GetLock(Type objType)
         {
-            var contains = false;
-            object result;
-            lock (s_LockCacheLock)
-            {
-                contains = s_LockCache.TryGetValue(objType, out result);
-            }
-
-            if (!contains)
-            {
-                lock (s_LockCacheLock)
-                {
-                    if (!s_LockCache.TryGetValue(objType, out result))
-                    {
-                        result = new object();
-                        s_LockCache[objType] = result;
-                    }
-                }
-            }
-            return result;
+            return s_LockCache.GetValueOrUpdate(objType, (t) => new object());
         }
 
         public static object New(Type objType)
@@ -69,56 +48,33 @@ namespace Sweet.Jayson
             if ((objType == null) || objType.IsInterface || objType.IsAbstract)
                 return null;
 
-            var contains = false;
-            Func<object> function;
-            lock (s_DefaultCacheLock)
-            {
-                contains = s_DefaultCache.TryGetValue(objType, out function);
-            }
-
-            if (!contains)
-            {
+            var function = s_DefaultCache.GetValueOrUpdate(objType, (t) => {
                 var info = JaysonTypeInfo.GetTypeInfo(objType);
-                lock (info.SyncRoot)
-                {
-                    lock (s_DefaultCacheLock)
-                    {
-                        if (!s_DefaultCache.TryGetValue(objType, out function))
-                        {
-                            if (info.JTypeCode == JaysonTypeCode.String)
-                            {
-                                function = Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
-                            }
-                            else if (info.Enum)
-                            {
-                                function = () => Enum.ToObject(objType, 0L);
-                            }
-                            else if (info.DefaultJConstructor)
-                            {
-                                var newExp = (Expression)Expression.New(objType);
-                                newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
-                                function = Expression.Lambda<Func<object>>(newExp).Compile();
-                            }
-                            else
-                            {
-                                var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(objType);
-                                if (ctorInfo.HasCtor && !ctorInfo.HasParam)
-                                {
-                                    var newExp = (Expression)Expression.New(objType);
-                                    newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
-                                    function = Expression.Lambda<Func<object>>(newExp).Compile();
-                                }
-                                else
-                                {
-                                    function = () => FormatterServices.GetUninitializedObject(objType);
-                                }
-                            }
 
-                            s_DefaultCache[objType] = function;
-                        }
-                    }
+                if (info.JTypeCode == JaysonTypeCode.String)
+                    return Expression.Lambda<Func<object>>(Expression.Constant(String.Empty)).Compile();
+                
+                if (info.Enum)
+                    return () => Enum.ToObject(t, 0L);
+
+                if (info.DefaultJConstructor)
+                {
+                    var newExp = (Expression)Expression.New(t);
+                    newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
+                    return Expression.Lambda<Func<object>>(newExp).Compile();
                 }
-            }
+
+                var ctorInfo = JaysonCtorInfo.GetDefaultCtorInfo(t);
+                if (ctorInfo.HasCtor && !ctorInfo.HasParam)
+                {
+                    var newExp = (Expression)Expression.New(t);
+                    newExp = !info.ValueType ? newExp : Expression.Convert(newExp, typeof(object));
+                    return Expression.Lambda<Func<object>>(newExp).Compile();
+                }
+
+                return () => FormatterServices.GetUninitializedObject(t);
+            });
+
             return function();
         }
     }
