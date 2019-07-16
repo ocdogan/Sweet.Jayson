@@ -33,8 +33,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading;
 
 namespace Sweet.Jayson
 {
@@ -46,7 +44,7 @@ namespace Sweet.Jayson
 
         private static int s_IsMono = -1;
 
-        private static readonly int LowerCaseDif = (int)'a' - (int)'A';
+        private static readonly int LowerCaseDif = 'a' - 'A';
 
         private static TimeSpan s_UtcOffsetUpdate;
         private static long s_LastUtcOffsetUpdate = -1;
@@ -68,8 +66,8 @@ namespace Sweet.Jayson
         private static readonly JaysonSynchronizedDictionary<string, Type> s_TypeCache = new JaysonSynchronizedDictionary<string, Type>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
         private static readonly JaysonSynchronizedDictionary<string, Assembly> s_AssemblyCache = new JaysonSynchronizedDictionary<string, Assembly>(JaysonConstants.CacheInitialCapacity, StringComparer.OrdinalIgnoreCase);
         private static readonly JaysonSynchronizedDictionary<Assembly, string> s_AssemblyNameCache = new JaysonSynchronizedDictionary<Assembly, string>(JaysonConstants.CacheInitialCapacity);
-        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericListArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);        
-        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericCollectionArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);       
+        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericListArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
+        private static readonly JaysonSynchronizedDictionary<Type, Type> s_GenericCollectionArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
         private static readonly JaysonSynchronizedDictionary<Type, Type[]> s_GenericDictionaryArgs = new JaysonSynchronizedDictionary<Type, Type[]>(JaysonConstants.CacheInitialCapacity);
 #if !(NET3500 || NET3000 || NET2000)
         private static readonly JaysonSynchronizedDictionary<Type, Type> s_ProducerConsumerCollectionArgs = new JaysonSynchronizedDictionary<Type, Type>(JaysonConstants.CacheInitialCapacity);
@@ -387,36 +385,33 @@ namespace Sweet.Jayson
             TimeSpan timeSpan;
             ParseIso8601DateTimeOffset(str, out dateTime, out timeSpan);
 
-            if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) // If DateTime equals to MinValue or MaxValue, return
-            {
-                return dateTime;
-            }
-
-
             switch (timeZoneType)
             {
                 case JaysonDateTimeZoneType.ConvertToUtc:
                     {
-                        if (timeSpan == TimeSpan.Zero)
+                        if (timeSpan == TimeSpan.Zero || dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
                         {
                             return new DateTime(dateTime.Ticks, DateTimeKind.Utc);
                         }
+                      
                         return new DateTime(dateTime.Subtract(timeSpan).Ticks, DateTimeKind.Utc);
                     }
                 case JaysonDateTimeZoneType.ConvertToLocal:
                     {
-                        if (timeSpan == TimeSpan.Zero)
+                        if (timeSpan == TimeSpan.Zero || dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
                         {
                             return ToLocalTime(dateTime);
                         }
+
                         return ToLocalTime(dateTime.Subtract(timeSpan));
                     }
                 default:
                     {
-                        if (timeSpan == TimeSpan.Zero)
+                        if (timeSpan == TimeSpan.Zero || dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
                         {
                             return dateTime;
                         }
+
                         return ToLocalTime(dateTime.Subtract(timeSpan));
                     }
             }
@@ -473,30 +468,30 @@ namespace Sweet.Jayson
 
                 if (str[2] == '-')
                 {
-                    day = 10 * (int)(str[0] - '0') + (int)(str[1] - '0');
-                    month = 10 * (int)(str[3] - '0') + (int)(str[4] - '0');
+                    day = 10 * (str[0] - '0') + (str[1] - '0');
+                    month = 10 * (str[3] - '0') + (str[4] - '0');
 
-                    year = 1000 * (int)(str[6] - '0') + 100 * (int)(str[7] - '0') +
-                        10 * (int)(str[8] - '0') + (int)(str[9] - '0');
+                    year = 1000 * (str[6] - '0') + 100 * (str[7] - '0') +
+                        10 * (str[8] - '0') + (str[9] - '0');
                     pos = 10;
                 }
                 else
                 {
-                    year = 1000 * (int)(str[0] - '0') + 100 * (int)(str[1] - '0') +
-                        10 * (int)(str[2] - '0') + (int)(str[3] - '0');
+                    year = 1000 * (str[0] - '0') + 100 * (str[1] - '0') +
+                        10 * (str[2] - '0') + (str[3] - '0');
 
                     ch = str[4];
                     basic = ch >= '0' && ch <= '9';
                     if (basic)
                     {
-                        month = 10 * (int)(str[4] - '0') + (int)(str[5] - '0');
-                        day = 10 * (int)(str[6] - '0') + (int)(str[7] - '0');
+                        month = 10 * (str[4] - '0') + (str[5] - '0');
+                        day = 10 * (str[6] - '0') + (str[7] - '0');
                         pos = 8;
                     }
                     else
                     {
-                        month = 10 * (int)(str[5] - '0') + (int)(str[6] - '0');
-                        day = 10 * (int)(str[8] - '0') + (int)(str[9] - '0');
+                        month = 10 * (str[5] - '0') + (str[6] - '0');
+                        day = 10 * (str[8] - '0') + (str[9] - '0');
                         pos = 10;
                     }
                 }
@@ -525,7 +520,7 @@ namespace Sweet.Jayson
                 int second = 0;
                 int millisecond = 0;
 
-                int hour = 10 * (int)(str[pos + 1] - '0') + (int)(str[pos + 2] - '0');
+                int hour = 10 * (str[pos + 1] - '0') + (str[pos + 2] - '0');
                 pos += 3;
 
                 if (pos < length)
@@ -533,7 +528,7 @@ namespace Sweet.Jayson
                     ch = str[pos];
                     if (ch == ':')
                     {
-                        minute = 10 * (int)(str[pos + 1] - '0') + (int)(str[pos + 2] - '0');
+                        minute = 10 * (str[pos + 1] - '0') + (str[pos + 2] - '0');
                         pos += 3;
 
                         if (pos < length)
@@ -541,14 +536,14 @@ namespace Sweet.Jayson
                             ch = str[pos];
                             if (ch == ':')
                             {
-                                second = 10 * (int)(str[pos + 1] - '0') + (int)(str[pos + 2] - '0');
+                                second = 10 * (str[pos + 1] - '0') + (str[pos + 2] - '0');
                                 pos += 3;
                             }
                         }
                     }
                     else if (basic)
                     {
-                        minute = 10 * (int)(str[pos] - '0') + (int)(str[pos + 1] - '0');
+                        minute = 10 * (str[pos] - '0') + (str[pos + 1] - '0');
                         pos += 2;
 
                         if (pos < length)
@@ -556,7 +551,7 @@ namespace Sweet.Jayson
                             ch = str[pos];
                             if (ch >= '0' || ch <= '9')
                             {
-                                second = 10 * (int)(str[pos] - '0') + (int)(str[pos + 1] - '0');
+                                second = 10 * (str[pos] - '0') + (str[pos + 1] - '0');
                                 pos += 2;
                             }
                         }
@@ -586,7 +581,7 @@ namespace Sweet.Jayson
                                 if (msIndex < 4)
                                 {
                                     millisecond *= 10;
-                                    millisecond += (int)(ch - '0');
+                                    millisecond += ch - '0';
                                 }
                             }
                         }
@@ -596,7 +591,7 @@ namespace Sweet.Jayson
                             ch = str[pos];
                             if (ch == '+' || ch == '-')
                             {
-                                int tzHour = 10 * (int)(str[pos + 1] - '0') + (int)(str[pos + 2] - '0');
+                                int tzHour = 10 * (str[pos + 1] - '0') + (str[pos + 2] - '0');
                                 int tzMinute = 0;
                                 pos += 3;
 
@@ -608,7 +603,7 @@ namespace Sweet.Jayson
                                         pos++;
                                     }
 
-                                    tzMinute = 10 * (int)(str[pos] - '0') + (int)(str[pos + 1] - '0');
+                                    tzMinute = 10 * (str[pos] - '0') + (str[pos + 1] - '0');
                                 }
 
                                 timeSpan = new TimeSpan(tzHour, tzMinute, 0);
@@ -665,12 +660,15 @@ namespace Sweet.Jayson
                 if (ch < '0' || ch > '9')
                 {
                     if (l == 0 && IsWhiteSpace(ch))
+                    {
                         continue;
+                    }
+
                     throw new JaysonException(JaysonError.InvalidJsonDateFormat);
                 }
 
                 l *= 10;
-                l += (long)(ch - '0');
+                l += ch - '0';
             }
 
             if (timeZonePos == -1)
@@ -1171,7 +1169,9 @@ namespace Sweet.Jayson
                     for (int i = 0; i < length2; i++)
                     {
                         if (str1[i] != str2[i])
+                        {
                             return false;
+                        }
                     }
                     return true;
                 }
@@ -1196,7 +1196,9 @@ namespace Sweet.Jayson
                     for (int i = 0; i < length2; i++)
                     {
                         if (str1[i] != str2[i])
+                        {
                             return false;
+                        }
                     }
                     return true;
                 }
@@ -1205,7 +1207,9 @@ namespace Sweet.Jayson
                     for (int i = length2 - 1; i > -1; i--)
                     {
                         if (str1[offset + i] != str2[i])
+                        {
                             return false;
+                        }
                     }
                     return true;
                 }
@@ -1260,7 +1264,7 @@ namespace Sweet.Jayson
                             chArray[j] = asciiStr[j];
                         }
                     }
-                    chArray[i] = (char)((int)ch + LowerCaseDif);
+                    chArray[i] = (char)(ch + LowerCaseDif);
                     start = i + 1;
                 }
             }
@@ -1319,7 +1323,7 @@ namespace Sweet.Jayson
                             chArray[j] = asciiStr[j];
                         }
                     }
-                    chArray[i] = (char)((int)ch - LowerCaseDif);
+                    chArray[i] = (char)(ch - LowerCaseDif);
                     start = i + 1;
                 }
             }
@@ -1575,7 +1579,10 @@ namespace Sweet.Jayson
         public static string GetAssemblyName(Assembly asm)
         {
             if (asm != null)
+            {
                 return s_AssemblyNameCache.GetValueOrUpdate(asm, (a) => a.GetName().Name);
+            }
+
             return null;
         }
 
@@ -1588,7 +1595,9 @@ namespace Sweet.Jayson
                         foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                         {
                             if (GetAssemblyName(asm).Equals(assemblyName, StringComparison.OrdinalIgnoreCase))
+                            {
                                 return asm;
+                            }
                         }
                         return null;
                     });
@@ -1646,10 +1655,10 @@ namespace Sweet.Jayson
                             }
 
                             s_TypeCache[typeName] = null;
-                            return (Type)null;
+                            return null;
                         }
 
-                        #if (NET3500 || NET3000 || NET2000)
+#if (NET3500 || NET3000 || NET2000)
                         var assemblyName = (typeName.Substring(asmNameSepPos + 1, typeName.Length - asmNameSepPos - 1) ?? String.Empty).Trim();
                         if (!String.IsNullOrEmpty(assemblyName))
                         {
@@ -1674,7 +1683,7 @@ namespace Sweet.Jayson
                                 }
                             }
                         }
-                        #else
+#else
                         result = Type.GetType(typeName,
                             (assemblyRef) =>
                                 {
@@ -1715,7 +1724,7 @@ namespace Sweet.Jayson
                                             { }
                                         }
                                     }
-                                    return (Assembly)null;
+                                    return null;
                                 },
                             (assembly, name, ignoreCase) =>
                                 {
@@ -1738,14 +1747,14 @@ namespace Sweet.Jayson
                                                 {
                                                     typeRef = asm.GetType(name, false, ignoreCase);
                                                     if (typeRef != null)
-                                                    {                                                        
+                                                    {
                                                         return typeRef;
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                    return (Type)null;
+                                    return null;
                                 });
 #endif
                     }
@@ -2016,7 +2025,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (byte?)null;
+                    return null;
                 }
                 return (byte?)byte.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2048,7 +2057,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (sbyte?)null;
+                    return null;
                 }
                 return (sbyte?)sbyte.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2066,7 +2075,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (ushort?)null;
+                    return null;
                 }
                 return (ushort?)ushort.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2084,7 +2093,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (ulong?)null;
+                    return null;
                 }
                 return (ulong?)ulong.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2102,7 +2111,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (uint?)null;
+                    return null;
                 }
                 return (uint?)uint.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2185,14 +2194,14 @@ namespace Sweet.Jayson
         {
             if (value == null)
             {
-                return (char?)null;
+                return null;
             }
             if (value is string)
             {
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (char?)null;
+                    return null;
                 }
                 return (char?)s[0];
             }
@@ -2214,7 +2223,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (TimeSpan?)null;
+                    return null;
                 }
 #if !(NET3500 || NET3000 || NET2000)
                 return (TimeSpan?)TimeSpan.Parse(s, JaysonConstants.InvariantCulture);
@@ -2282,7 +2291,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (decimal?)null;
+                    return null;
                 }
                 return (decimal?)decimal.Parse(s, NumberStyles.Float, JaysonConstants.InvariantCulture);
             }
@@ -2300,7 +2309,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (float?)null;
+                    return null;
                 }
 #if !(NET3500 || NET3000 || NET2000)
                 float result;
@@ -2494,7 +2503,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (short?)null;
+                    return null;
                 }
                 return (short?)short.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2512,7 +2521,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (double?)null;
+                    return null;
                 }
 #if !(NET3500 || NET3000 || NET2000)
                 double result;
@@ -2546,7 +2555,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (long?)null;
+                    return null;
                 }
                 return (long?)long.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2564,7 +2573,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (bool?)null;
+                    return null;
                 }
                 return (bool?)ParseBoolean(s);
             }
@@ -2582,7 +2591,7 @@ namespace Sweet.Jayson
                 var s = (string)value;
                 if (s.Length == 0)
                 {
-                    return (int?)null;
+                    return null;
                 }
                 return (int?)int.Parse(s, NumberStyles.Integer, JaysonConstants.InvariantCulture);
             }
@@ -2715,7 +2724,10 @@ namespace Sweet.Jayson
         public static bool IsWhiteSpace(int ch)
         {
             if (ch != 32 && (ch < 9 || ch > 13) && ch != 160)
+            {
                 return ch == 133;
+            }
+
             return true;
         }
 
@@ -2747,7 +2759,7 @@ namespace Sweet.Jayson
 
         internal static bool IsGenericCollection(Type objType)
         {
-            return s_IsGenericCollection.GetValueOrUpdate(objType, (t) => 
+            return s_IsGenericCollection.GetValueOrUpdate(objType, (t) =>
                 {
                     Type[] arguments;
                     var found = FindInterface(t, typeof(ICollection<>), out arguments);
@@ -2801,13 +2813,13 @@ namespace Sweet.Jayson
 
         internal static Type GetGenericCollectionArgs(Type objType)
         {
-            return s_GenericCollectionArgs.GetValueOrUpdate(objType, (t) => 
+            return s_GenericCollectionArgs.GetValueOrUpdate(objType, (t) =>
                 {
                     Type[] arguments;
                     var found = FindInterface(t, typeof(ICollection<>), out arguments);
 
                     s_IsGenericCollection[t] = found;
-                
+
                     return found ? arguments[0] : null;
                 });
         }
@@ -2830,7 +2842,7 @@ namespace Sweet.Jayson
 
         internal static Type[] GetGenericDictionaryArgs(Type objType)
         {
-            return s_GenericDictionaryArgs.GetValueOrUpdate(objType, (t) => 
+            return s_GenericDictionaryArgs.GetValueOrUpdate(objType, (t) =>
                 {
                     Type[] arguments;
                     s_IsGenericDictionary[t] = FindInterface(t, typeof(IDictionary<,>), out arguments);
@@ -2857,7 +2869,9 @@ namespace Sweet.Jayson
             for (int i = stack.Count - 1; i > -1; i--)
             {
                 if (obj == stack[i])
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -3018,7 +3032,9 @@ namespace Sweet.Jayson
                     {
                         method = methods[i];
                         if (method.Name == "Add" && method.GetParameters().Length == 1)
+                        {
                             return PrepareMethodCall(method);
+                        }
                     }
 
                     return null;
@@ -3036,10 +3052,12 @@ namespace Sweet.Jayson
                     {
                         method = methods[i];
                         if (method.Name == "Push" && method.GetParameters().Length == 1)
+                        {
                             return PrepareMethodCall(method);
+                        }
                     }
                     return null;
-                });            
+                });
         }
 
         internal static Action<object, object[]> GetQueueEnqueueMethod(Type objType)
@@ -3053,7 +3071,9 @@ namespace Sweet.Jayson
                     {
                         method = methods[i];
                         if (method.Name == "Enqueue" && method.GetParameters().Length == 1)
+                        {
                             return PrepareMethodCall(method);
+                        }
                     }
                     return null;
                 });
@@ -3071,7 +3091,9 @@ namespace Sweet.Jayson
                     {
                         method = methods[i];
                         if (method.Name == "Add" && method.GetParameters().Length == 1)
+                        {
                             return PrepareMethodCall(method);
+                        }
                     }
                     return null;
                 });
@@ -3095,12 +3117,14 @@ namespace Sweet.Jayson
                             {
                                 method = methods[i];
                                 if (method.Name == "TryAdd" && method.GetParameters().Length == 1)
+                                {
                                     return PrepareMethodCall(method);
+                                }
                             }
                         }
                     }
                     return null;
-                });            
+                });
         }
 #endif
 
@@ -3115,7 +3139,9 @@ namespace Sweet.Jayson
                     {
                         method = methods[i];
                         if (method.Name == "Add" && method.GetParameters().Length == 2)
+                        {
                             return PrepareMethodCall(method);
+                        }
                     }
                     return null;
                 });
@@ -3153,22 +3179,26 @@ namespace Sweet.Jayson
             return JaysonDictionaryType.Undefined;
         }
 
-        public static bool IsNull (object value, JaysonFloatSerStrategy floatNanStrategy,
+        public static bool IsNull(object value, JaysonFloatSerStrategy floatNanStrategy,
             JaysonFloatSerStrategy floatInfinityStrategy)
         {
             if ((value == null) || (value == DBNull.Value))
+            {
                 return true;
-
-            if (value is double) {
-                var d = (double)value;
-                return (double.IsNaN (d) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
-                    (double.IsInfinity (d) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
             }
 
-            if (value is float) {
+            if (value is double)
+            {
+                var d = (double)value;
+                return (double.IsNaN(d) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                    (double.IsInfinity(d) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
+            }
+
+            if (value is float)
+            {
                 var f = (float)value;
-                return (float.IsNaN (f) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
-                    (float.IsInfinity (f) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
+                return (float.IsNaN(f) && floatNanStrategy == JaysonFloatSerStrategy.ToNull) ||
+                    (float.IsInfinity(f) && floatInfinityStrategy == JaysonFloatSerStrategy.ToNull);
             }
             return false;
         }
