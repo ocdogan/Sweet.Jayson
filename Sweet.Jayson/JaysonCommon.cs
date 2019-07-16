@@ -385,10 +385,6 @@ namespace Sweet.Jayson
             TimeSpan timeSpan;
             ParseIso8601DateTimeOffset(str, out dateTime, out timeSpan);
 
-	    if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) // If DateTime equals to MinValue or MaxValue, return
-            {
-                return dateTime;
-            }
             switch (timeZoneType)
             {
                 case JaysonDateTimeZoneType.ConvertToUtc:
@@ -397,12 +393,17 @@ namespace Sweet.Jayson
                         {
                             return new DateTime(dateTime.Ticks, DateTimeKind.Utc);
                         }
-                      
+
                         return new DateTime(dateTime.Subtract(timeSpan).Ticks, DateTimeKind.Utc);
                     }
                 case JaysonDateTimeZoneType.ConvertToLocal:
                     {
-                        if (timeSpan == TimeSpan.Zero || dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
+                        if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
+                        {
+                            return dateTime;
+                        }
+
+                        if (timeSpan == TimeSpan.Zero)
                         {
                             return ToLocalTime(dateTime);
                         }
