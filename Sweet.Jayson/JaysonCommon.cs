@@ -385,6 +385,10 @@ namespace Sweet.Jayson
             TimeSpan timeSpan;
             ParseIso8601DateTimeOffset(str, out dateTime, out timeSpan);
 
+	    if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) // If DateTime equals to MinValue or MaxValue, return
+            {
+                return dateTime;
+            }
             switch (timeZoneType)
             {
                 case JaysonDateTimeZoneType.ConvertToUtc:
